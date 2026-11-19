@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -74,8 +75,13 @@ export default function TransactionsPage() {
 
   return (
     <section>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Transactions</h1>
+      <div className="relative [&>a]:absolute [&>a]:right-6 [&>a]:top-6 [&>a]:z-10 [&>button]:absolute [&>button]:right-6 [&>button]:top-6 [&>button]:z-10">
+        <PageHero
+          eyebrow="Data"
+          title="Transactions"
+          tone="indigo"
+          scene="flow"
+        />
         {can("imports.create") && (
           <Link
             to="/imports/new"

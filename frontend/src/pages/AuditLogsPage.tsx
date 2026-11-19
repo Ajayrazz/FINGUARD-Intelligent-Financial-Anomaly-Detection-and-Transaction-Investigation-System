@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import {
   Card3D,
   CardGrid,
@@ -48,7 +49,12 @@ export default function AuditLogsPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-semibold">Audit logs</h1>
+      <PageHero
+        eyebrow="Govern"
+        title="Audit logs"
+        tone="amber"
+        scene="ledger"
+      />
       <div className="mt-2">
         <ViewToggle mode={view} onChange={setView} />
       </div>

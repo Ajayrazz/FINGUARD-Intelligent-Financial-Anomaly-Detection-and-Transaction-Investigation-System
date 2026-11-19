@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import { EChart } from "../components/charts/EChart";
 import {
   Card3D,
@@ -93,7 +94,12 @@ export default function ModelPerformancePage() {
   }, [rows]);
   return (
     <section>
-      <h1 className="text-2xl font-semibold">Model Performance</h1>
+      <PageHero
+        eyebrow="Govern"
+        title="Model Performance"
+        tone="cyan"
+        scene="bars"
+      />
       <p className="mt-1 text-sm text-slate-600">
         Offline results on held-out, chronologically later data from the
         research datasets (not on platform data). Ranked by PR-AUC, the primary

@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import {
   Card3D,
   CardGrid,
@@ -147,7 +148,12 @@ export default function GraphOverviewPage() {
   });
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Relationship Graph</h1>
+      <PageHero
+        eyebrow="Detect"
+        title="Relationship Graph"
+        tone="green"
+        scene="graph"
+      />
       <p className="text-sm text-slate-600">
         Build a graph of who paid whom, review detected patterns, then open any
         account's network.

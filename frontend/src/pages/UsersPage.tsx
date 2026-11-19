@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import {
   Card3D,
   CardGrid,
@@ -34,7 +35,12 @@ export default function UsersPage() {
   const { can } = useAuth();
   return (
     <section>
-      <h1 className="text-2xl font-semibold">User management</h1>
+      <PageHero
+        eyebrow="Govern"
+        title="User management"
+        tone="indigo"
+        scene="people"
+      />
       <div role="tablist" className="mt-4 flex gap-2 border-b border-slate-200">
         {(["users", "roles"] as const).map((t) => (
           <button

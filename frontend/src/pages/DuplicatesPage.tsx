@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api, ApiError, downloadFile } from "../api/client";
@@ -615,7 +616,12 @@ export default function DuplicatesPage() {
   });
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Duplicate Detection</h1>
+      <PageHero
+        eyebrow="Detect"
+        title="Duplicate Detection"
+        tone="amber"
+        scene="merge"
+      />
       <p className="text-sm text-slate-600">
         Repeated payments and duplicate invoices. Review each candidate before
         it counts: scores are evidence, not proof.

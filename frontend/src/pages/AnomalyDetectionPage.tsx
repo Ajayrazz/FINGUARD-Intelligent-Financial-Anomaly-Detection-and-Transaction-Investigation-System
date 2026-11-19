@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -111,7 +112,12 @@ export default function AnomalyDetectionPage() {
   });
   return (
     <section>
-      <h1 className="text-2xl font-semibold">Anomaly Detection</h1>
+      <PageHero
+        eyebrow="Detect"
+        title="Anomaly Detection"
+        tone="violet"
+        scene="radar"
+      />
       <p className="mt-1 text-sm text-slate-600">
         Score a dataset's transactions with a registered model and review the
         highest-scoring ones.

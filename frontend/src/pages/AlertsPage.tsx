@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import {
   Card3D,
   CardGrid,
@@ -453,7 +454,7 @@ export default function AlertsPage() {
     };
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Alerts</h1>
+      <PageHero eyebrow="Respond" title="Alerts" tone="red" scene="beacon" />
       <p className="text-sm text-slate-600">
         Prioritised queue: open before closed, then severity, then risk score,
         then newest. The same event never makes a second alert.

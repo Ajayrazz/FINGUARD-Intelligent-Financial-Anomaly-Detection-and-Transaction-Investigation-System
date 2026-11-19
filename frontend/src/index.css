@@ -175,3 +175,23 @@ main a:not([class*="bg-"]) {
 }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* ---------- page hero scenes (decorative, all disabled by prefers-reduced-motion) ---------- */
+@keyframes spin3d { from { transform: rotateX(-24deg) rotateY(0deg); } to { transform: rotateX(-24deg) rotateY(360deg); } }
+@keyframes sweep { to { transform: rotate(360deg); } }
+@keyframes ping-ring { 0% { transform: scale(0.3); opacity: 0.9; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes merge-l { 0%, 100% { transform: translateX(-34px) rotateY(18deg); } 50% { transform: translateX(-6px) rotateY(8deg); } }
+@keyframes merge-r { 0%, 100% { transform: translateX(34px) rotateY(-18deg); } 50% { transform: translateX(6px) rotateY(-8deg); } }
+@keyframes needle { 0%, 100% { transform: rotate(-62deg); } 45% { transform: rotate(48deg); } 70% { transform: rotate(22deg); } }
+@keyframes grow { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+@keyframes ledger { from { background-position: 0 0; } to { background-position: 0 -48px; } }
+@keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(14px); } }
+.scene-3d { perspective: 700px; transform-style: preserve-3d; }
+.cube { position: relative; width: 90px; height: 90px; transform-style: preserve-3d; animation: spin3d 14s linear infinite; }
+.cube > span { position: absolute; inset: 0; border: 1px solid rgb(165 180 252 / 0.6); background: rgb(79 70 229 / 0.18); backdrop-filter: blur(2px); }
+.cube > span:nth-child(1) { transform: translateZ(45px); }
+.cube > span:nth-child(2) { transform: rotateY(90deg) translateZ(45px); }
+.cube > span:nth-child(3) { transform: rotateY(180deg) translateZ(45px); }
+.cube > span:nth-child(4) { transform: rotateY(-90deg) translateZ(45px); }
+.cube > span:nth-child(5) { transform: rotateX(90deg) translateZ(45px); }
+.cube > span:nth-child(6) { transform: rotateX(-90deg) translateZ(45px); }

@@ -13,8 +13,14 @@ const NAV: Record<Role, string[]> = {
 for (const [role, expected] of Object.entries(NAV) as [Role, string[]][]) {
   test(`the ${role} sees exactly the pages their role allows`, async ({ page }) => {
     await login(page, role)
-    const links = await page.getByRole('navigation', { name: 'Main' }).getByRole('link').allInnerTexts()
-    expect(links.filter((l) => l !== 'FinGuard')).toEqual(expected) // the logo link to the public home page is not a page of the app
+    const nav = page.getByRole('navigation', { name: 'Main' })
+    const links = await nav.getByRole('link', { name: 'Dashboard', exact: true }).allInnerTexts()
+    for (const group of await nav.getByRole('button', { expanded: false }).filter({ hasText: /▾/ }).all()) {
+      await group.click()
+      links.push(...(await nav.locator('[data-group-panel] a').locator('span.font-medium').allInnerTexts()))
+      await page.keyboard.press('Escape')
+    }
+    expect(links.filter((l) => l !== 'FinGuard').sort()).toEqual([...expected].sort()) // order is by menu group
   })
 }
 

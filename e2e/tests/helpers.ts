@@ -16,11 +16,22 @@ export async function login(page: Page, role: Role, startAt = '/login'): Promise
   await page.getByLabel('Password').fill(credentials(role).password)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible()
+  await page.waitForLoadState('networkidle') // the dashboard's own requests finish before tests call the API directly
 }
 
 /** Navigate inside the SPA through the sidebar (no full page load, so no extra token refresh). */
 export async function goto(page: Page, label: string): Promise<void> {
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: label, exact: true }).click()
+  const nav = page.getByRole('navigation', { name: 'Main' })
+  const link = nav.getByRole('link', { name: label, exact: true })
+  if (!(await link.isVisible())) {
+    // the page lives inside one of the grouped menus: open them until the link shows
+    for (const group of await nav.getByRole('button', { expanded: false }).filter({ hasText: /▾/ }).all()) {
+      await group.click()
+      if (await link.isVisible()) break
+      await page.keyboard.press('Escape')
+    }
+  }
+  await link.click()
 }
 
 /** Call the API as the signed-in user (token from the refresh cookie; nothing is stored). */

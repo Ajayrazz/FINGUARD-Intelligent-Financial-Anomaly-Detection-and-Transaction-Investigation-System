@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import {
   Card3D,
   CardGrid,
@@ -77,8 +78,13 @@ export default function CasesPage() {
     };
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Investigations</h1>
+      <div className="relative [&>a]:absolute [&>a]:right-6 [&>a]:top-6 [&>a]:z-10 [&>button]:absolute [&>button]:right-6 [&>button]:top-6 [&>button]:z-10">
+        <PageHero
+          eyebrow="Respond"
+          title="Investigations"
+          tone="violet"
+          scene="cube"
+        />
         {can("cases.create") && (
           <Button variant="secondary" onClick={() => setCreating((v) => !v)}>
             {creating ? "Cancel" : "New case"}

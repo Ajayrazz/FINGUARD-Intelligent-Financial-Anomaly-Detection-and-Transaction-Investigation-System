@@ -1,3 +1,4 @@
+import { PageHero } from "../components/scenes/PageHero";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -274,7 +275,12 @@ export default function RiskAnalysisPage() {
   const total = latest ? Math.max(latest.rows_total, 1) : 1;
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Risk Analysis</h1>
+      <PageHero
+        eyebrow="Detect"
+        title="Risk Analysis"
+        tone="pink"
+        scene="gauge"
+      />
       <p className="text-sm text-slate-600">
         One 0–100 score per transaction from six signals, with every component
         and the signal coverage shown. Scores prioritise review; they are not
