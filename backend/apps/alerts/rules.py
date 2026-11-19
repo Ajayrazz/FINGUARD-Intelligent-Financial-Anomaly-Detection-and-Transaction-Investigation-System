@@ -44,8 +44,12 @@ DEFAULT_POLICY: dict[str, Any] = {
     "email": {"min_severity": "high", "recipients": []},
     "auto_evaluate": True,
     "max_alerts_per_rule": 500,
+    "auto_case": {
+        "enabled": True,
+        "min_severity": "critical",
+    },  # open a case automatically for alerts at/above this severity
 }
-RULE_KEYS = [k for k, v in DEFAULT_POLICY.items() if isinstance(v, dict) and "enabled" in v]
+RULE_KEYS = [k for k, v in DEFAULT_POLICY.items() if isinstance(v, dict) and "enabled" in v]  # includes auto_case
 
 
 class PolicyError(ValueError):
@@ -85,6 +89,8 @@ def validate_policy(p: dict[str, Any]) -> None:
         or p["dedup_bucket_hours"] > 24 * 30
     ):
         raise PolicyError("dedup_bucket_hours must be between 0 and 720")
+    if p["auto_case"]["min_severity"] not in SEVERITIES:
+        raise PolicyError("auto_case.min_severity must be low, medium, high or critical")
     if not isinstance(p["auto_evaluate"], bool):
         raise PolicyError("auto_evaluate must be true or false")
     cap = p["max_alerts_per_rule"]

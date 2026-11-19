@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { to: '/duplicates', label: 'Duplicate Detection', permission: 'duplicates.read' },
   { to: '/risk', label: 'Risk Analysis', permission: 'risk.read' },
   { to: '/alerts', label: 'Alerts', permission: 'alerts.read' },
+  { to: '/cases', label: 'Investigations', permission: 'cases.read' },
   { to: '/models', label: 'Model Performance', permission: 'models.read' },
   { to: '/users', label: 'User Management', permission: 'users.read' },
   { to: '/audit', label: 'Audit Logs', permission: 'audit.read' },

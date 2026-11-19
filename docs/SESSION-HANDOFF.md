@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Date:** 2026-11-19 · **Current phase:** 4 (import pipeline) — implemented & checked, awaiting approval · **Phases 5–11 complete** (doc 08/19) — awaiting approval · **Next:** Phase 12 (case management); F/H definitions (D-067) still await explicit confirmation; still open: RQ1 hybrid, RQ3 overlap, RQ2 (7B graph features)
+**Date:** 2026-11-19 · **Current phase:** 4 (import pipeline) — implemented & checked, awaiting approval · **Phases 5–12 complete** (doc 08/19) — awaiting approval · **Next:** Phase 13 (frontend completion: dashboard/analytics pages, E2E tests); D-014 and F/H definitions await explicit confirmation; F/H definitions (D-067) still await explicit confirmation; still open: RQ1 hybrid, RQ3 overlap, RQ2 (7B graph features)
 
 ## Completed
 - **Phases 1–2** (approved): Docker stack, Django/DRF/Celery/Channels skeleton, JWT auth, default-deny RBAC, audit log, users/roles/audit UI.

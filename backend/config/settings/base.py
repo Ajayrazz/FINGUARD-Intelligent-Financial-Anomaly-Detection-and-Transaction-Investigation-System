@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "apps.risk_engine",
     "apps.explain",
     "apps.alerts",
+    "apps.cases",
 ]
 
 MIDDLEWARE = [
@@ -136,6 +137,9 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env("EMAIL_USE_TLS", "0") == "1"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "FinGuard <noreply@finguard.local>")
 FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", "http://localhost:5173")
+CASE_EVIDENCE_MAX_BYTES = int(env("CASE_EVIDENCE_MAX_BYTES", str(20 * 1024**2)))
+# Four-eyes closure: when on, the person who closes a case must differ from the person who resolved it (docs/10, D-014).
+CASE_CLOSE_REQUIRES_DIFFERENT_USER = env("CASE_CLOSE_REQUIRES_DIFFERENT_USER", "0") == "1"
 RISK_MAX_ROWS = int(env("RISK_MAX_ROWS", "2000000"))
 INVOICE_MAX_BYTES = int(env("INVOICE_MAX_BYTES", str(10 * 1024**2)))
 DUPLICATE_MAX_ROWS = int(env("DUPLICATE_MAX_ROWS", "2000000"))

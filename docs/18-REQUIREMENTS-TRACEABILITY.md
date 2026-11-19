@@ -177,25 +177,25 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M9-01 | Automatic case creation | P0 | 12 | Ph11 alerts, Ph2 RBAC | Rule-based case from alert | Planned | TBD |
-| FR-M9-02 | Unique case ID generation | P0 | 12 | Ph11 alerts, Ph2 RBAC | DB-sequence FG-YYYY-NNNNNN | Planned | TBD |
-| FR-M9-03 | Suspicious transaction assignment | P0 | 12 | Ph11 alerts, Ph2 RBAC | Transactions attachable to case | Planned | TBD |
-| FR-M9-04 | Investigation status tracking | P0 | 12 | Ph11 alerts, Ph2 RBAC | Six statuses | Planned | TBD |
-| FR-M9-05 | Analyst comments | P0 | 12 | Ph11 alerts, Ph2 RBAC | Comments persisted | Planned | TBD |
-| FR-M9-06 | Investigation notes | P0 | 12 | Ph11 alerts, Ph2 RBAC | Versioned notes | Planned | TBD |
-| FR-M9-07 | Evidence attachments | P0 | 12 | Ph11 alerts, Ph2 RBAC | Hashed, access-controlled files | Planned | TBD |
-| FR-M9-08 | Transaction history review | P1 | 12 | Ph11 alerts, Ph2 RBAC | History view in case | Planned | TBD |
-| FR-M9-09 | Related account visualization | P1 | 12 | Ph11 alerts, Ph2 RBAC | Graph in case workspace | Planned | TBD |
-| FR-M9-10 | Investigation activity timeline | P0 | 12 | Ph11 alerts, Ph2 RBAC | CaseEvent timeline | Planned | TBD |
-| FR-M9-11 | Case closure | P0 | 12 | Ph11 alerts, Ph2 RBAC | Requires outcome; read-only after | Planned | TBD |
-| FR-M9-12 | Resolution reports | P1 | 12 | Ph11 alerts, Ph2 RBAC | PDF closure report | Planned | TBD |
-| FR-M9-13 | Role-based access management | P0 | 12 | Ph11 alerts, Ph2 RBAC | Matrix tests pass | Planned | TBD |
-| FR-M9-14 | Complete audit history | P0 | 12 | Ph11 alerts, Ph2 RBAC | Immutable events | Planned | TBD |
-| FR-M9-15 | Case filtering and searching | P0 | 12 | Ph11 alerts, Ph2 RBAC | Filters/search | Planned | TBD |
-| FR-M9-16 | Case prioritization | P1 | 12 | Ph11 alerts, Ph2 RBAC | Priority field/ordering | Planned | TBD |
-| FR-M9-17 | Case reassignment | P0 | 12 | Ph11 alerts, Ph2 RBAC | Reassign audited | Planned | TBD |
-| FR-M9-18 | Escalation workflow | P1 | 12 | Ph11 alerts, Ph2 RBAC | Escalated status with reason | Planned | TBD |
-| FR-M9-19 | Link multiple alerts to one case | P1 | 12 | Ph11 alerts, Ph2 RBAC | M2M link | Planned | TBD |
+| FR-M9-01 | Automatic case creation | P0 | 12 | Ph11 alerts, Ph2 RBAC | Rule-based case from alert | Tested | tests/test_cases.py (critical alerts open a case automatically; one case per account; policy can switch it off) |
+| FR-M9-02 | Unique case ID generation | P0 | 12 | Ph11 alerts, Ph2 RBAC | DB-sequence FG-YYYY-NNNNNN | Tested | tests/test_cases.py::test_case_refs_come_from_a_sequence_and_are_unique (FG-YYYY-NNNNNN from a database sequence) |
+| FR-M9-03 | Suspicious transaction assignment | P0 | 12 | Ph11 alerts, Ph2 RBAC | Transactions attachable to case | Tested | tests/test_cases.py (transactions attached from alerts or by hand; duplicates refused) |
+| FR-M9-04 | Investigation status tracking | P0 | 12 | Ph11 alerts, Ph2 RBAC | Six statuses | Tested | tests/test_cases.py (full 6x6 transition matrix: exactly 7 legal transitions, 29 refused with 409) |
+| FR-M9-05 | Analyst comments | P0 | 12 | Ph11 alerts, Ph2 RBAC | Comments persisted | Tested | tests/test_cases.py (comments by analysts) |
+| FR-M9-06 | Investigation notes | P0 | 12 | Ph11 alerts, Ph2 RBAC | Versioned notes | Tested | tests/test_cases.py (investigation notes with append-only revisions; only the author edits) |
+| FR-M9-07 | Evidence attachments | P0 | 12 | Ph11 alerts, Ph2 RBAC | Hashed, access-controlled files | Tested | tests/test_cases.py (content-validated, SHA-256 hashed, random-named files; integrity re-check on download; audited) |
+| FR-M9-08 | Transaction history review | P1 | 12 | Ph11 alerts, Ph2 RBAC | History view in case | Implemented | linked transactions table with links to transaction pages (pages/cases.test.tsx); no dedicated history view of the accounts' wider activity |
+| FR-M9-09 | Related account visualization | P1 | 12 | Ph11 alerts, Ph2 RBAC | Graph in case workspace | Implemented | accounts involved with links to each account's network page; no embedded graph diagram in the case (pages/cases.test.tsx) |
+| FR-M9-10 | Investigation activity timeline | P0 | 12 | Ph11 alerts, Ph2 RBAC | CaseEvent timeline | Tested | tests/test_cases.py (CaseEvent history, append-only trigger; every action recorded) |
+| FR-M9-11 | Case closure | P0 | 12 | Ph11 alerts, Ph2 RBAC | Requires outcome; read-only after | Tested | tests/test_cases.py (closing needs a resolved case with outcome; closed cases are read-only in the API and by database trigger) |
+| FR-M9-12 | Resolution reports | P1 | 12 | Ph11 alerts, Ph2 RBAC | PDF closure report | Tested | tests/test_cases.py::test_closure_report_is_a_pdf_* (PDF text checked: facts, outcome, evidence hashes, disclaimer; layout not visually inspected) |
+| FR-M9-13 | Role-based access management | P0 | 12 | Ph11 alerts, Ph2 RBAC | Matrix tests pass | Tested | tests/test_rbac_matrix.py (every case endpoint x 5 roles) and tests/test_cases.py (per-status permissions, four-eyes option, IDOR checks) |
+| FR-M9-14 | Complete audit history | P0 | 12 | Ph11 alerts, Ph2 RBAC | Immutable events | Tested | tests/test_cases.py (every action produces an audit record and a CaseEvent) |
+| FR-M9-15 | Case filtering and searching | P0 | 12 | Ph11 alerts, Ph2 RBAC | Filters/search | Tested | tests/test_cases.py (status, priority, assignee, outcome, search by reference/title/account) |
+| FR-M9-16 | Case prioritization | P1 | 12 | Ph11 alerts, Ph2 RBAC | Priority field/ordering | Tested | tests/test_cases.py (open first, then priority; closed last) |
+| FR-M9-17 | Case reassignment | P0 | 12 | Ph11 alerts, Ph2 RBAC | Reassign audited | Tested | tests/test_cases.py (assignment events; only users who can work cases) |
+| FR-M9-18 | Escalation workflow | P1 | 12 | Ph11 alerts, Ph2 RBAC | Escalated status with reason | Tested | tests/test_cases.py (escalation needs a reason; escalated <-> investigation) |
+| FR-M9-19 | Link multiple alerts to one case | P1 | 12 | Ph11 alerts, Ph2 RBAC | M2M link | Tested | tests/test_cases.py (several alerts per case; one case per account for automatic creation) |
 | FR-M9-20 | Record every important case action | P0 | 12 | Ph11 alerts, Ph2 RBAC | Action-coverage test | Planned | TBD |
 | FR-M9-21 | Validated case status transitions (+history preserved after closure) | P0 | 12 | Ph11 alerts, Ph2 RBAC | Full transition matrix test | Planned | TBD |
 
@@ -236,7 +236,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Implemented | pages/risk.test.tsx (component tests; not browser-tested) |
 | FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Implemented | pages/duplicates.test.tsx (component tests; not browser-tested) |
 | FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Implemented | pages/alerts.test.tsx (queue, filters, lifecycle actions, live toast; component tests only, not browser-tested) |
-| FR-UI-10 | Investigations page | P0 | 12 | per feature phase; completion Ph13 | Workspace | Planned | TBD |
+| FR-UI-10 | Investigations page | P0 | 12 | per feature phase; completion Ph13 | Workspace | Implemented | pages/cases.test.tsx (list, workspace, actions, notes with versions, evidence, read-only closed case); component tests only, not browser-tested |
 | FR-UI-11 | Reports page | P1 | 10 | per feature phase; completion Ph13 | Generate/download | Planned | TBD |
 | FR-UI-12 | Model Performance page | P0 | 5 | per feature phase; completion Ph13 | Compare versions | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
 | FR-UI-13 | User Management page | P0 | 2 | per feature phase; completion Ph13 | Users/roles | Implemented | no UI tests yet; backend users/roles tests pass |

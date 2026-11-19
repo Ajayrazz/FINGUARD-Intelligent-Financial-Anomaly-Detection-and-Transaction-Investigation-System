@@ -53,6 +53,13 @@ def test_every_route_declares_a_permission_or_is_allowlisted():
     assert not missing, f"Routes without a permission declaration (default-deny would block them): {missing}"
 
 
+def _make_case():
+    from apps.cases import services as case_services
+    from apps.cases.models import Case
+
+    return Case.objects.create(case_ref=case_services.next_case_ref(), title="rbac case")
+
+
 def _registry_fixtures(ds):
     from apps.detection.models import DetectionRun
     from apps.model_registry.services import register_results
@@ -74,7 +81,7 @@ def population(make_user):
 
 def _endpoints(
     target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0, ds_pk: int = 0, job_pk: int = 0, mv_pk: int = 0,
-    run_pk: int = 0,
+    run_pk: int = 0, case_pk: int = 0,
 ):  # fmt: skip
     return [
         ("get", "/api/v1/users/", None, "users.read"),
@@ -183,6 +190,26 @@ def _endpoints(
         ("get", f"/api/v1/transactions/{tx_pk}/alerts/", None, "alerts.read"),
         ("post", "/api/v1/alerts/evaluate/", {"dataset": ds_pk}, "alerts.run"),
         ("post", "/api/v1/alerts/policy/", {"config": {}}, "alerts.configure"),
+        ("get", "/api/v1/cases/", None, "cases.read"),
+        ("get", "/api/v1/cases/summary/", None, "cases.summary"),
+        ("get", "/api/v1/cases/assignees/", None, "cases.assign"),
+        ("get", f"/api/v1/cases/{case_pk}/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/events/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/accounts/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/notes/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/evidence/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/alerts/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/transactions/", None, "cases.read"),
+        ("get", f"/api/v1/cases/{case_pk}/report/", None, "cases.read"),
+        ("post", "/api/v1/cases/", {"title": "rbac case"}, "cases.create"),
+        ("patch", f"/api/v1/cases/{case_pk}/", {"title": "renamed"}, "cases.update"),
+        ("post", f"/api/v1/cases/{case_pk}/notes/", {"kind": "comment", "body": "hi"}, "cases.comment"),
+        ("post", f"/api/v1/cases/{case_pk}/transactions/", {"transaction": tx_pk}, "cases.update"),
+        ("post", f"/api/v1/cases/{case_pk}/transition/", {"to_status": "under_review"}, "cases.transition"),
+        ("post", f"/api/v1/cases/{case_pk}/assign/", {"assignee": target_pk}, "cases.assign"),
+        ("post", f"/api/v1/cases/{case_pk}/escalate/", {"reason": "x"}, "cases.escalate"),
+        ("post", f"/api/v1/cases/{case_pk}/resolve/", {"outcome": "inconclusive", "summary": "x"}, "cases.resolve"),
+        ("post", f"/api/v1/cases/{case_pk}/close/", {}, "cases.close"),
     ]
 
 
@@ -195,11 +222,12 @@ def test_each_role_gets_403_exactly_when_it_lacks_the_permission(
     tx = make_tx(ds)
     job = ImportJob.objects.create(dataset=ds, file_name="f.csv", status="completed")
     mv, run = _registry_fixtures(ds)
+    case = _make_case()
     role = Role.objects.get(name="management")
     granted = set(Role.objects.get(name=role_name).permissions.values_list("codename", flat=True))
     user = population[role_name]
     for method, url, body, codename in _endpoints(
-        target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk, mv.pk, run.pk
+        target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk, mv.pk, run.pk, case.pk
     ):
         client = APIClient()
         client.force_authenticate(user=user)
@@ -216,9 +244,10 @@ def test_unauthenticated_requests_get_401_everywhere(population, make_user, make
     tx = make_tx(ds)
     job = ImportJob.objects.create(dataset=ds, file_name="f.csv", status="completed")
     mv, run = _registry_fixtures(ds)
+    case = _make_case()
     role = Role.objects.get(name="management")
     for method, url, body, _ in _endpoints(
-        target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk, mv.pk, run.pk
+        target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk, mv.pk, run.pk, case.pk
     ):
         res = (
             getattr(APIClient(), method)(url, body, format="json")

@@ -71,6 +71,9 @@ def test_rules_create_the_expected_alert_types_from_stored_results(world, analys
         "behavior_change" in types() and "failed_transactions" not in types() and "high_value" not in types()
     )  # no status data, low amounts vs 1,000,000
     burst_alert = Alert.objects.get(alert_type="multiple_transactions")
+    assert "5 transactions" in burst_alert.reason and burst_alert.events.get(event_type="severity_raised").payload[
+        "previous_reason"
+    ].startswith("3 transactions")  # headline follows the facts
     assert burst_alert.severity == "critical" and burst_alert.account.account_ref == "C-DEMO-STEADY"
     assert burst_alert.evidence_snapshot["transactions_in_window"] == 3  # the evidence is what it was at creation...
     assert (
@@ -108,7 +111,9 @@ def test_a_burst_is_one_alert_per_bucket_whose_severity_rises_in_place(world, an
     bursts = Alert.objects.filter(alert_type="multiple_transactions")
     assert bursts.count() == 1  # transactions 3, 4 and 5 of the burst share one alert
     events = list(bursts.get().events.values_list("event_type", flat=True))
-    assert events == ["created", "severity_raised"] and bursts.get().severity == "critical"
+    assert (
+        events == ["created", "severity_raised", "case_linked"] and bursts.get().severity == "critical"
+    )  # reaching Critical opened a case
     raised = bursts.get().events.get(event_type="severity_raised").payload
     assert raised["from"] == "high" and raised["to"] == "critical"
 

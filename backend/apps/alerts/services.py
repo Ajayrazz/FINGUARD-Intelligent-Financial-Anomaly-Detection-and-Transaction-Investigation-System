@@ -17,6 +17,7 @@ from apps.datasets.models import Dataset
 
 from . import rules
 from .models import SEVERITY_RANK, Alert, AlertEvent, AlertPolicy, AlertRun, NotificationLog
+from .signals import alert_created, alert_raised
 
 log = logging.getLogger(__name__)
 ALERTS_GROUP = "alerts"
@@ -184,16 +185,26 @@ def persist(candidates: list[rules.Candidate], policy: AlertPolicy, dataset: Dat
         existing = Alert.objects.filter(dedup_key=c.dedup_key).exclude(status="closed").first()
         if existing is not None:
             if SEVERITY_RANK[c.severity] > SEVERITY_RANK[existing.severity]:
-                old = existing.severity
-                existing.severity = c.severity
-                existing.save(update_fields=["severity"])
+                old, old_reason = existing.severity, existing.reason
+                existing.severity, existing.reason = (
+                    c.severity,
+                    c.reason,
+                )  # the headline follows the latest facts; the evidence snapshot does not
+                existing.save(update_fields=["severity", "reason"])
                 _event(
                     existing,
                     "severity_raised",
                     None,
-                    {"from": old, "to": c.severity, "reason": c.reason, "evidence": c.evidence},
+                    {
+                        "from": old,
+                        "to": c.severity,
+                        "reason": c.reason,
+                        "previous_reason": old_reason,
+                        "evidence": c.evidence,
+                    },
                 )
                 _notify(existing, "alert.updated", policy.config)
+                alert_raised.send(sender=Alert, alert=existing, policy=policy)
                 raised += 1
             else:
                 deduplicated += 1
@@ -211,6 +222,7 @@ def persist(candidates: list[rules.Candidate], policy: AlertPolicy, dataset: Dat
         created += 1
         by_type[c.alert_type] = by_type.get(c.alert_type, 0) + 1
         _notify(alert, "alert.created", policy.config)
+        alert_created.send(sender=Alert, alert=alert, policy=policy)
     return {
         "candidates": len(candidates),
         "created": created,

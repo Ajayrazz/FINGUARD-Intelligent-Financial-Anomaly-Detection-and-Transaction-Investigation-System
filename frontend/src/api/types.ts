@@ -595,6 +595,7 @@ export interface AlertDetail extends AlertRow {
   close_notes: string
   policy_version: number
   dedup_key: string
+  cases?: { id: number; case_ref: string; status: string }[]
 }
 
 export interface AlertEventRow {
@@ -628,4 +629,95 @@ export interface NotificationRow {
   status: string
   error: string
   sent_at: string
+}
+
+export type CaseStatus = 'new' | 'under_review' | 'investigation' | 'escalated' | 'resolved' | 'closed'
+export type CasePriority = 'low' | 'medium' | 'high' | 'critical'
+export type CaseOutcome = 'confirmed_suspicious' | 'false_positive' | 'inconclusive' | 'referred'
+
+export interface CaseRow {
+  id: number
+  case_ref: string
+  title: string
+  priority: CasePriority
+  status: CaseStatus
+  dataset: number | null
+  assignee: number | null
+  assignee_email: string | null
+  created_by_email: string | null
+  auto_created: boolean
+  opened_at: string
+  outcome: CaseOutcome | ''
+  closed_at: string | null
+  alert_count: number
+  transaction_count: number
+}
+
+export interface CaseDetail extends CaseRow {
+  description: string
+  resolution_summary: string
+  resolved_at: string | null
+  resolved_by_email: string | null
+  closed_by_email: string | null
+  allowed_transitions: CaseStatus[]
+  read_only_reason: string | null
+  alerts: AlertRow[]
+}
+
+export interface CaseNoteRow {
+  id: number
+  kind: 'comment' | 'note'
+  author: number
+  author_email: string
+  body: string
+  revision_count: number
+  edited: boolean
+  created_at: string
+}
+
+export interface CaseEvidenceRow {
+  id: number
+  original_name: string
+  sha256: string
+  mime: string
+  size: number
+  description: string
+  uploaded_by_email: string | null
+  created_at: string
+}
+
+export interface CaseEventRow {
+  id: number
+  event_type: string
+  actor_email: string | null
+  from_status: string
+  to_status: string
+  payload: Record<string, unknown>
+  created_at: string
+}
+
+export interface CaseTransactionRow {
+  id: number
+  transaction: number
+  external_id: string
+  amount: string
+  tx_type: string
+  occurred_at: string
+  sender: string
+  receiver: string | null
+  note: string
+}
+
+export interface CaseAccountRow {
+  id: number
+  account_ref: string
+  account_type: string
+  roles: string[]
+}
+
+export interface CaseSummary {
+  by_status: Partial<Record<CaseStatus, number>>
+  open_by_priority: Record<CasePriority, number>
+  outcomes: Partial<Record<CaseOutcome, number>>
+  unassigned_open: number
 }

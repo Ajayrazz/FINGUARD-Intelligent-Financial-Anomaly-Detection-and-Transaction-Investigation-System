@@ -5,6 +5,8 @@ import { AuthProvider } from './auth/AuthContext'
 import { ProtectedRoute } from './auth/guards'
 import { ToastProvider } from './components/ui/Toast'
 import AppLayout from './layout/AppLayout'
+import CaseDetailPage from './pages/CaseDetailPage'
+import CasesPage from './pages/CasesPage'
 import AlertsPage from './pages/AlertsPage'
 import AccountBehaviorPage from './pages/AccountBehaviorPage'
 import AccountPage from './pages/AccountPage'
@@ -60,6 +62,10 @@ export default function App() {
                   </Route>
                   <Route element={<ProtectedRoute permission="duplicates.read" />}>
                     <Route path="duplicates" element={<DuplicatesPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="cases.read" />}>
+                    <Route path="cases" element={<CasesPage />} />
+                    <Route path="cases/:id" element={<CaseDetailPage />} />
                   </Route>
                   <Route element={<ProtectedRoute permission="alerts.read" />}>
                     <Route path="alerts" element={<AlertsPage />} />

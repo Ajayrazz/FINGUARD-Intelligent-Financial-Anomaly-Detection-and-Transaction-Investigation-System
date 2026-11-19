@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import type { AlertDetail, AlertEventRow, AlertPolicy, AlertRow, AlertSummary, Dataset, NotificationRow, Paginated } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
@@ -16,6 +16,7 @@ const OUTCOMES = [['true_positive', 'Confirmed (true positive)'], ['false_positi
 function AlertPanel({ id, onChanged }: { id: number; onChanged: () => void }) {
   const { can, user } = useAuth()
   const toast = useToast()
+  const nav = useNavigate()
   const [reason, setReason] = useState('')
   const [outcome, setOutcome] = useState('false_positive')
   const [notes, setNotes] = useState('')
@@ -29,9 +30,15 @@ function AlertPanel({ id, onChanged }: { id: number; onChanged: () => void }) {
     onSuccess: () => { void q.refetch(); void events.refetch(); onChanged() },
     onError: (e: unknown) => toast('error', e instanceof ApiError ? e.message : 'Action failed'),
   })
+  const makeCase = useMutation({
+    mutationFn: () => api.post<{ id: number; case_ref: string }>(`/alerts/${id}/create-case/`, {}),
+    onSuccess: (c) => { toast('success', `Case ${c.case_ref} opened`); onChanged(); nav(`/cases/${c.id}`) },
+    onError: (e: unknown) => toast('error', e instanceof ApiError ? e.message : 'Could not open a case'),
+  })
   if (q.isPending) return <LoadingState />
   if (q.isError) return <ErrorState message={q.error.message} />
   const a = q.data
+  const openCase = (a.cases ?? []).find((c) => c.status !== 'closed')
   const open = a.status !== 'closed'
   return (
     <div role="region" aria-label="Alert details" className="mt-4 space-y-3 rounded-md border border-slate-300 p-4">
@@ -45,6 +52,8 @@ function AlertPanel({ id, onChanged }: { id: number; onChanged: () => void }) {
       </p>
       <details><summary className="cursor-pointer text-sm font-medium">Evidence at the time the alert was created</summary>
         <pre className="mt-1 max-h-64 overflow-auto rounded bg-slate-50 p-2 text-xs">{JSON.stringify(a.evidence_snapshot, null, 2)}</pre></details>
+      {(a.cases ?? []).length > 0 && <p className="text-sm">In case{(a.cases ?? []).length > 1 ? 's' : ''}: {(a.cases ?? []).map((c) => <Link key={c.id} className="mr-2 font-mono text-blue-700 hover:underline" to={`/cases/${c.id}`}>{c.case_ref} ({c.status.replace('_', ' ')})</Link>)}</p>}
+      {open && !openCase && can('cases.create') && <Button variant="secondary" disabled={makeCase.isPending} onClick={() => makeCase.mutate()}>Open a case from this alert</Button>}
       {a.escalation_reason && <p className="text-sm"><strong>Escalated:</strong> {a.escalation_reason}</p>}
       {a.status === 'closed' && <p className="text-sm"><strong>Closed:</strong> {a.outcome.replace(/_/g, ' ')}{a.close_notes ? ` — ${a.close_notes}` : ''}</p>}
       {open && (
