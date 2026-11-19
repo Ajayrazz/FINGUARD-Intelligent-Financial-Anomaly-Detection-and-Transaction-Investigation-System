@@ -1,0 +1,30 @@
+# 15 — Decision Log
+
+Status: **Accepted** (follows master prompt), **Proposed** (needs your approval), **Deferred**.
+
+| ID | Decision | Status | Rationale / trade-off |
+|---|---|---|---|
+| D-001 | Django is the only backend; research doc's Node/Express + FastAPI split is **not** used | Accepted (master prompt Part 3.2) | One language for web+ML, one auth/RBAC surface, simpler deploy. Research doc §11 differs — logged so you can explain the change in your evaluation. |
+| D-002 | Develop in Docker with **Python 3.12 and Node 22 LTS**, not the host's Python 3.14 / Node 25 | **Proposed** | Host runtimes are new; PyTorch/XGBoost/SHAP(numba) wheels may lag 3.14, and Node 25 is non-LTS. Cost: Docker required. |
+| D-003 | Modular monolith, no microservices | Accepted | Per prompt; revisit only on a measured scaling need. |
+| D-004 | Name the pure-Python graph library `graph_engine_lib/` (Django app stays `apps/graph_engine`) | **Proposed** | Prompt's tree has two `graph_engine` modules; avoids import confusion. |
+| D-005 | Roadmap refinements R1–R5 (audit/registry earlier, UI slice per phase, 5A–5D split, Phase 7B, risk after 6/7/8) | **Proposed** | Dependency correctness; avoids a big-bang frontend. |
+| D-006 | Create app/directory skeletons only when their phase starts | Accepted | Prompt: no unnecessary empty dirs. |
+| D-007 | Add TanStack Query, React Hook Form + Zod, React Router to the frontend stack | **Accepted** (proceeded 2026-11-19; installed in Phase 2) | Needed for server-state/loading/error handling and form validation; no major tech replaced. |
+| D-008 | Roles stored as `Role` + permission codenames (data), single role per user | **Implemented** (Phase 2) | Meets "role management" and testable matrix; simpler than multi-role. |
+| D-009 | Password hashing: bcrypt (`BCryptSHA256PasswordHasher`) per prompt; Argon2 is stronger, mentionable as upgrade | Accepted (bcrypt) | Prompt demands bcrypt-compatible. |
+| D-010 | PDF generation with ReportLab (+matplotlib for charts) | **Proposed** | Pure Python, no system libs; WeasyPrint gives nicer HTML templates but needs Pango/Cairo. |
+| D-011 | Neo4j projection loading mode for PaySim: full / fraud-neighbourhood subset / aggregated edges — decided after Phase 7 benchmark | **Proposed** | 6.36M edges is heavy on a laptop; PG stays authoritative. |
+| D-012 | GNN/PyG is gated on Phase 7B result and scope, not built by default | Accepted (prompt Module 4) | Avoid complexity for appearance. |
+| D-013 | Prediction storage policy: full for small runs; above score floor + aggregates for 6M-row runs | **Proposed** | 6M rows × models × runs bloats PG. |
+| D-014 | Case resolution and closure are separate permissions; closing may require a second role (configurable) | **Proposed** | Four-eyes control; affects RBAC. |
+| D-015 | Deployment target (Render vs AWS) chosen in Phase 16 using measured resource needs | Deferred | Budget dependent. |
+| D-016 | Explanation narratives are deterministic templates, not LLM-generated | Accepted | LLM summaries are future scope; keeps explanations traceable to evidence. |
+| D-017 | Missing signals: default `renormalize` over available weights + stored coverage; never silent zero | Accepted (prompt Module 7) | See doc 08. |
+| D-018 | Ground-truth labels stored separately from predictions and hidden from analyst views by default | **Proposed** | Prevents presenting dataset labels as model output. |
+| D-019 | JWT: access in memory, refresh in httpOnly cookie, rotation + blacklist | **Implemented** (Phase 2) | Reduces XSS token theft vs localStorage. |
+| D-020 | `alerts` never imports `investigations`; case linking via signal in `investigations` | Accepted | Avoids circular dependency. |
+| D-021 | Frontend linter is **oxlint** (what the Vite template ships), not ESLint as docs 04/13 said; TypeScript 7 / Vite 8 / Vitest 5 resolved by the scaffold | **Needs your confirmation** | Works and passes; switch to ESLint if your evaluators expect it. |
+| D-022 | Default-deny RBAC: `HasRolePermission` is a default permission class; views must declare `required_permissions`; a generated test fails if any route lacks one | Implemented | Fail-closed against forgotten checks. |
+| D-023 | Audit immutability enforced by a PostgreSQL trigger (not just app code); users are never deleted | Implemented | Single DB role in dev, so REVOKE is not usable; trigger holds even for the app role. Superuser can still drop the trigger — noted as limitation. |
+| D-024 | Throttle/cache counters in Redis DB 1 (Celery broker stays on DB 0) | Implemented | `cache.clear()` in tests must not wipe the broker. |
