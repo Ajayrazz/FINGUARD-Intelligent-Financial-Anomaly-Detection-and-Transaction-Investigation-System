@@ -29,7 +29,7 @@ def test_undersample_keeps_all_positives_and_is_seeded():
     assert len(models.undersample_negatives(y, 5000, seed=1)) == len(y)  # nothing to drop
 
 
-@pytest.mark.parametrize("name", ["lr", "rf", "xgb", "iforest"])
+@pytest.mark.parametrize("name", ["lr", "rf", "xgb", "iforest", "lof", "ocsvm", "ae"])
 def test_every_model_scores_rows_and_separates_signal(name):
     train, val = split()
     f = models.FACTORIES[name](train, val, 42)
@@ -38,10 +38,10 @@ def test_every_model_scores_rows_and_separates_signal(name):
     from sklearn.metrics import roc_auc_score
 
     assert roc_auc_score(val[1], scores) > 0.7  # the planted signal is found
-    assert f.task_type == ("unsupervised" if name == "iforest" else "supervised")
+    assert f.task_type == ("supervised" if name in ("lr", "rf", "xgb") else "unsupervised")
 
 
-@pytest.mark.parametrize("name", ["rf", "xgb", "iforest"])
+@pytest.mark.parametrize("name", ["rf", "xgb", "iforest", "lof", "ocsvm", "ae"])
 def test_models_are_deterministic_for_a_seed(name):
     train, val = split()
     a = models.FACTORIES[name](train, val, 7).predict(val[0].to_numpy())
@@ -49,12 +49,23 @@ def test_models_are_deterministic_for_a_seed(name):
     assert np.allclose(a, b)
 
 
-def test_isolation_forest_never_sees_labels():
+@pytest.mark.parametrize("name", ["iforest", "lof", "ocsvm", "ae"])
+def test_unsupervised_models_never_see_labels(name):
     train, val = split()
     flipped = (train[0], 1 - train[1])  # labels destroyed; an unsupervised fit must not change
-    a = models.fit_iforest(train, val, 3).predict(val[0].to_numpy())
-    b = models.fit_iforest(flipped, val, 3).predict(val[0].to_numpy())
-    assert np.array_equal(a, b)
+    flipped_val = (val[0], 1 - val[1])
+    a = models.FACTORIES[name](train, val, 3).predict(val[0].to_numpy())
+    b = models.FACTORIES[name](flipped, flipped_val, 3).predict(val[0].to_numpy())
+    assert np.allclose(a, b)
+
+
+def test_autoencoder_scores_anomalies_higher_and_records_history():
+    rng = np.random.default_rng(0)
+    normal = pd.DataFrame(rng.normal(size=(4000, 6)), columns=list("abcdef"))
+    f = models.fit_autoencoder((normal, np.zeros(4000, int)), (normal.iloc[:1000], np.zeros(1000, int)), 0, epochs=5)
+    far = normal.iloc[:200] + 8.0
+    assert f.predict(far.to_numpy()).mean() > 5 * f.predict(normal.iloc[:200].to_numpy()).mean()
+    assert f.notes["history"][0]["epoch"] == 1
 
 
 def test_selection_uses_validation_not_test_and_records_trials():

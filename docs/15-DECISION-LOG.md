@@ -49,3 +49,6 @@ Status: **Accepted** (follows master prompt), **Proposed** (needs your approval)
 | D-043 | Random Forest trains on all train positives plus 400k sampled negatives; XGBoost uses the full train split | Implemented | Full-data RF on 4.46M rows is slow for little gain; resampling is applied to train only (leakage item 5). |
 | D-044 | Model selection uses validation PR-AUC only; test is scored once after the threshold is frozen | Implemented | No test-set tuning. Early stopping also uses validation (documented). |
 | D-045 | PaySim results are always reported for `core` and `core+balance`; the `core` figure is the one quoted as detection skill | Implemented | Balance fields saturate the problem in this simulator (doc 08). |
+| D-046 | Added `torch` (CPU wheel via the PyTorch extra index) for the autoencoder | Implemented | Required by the plan (doc 04/08); only the CPU build is installed. `--extra-index-url` is declared in `requirements/ml.txt`. |
+| D-047 | LOF and One-Class SVM are fitted on seeded unlabeled train subsamples (50k / 20k rows); their train-split metrics use a 200k-row sample | Implemented | O(n²) / super-linear cost; documented as a limitation. |
+| D-048 | 5C models are not tuned (single documented configuration) | Implemented | Unsupervised tuning needs labels, which would blur the unsupervised claim; revisit only if justified. |

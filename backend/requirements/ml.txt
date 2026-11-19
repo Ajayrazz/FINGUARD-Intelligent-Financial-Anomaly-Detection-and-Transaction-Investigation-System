@@ -2,3 +2,5 @@ pyarrow>=18
 scikit-learn>=1.6
 scipy>=1.14
 xgboost>=2.1
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.5

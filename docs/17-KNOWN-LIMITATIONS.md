@@ -44,3 +44,6 @@
 - ULB test has 52 frauds; LR, RF and XGBoost are indistinguishable there.
 - Random Forest single-transaction latency (12 ms) reflects `n_jobs=-1` thread overhead, not model cost.
 - `xgboost` brings a ~200 MB unused GPU dependency (`nvidia-nccl-cu13`); the Docker image is correspondingly larger.
+- LOF and One-Class SVM see only 0.3–1% of PaySim train rows; the autoencoder did not early-stop within 15 epochs and may be under-trained. None of the 5C models was tuned.
+- Saved models are joblib/pickle files: only load artifacts produced by this project (pickle executes code on load).
+- The `torch` CPU wheel comes from an additional package index (`download.pytorch.org`), a supply-chain consideration to review before production.

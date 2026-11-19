@@ -139,3 +139,36 @@ Measured inference (CPU in Docker; scoring only, feature computation excluded): 
 6. Validation vs test PR-AUC differ strongly on PaySim `core` (XGBoost 0.184 vs 0.417) because of the base-rate shift documented in doc 19; thresholds tuned on validation transfer poorly (high precision, low recall).
 
 **Limitations:** one seed and one chronological split (no seed variance, no rolling-window drift study); small searches; Random Forest uses 9% of train negatives; Isolation Forest thresholding uses validation labels; RQ1 (hybrid) not yet tested; LOF, One-Class SVM and the autoencoder are 5C.
+
+## Algorithms 5–7 — Local Outlier Factor, One-Class SVM, Autoencoder (executed 2026-11-19, seed 42)
+Reproduce: `python -m ml_engine.experiments.runner --dataset paysim --feature-set core|core+balance --model lof|ocsvm|ae` (ULB: `--dataset creditcard`). All three are **unsupervised**: they are fitted on unlabeled train features and labels are used only afterwards to pick the alert threshold on validation (a test confirms flipped labels leave scores unchanged). **None was tuned**: one documented configuration each.
+
+| | LOF | One-Class SVM | Autoencoder (PyTorch) |
+|---|---|---|---|
+| Why used | Local-density outliers (RQ3) | Boundary around "normal" | Reconstruction error as anomaly score (RQ3) |
+| Fit data | Seeded 50k-row unlabeled train sample (O(n²)); novelty mode so new rows can be scored | Seeded 20k-row unlabeled train sample (super-linear training) | All 4.46M (PaySim) / 198k (ULB) unlabeled train rows |
+| Preprocessing | `StandardScaler` fitted on the train sample | same | `StandardScaler` fitted on train, clipped to ±10σ |
+| Hyper-parameters | `n_neighbors=35` | RBF, `gamma=scale`, `nu=0.01` (208–625 support vectors) | MLP d→max(d,16)→max(d/3,4)→…→d, ReLU, Adam 1e-3, batch 2048, ≤15 epochs, patience 3 on unlabeled validation reconstruction loss |
+| Score | −LOF | −OCSVM score | per-row mean squared reconstruction error |
+| Artifact | joblib | joblib | joblib (scaler + torch module) |
+
+Test-split PR-AUC (bootstrap 95% CI; base rates PaySim 0.436%, ULB 0.122%). Isolation Forest and the supervised models repeated from the tables above:
+
+| Dataset / features | LOF | One-Class SVM | Autoencoder | Isolation Forest | XGBoost |
+|---|---|---|---|---|---|
+| PaySim `core` | 0.099 [0.091, 0.109] | 0.046 [0.043, 0.049] | 0.007 [0.007, 0.007] | 0.035 | 0.417 |
+| PaySim `core+balance` | 0.416 [0.403, 0.430] | 0.175 [0.168, 0.182] | 0.317 [0.308, 0.325] | 0.494 | 1.000 |
+| ULB | 0.005 [0.003, 0.011] | 0.048 [0.031, 0.078] | 0.016 [0.009, 0.024] | 0.056 | 0.761 |
+
+ROC-AUC / recall at 1% false-positive rate, test: PaySim core — LOF 0.678 / 0.261, OCSVM 0.779 / 0.278, AE 0.649 / 0.030; PaySim core+balance — LOF 0.995 / 0.970, OCSVM 0.948 / 0.748, AE 0.996 / 1.000; ULB — LOF 0.631 / 0.135, OCSVM 0.923 / 0.481, AE 0.898 / 0.250.
+
+Measured scoring cost (CPU in Docker, model only): single transaction — OCSVM 0.1 ms, autoencoder ~0.7 ms, LOF 2–15 ms (varies; k-NN query against the 50k sample); batch rows/s — autoencoder 0.8–1.7×10⁷, OCSVM 5×10⁴–2.4×10⁵, LOF 2–4×10⁴. LOF scoring of the 6.3M PaySim rows took about 2–3 minutes per feature set; train-split metrics for LOF/OCSVM use a seeded 200k-row sample (stated in `results.json`).
+
+**What the evidence supports**
+1. **Unsupervised detection is far weaker than supervised here.** On PaySim `core` the best unsupervised result (LOF 0.099) is a quarter of XGBoost's 0.417; on ULB the best (Isolation Forest 0.056, OCSVM 0.048) is ~1/15 of XGBoost. Anomaly scores for "rare" do not equal "fraud".
+2. **Balance features lift all unsupervised models** (PaySim: LOF 0.10→0.42, OCSVM 0.05→0.17, AE 0.007→0.32, IF 0.035→0.49) — the "drained account with accounting error" pattern is anomalous in feature space. The autoencoder and LOF reach ROC-AUC ≈ 0.995 and recall 97–100% at 1% false positives, yet PR-AUC stays ≤ 0.5: they flag the fraud but also many legitimate rows. As in doc 08 above, this reflects simulator rules.
+3. **Ranking among unsupervised models depends on the dataset and feature set** (IF best with balance fields; LOF best without; on ULB all are near-chance by PR-AUC), so no single unsupervised winner is claimed. Intervals are narrow on PaySim (large test set) so those orderings hold for this split; ULB intervals are wide.
+4. **ULB:** unsupervised PR-AUC ≤ 0.056 even though OCSVM/AE/IF ROC-AUC is 0.90–0.94; PCA components expose few rare-and-fraudulent regions.
+5. Validation PR-AUC is tiny for every unsupervised model on PaySim (≤ 0.08) because of the 0.058% validation base rate, so thresholds picked there transfer poorly (see the precision/recall values in `results.json`).
+
+**Limitations:** no tuning (neighbours, nu/gamma, architecture, epochs). The autoencoder always ran all 15 epochs (the early-stop criterion never triggered), so it may be under-trained. LOF and OCSVM see a small train sample (0.3–1% of PaySim train). One seed, one split. The RQ3 follow-up (do unsupervised top-k alerts catch frauds the supervised model misses?) and the hybrid (RQ1) are not run yet.

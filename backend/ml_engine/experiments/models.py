@@ -12,8 +12,10 @@ import numpy as np
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score
+from sklearn.neighbors import LocalOutlierFactor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import OneClassSVM
 
 Split = tuple[Any, np.ndarray]  # (X as DataFrame/array, y)
 
@@ -26,6 +28,7 @@ class Fitted:
     task_type: str  # supervised | unsupervised
     hyperparameters: dict[str, Any]
     notes: dict[str, Any] = field(default_factory=dict)  # selection trail, subsampling, timings
+    train_eval_cap: int | None = None  # slow scorers: train-split metrics use a seeded sample of this many rows
 
 
 def fit_lr(train: Split, val: Split, seed: int, **kwargs: Any) -> Fitted:
@@ -142,4 +145,156 @@ def fit_iforest(train: Split, val: Split, seed: int, **kwargs: Any) -> Fitted:
     return Fitted(iso, lambda a: -iso.score_samples(a), "IsolationForest", "unsupervised", hp)
 
 
-FACTORIES: dict[str, Callable[..., Fitted]] = {"lr": fit_lr, "rf": fit_rf, "xgb": fit_xgb, "iforest": fit_iforest}
+def _fit_scaled_sample(train: Split, n: int, seed: int) -> tuple[StandardScaler, np.ndarray]:
+    """Seeded unlabeled sample of train rows, scaled with a scaler fitted on that train sample only."""
+    X = train[0].to_numpy()
+    rng = np.random.default_rng(seed)
+    idx = np.sort(rng.choice(len(X), min(n, len(X)), replace=False))
+    scaler = StandardScaler().fit(X[idx])
+    return scaler, scaler.transform(X[idx])
+
+
+class _Scaled:
+    """A fitted scaler + estimator scored as 'higher = more anomalous' (picklable, so it can be saved with joblib)."""
+
+    def __init__(self, scaler: StandardScaler, est: Any, sign: float = -1.0) -> None:
+        self.scaler, self.est, self.sign = scaler, est, sign
+
+    def score(self, a: np.ndarray) -> np.ndarray:
+        z = self.scaler.transform(a)
+        fn = self.est.score_samples if hasattr(self.est, "score_samples") else self.est.decision_function
+        return self.sign * fn(z)
+
+
+def fit_lof(train: Split, val: Split, seed: int, *, n_fit: int = 50_000, **kwargs: Any) -> Fitted:
+    """Local Outlier Factor in novelty mode, fitted on an unlabeled scaled train sample (O(n^2): subsample)."""
+    scaler, Z = _fit_scaled_sample(train, n_fit, seed)
+    lof = LocalOutlierFactor(n_neighbors=35, novelty=True, n_jobs=-1).fit(Z)
+    wrapped = _Scaled(scaler, lof)
+    hp = {
+        "n_neighbors": 35,
+        "novelty": True,
+        "fit_sample_rows": len(Z),
+        "scaler": "StandardScaler (train-sample fit)",
+        "labels_used_in_fit": False,
+    }
+    return Fitted(
+        wrapped, wrapped.score, "LocalOutlierFactor", "unsupervised", hp, {"tuned": False}, train_eval_cap=200_000
+    )
+
+
+def fit_ocsvm(train: Split, val: Split, seed: int, *, n_fit: int = 20_000, **kwargs: Any) -> Fitted:
+    """RBF One-Class SVM on an unlabeled scaled train sample (training is super-linear in rows: subsample)."""
+    scaler, Z = _fit_scaled_sample(train, n_fit, seed)
+    svm = OneClassSVM(kernel="rbf", gamma="scale", nu=0.01).fit(Z)
+    wrapped = _Scaled(scaler, svm)
+    hp = {
+        "kernel": "rbf",
+        "gamma": "scale",
+        "nu": 0.01,
+        "fit_sample_rows": len(Z),
+        "support_vectors": int(svm.support_vectors_.shape[0]),
+        "labels_used_in_fit": False,
+    }
+    return Fitted(wrapped, wrapped.score, "OneClassSVM", "unsupervised", hp, {"tuned": False}, train_eval_cap=200_000)
+
+
+class AutoencoderModel:
+    """Scaler + PyTorch MLP autoencoder; score = per-row mean squared reconstruction error (scaled space)."""
+
+    def __init__(self, scaler: StandardScaler, net: Any) -> None:
+        self.scaler, self.net = scaler, net
+
+    def score(self, a: np.ndarray) -> np.ndarray:
+        import torch
+
+        z = torch.from_numpy(self.scaler.transform(a).astype("float32"))
+        out = []
+        with torch.no_grad():
+            self.net.eval()
+            for i in range(0, len(z), 65_536):
+                chunk = z[i : i + 65_536]
+                out.append(((self.net(chunk) - chunk) ** 2).mean(dim=1).numpy())
+        return np.concatenate(out)
+
+
+def fit_autoencoder(train: Split, val: Split, seed: int, *, epochs: int = 15, **kwargs: Any) -> Fitted:
+    """Autoencoder trained on UNLABELED train rows (labels never used). Early stopping on the validation
+    reconstruction loss of the unlabeled validation features (no labels involved)."""
+    import torch
+    from torch import nn
+
+    torch.manual_seed(seed)
+    torch.set_num_threads(8)
+    X = train[0].to_numpy()
+    scaler = StandardScaler().fit(X)  # train-only fit
+    Z = torch.from_numpy(np.clip(scaler.transform(X), -10, 10).astype("float32"))
+    Zv = torch.from_numpy(np.clip(scaler.transform(val[0].to_numpy()), -10, 10).astype("float32"))
+    d = Z.shape[1]
+    hidden, bottleneck = max(d, 16), max(d // 3, 4)
+    net = nn.Sequential(
+        nn.Linear(d, hidden), nn.ReLU(), nn.Linear(hidden, bottleneck), nn.ReLU(),
+        nn.Linear(bottleneck, hidden), nn.ReLU(), nn.Linear(hidden, d),
+    )  # fmt: skip
+    opt = torch.optim.Adam(net.parameters(), lr=1e-3)
+    gen = torch.Generator().manual_seed(seed)
+    batch = 2048
+    history, best_state, best_val, patience = [], None, float("inf"), 0
+    for epoch in range(epochs):
+        net.train()
+        perm = torch.randperm(len(Z), generator=gen)
+        total = 0.0
+        for i in range(0, len(Z), batch):
+            xb = Z[perm[i : i + batch]]
+            opt.zero_grad()
+            loss = ((net(xb) - xb) ** 2).mean()
+            loss.backward()
+            opt.step()
+            total += loss.item() * len(xb)
+        net.eval()
+        with torch.no_grad():
+            val_loss = float(((net(Zv) - Zv) ** 2).mean())
+        history.append({"epoch": epoch + 1, "train_loss": total / len(Z), "val_loss": val_loss})
+        if val_loss < best_val - 1e-5:
+            best_val, patience = val_loss, 0
+            best_state = {k: v.clone() for k, v in net.state_dict().items()}
+        else:
+            patience += 1
+            if patience >= 3:
+                break
+    assert best_state is not None
+    net.load_state_dict(best_state)
+
+    clipped = _ClippedScaler(scaler)
+    model = AutoencoderModel(clipped, net)  # type: ignore[arg-type]
+    hp = {
+        "architecture": f"{d}-{hidden}-{bottleneck}-{hidden}-{d} (ReLU)",
+        "optimizer": "Adam lr=1e-3",
+        "batch": batch,
+        "max_epochs": epochs,
+        "early_stopping": "patience 3 on unlabeled validation reconstruction loss",
+        "input_clip": 10,
+        "labels_used_in_fit": False,
+    }
+    return Fitted(model, model.score, "Autoencoder", "unsupervised", hp, {"history": history, "tuned": False})
+
+
+class _ClippedScaler:
+    """Standardise, then clip to +-10 sigma (heavy-tailed inputs would otherwise dominate the MSE)."""
+
+    def __init__(self, scaler: StandardScaler) -> None:
+        self.scaler = scaler
+
+    def transform(self, a: np.ndarray) -> np.ndarray:
+        return np.clip(self.scaler.transform(a), -10, 10)
+
+
+FACTORIES: dict[str, Callable[..., Fitted]] = {
+    "lr": fit_lr,
+    "rf": fit_rf,
+    "xgb": fit_xgb,
+    "iforest": fit_iforest,
+    "lof": fit_lof,
+    "ocsvm": fit_ocsvm,
+    "ae": fit_autoencoder,
+}

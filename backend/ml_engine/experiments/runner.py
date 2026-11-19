@@ -39,12 +39,24 @@ def run(dataset: str, feature_set: str, model: str, seed: int, n_boot: int) -> d
     )
     fit_seconds = time.time() - fit_start
 
-    scores = {s: fitted.predict(data[s][0].to_numpy()) for s in ("train", "validation", "test")}
-    threshold = evaluation.choose_threshold_max_f1(data["validation"][1], scores["validation"])  # frozen from here
+    X_train, y_train = data["train"][0].to_numpy(), data["train"][1]
+    if (
+        fitted.train_eval_cap and len(y_train) > fitted.train_eval_cap
+    ):  # slow scorers: sample (seeded) for train metrics
+        sel = np.sort(np.random.default_rng(seed).choice(len(y_train), fitted.train_eval_cap, replace=False))
+        X_train, y_train = X_train[sel], y_train[sel]
+        fitted.notes["train_metrics_on_sample_rows"] = int(fitted.train_eval_cap)
+    eval_sets = {
+        "train": (X_train, y_train),
+        "validation": (data["validation"][0].to_numpy(), data["validation"][1]),
+        "test": (data["test"][0].to_numpy(), data["test"][1]),
+    }
+    scores = {s: fitted.predict(X) for s, (X, _) in eval_sets.items()}
+    threshold = evaluation.choose_threshold_max_f1(eval_sets["validation"][1], scores["validation"])  # frozen
     metrics: dict[str, Any] = {}
-    for split in ("train", "validation", "test"):
+    for split, (_, y) in eval_sets.items():
         metrics[split] = evaluation.evaluate_scores(
-            data[split][1], scores[split], threshold, n_boot=n_boot if split != "train" else 0, seed=seed
+            y, scores[split], threshold, n_boot=n_boot if split != "train" else 0, seed=seed
         )
     if dataset == "paysim":
         mask = data["test"][2].isin(["TRANSFER", "CASH_OUT"]).to_numpy()
