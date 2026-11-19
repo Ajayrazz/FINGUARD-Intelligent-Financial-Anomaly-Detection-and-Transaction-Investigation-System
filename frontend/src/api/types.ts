@@ -436,3 +436,80 @@ export interface DuplicateCandidateDetail extends DuplicateCandidate {
   record_a: DuplicateRecord | null
   record_b: DuplicateRecord | null
 }
+
+export type RiskCategory = 'low' | 'medium' | 'high' | 'critical' | 'unscored'
+export type RiskComponentKey = 'A' | 'B' | 'G' | 'F' | 'D' | 'H'
+
+export interface RiskComponent {
+  available: boolean
+  value: number | null
+  reason: string
+  source: Record<string, unknown>
+  weight: number
+  contribution: number | null
+  imputed: boolean
+}
+
+export interface RiskAssessment {
+  id: number
+  transaction: number
+  external_id: string
+  amount: string
+  tx_type: string
+  occurred_at: string
+  account: number
+  account_ref: string
+  overall_score: number | null
+  category: RiskCategory
+  weight_coverage: number
+  low_coverage: boolean
+  capped: boolean
+  policy: string
+  config_version: number
+  run: number
+  component_values: Partial<Record<RiskComponentKey, number | null>>
+  computed_at: string
+}
+
+export interface RiskAssessmentDetail extends RiskAssessment {
+  components: Record<RiskComponentKey, RiskComponent>
+  algorithm_version: string
+  detection_run: number | null
+  behavior_run: number | null
+  graph_snapshot: number | null
+}
+
+export interface RiskConfig {
+  id: number
+  version: number
+  weights: Record<RiskComponentKey, number>
+  thresholds: { medium: number; high: number; critical: number }
+  missing_signal_policy: 'renormalize' | 'neutral_prior' | 'strict'
+  min_coverage: number
+  model_version: number | null
+  model_version_name: string | null
+  is_active: boolean
+  source: 'default' | 'manual' | 'calibrated'
+  notes: string
+  created_by_email: string | null
+  created_at: string
+  used_by_assessments: boolean
+}
+
+export interface RiskRun {
+  id: number
+  dataset: number
+  dataset_name: string
+  config: number
+  config_version: number
+  status: RunStatus
+  params: Record<string, unknown>
+  rows_total: number
+  rows_scored: number
+  category_counts: Record<string, number>
+  coverage_summary: Record<string, number>
+  error_message: string
+  created_by_email: string | null
+  created_at: string
+  finished_at: string | null
+}

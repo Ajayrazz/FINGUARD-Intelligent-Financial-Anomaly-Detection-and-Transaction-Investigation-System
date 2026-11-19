@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "apps.behavior",
     "apps.graph_engine",
     "apps.duplicates",
+    "apps.risk_engine",
 ]
 
 MIDDLEWARE = [
@@ -124,6 +125,7 @@ else:
     NEO4J_USER = env("NEO4J_USER", "neo4j")
     NEO4J_PASSWORD = env("NEO4J_PASSWORD", "")
     NEO4J_DATABASE = None
+RISK_MAX_ROWS = int(env("RISK_MAX_ROWS", "2000000"))
 INVOICE_MAX_BYTES = int(env("INVOICE_MAX_BYTES", str(10 * 1024**2)))
 DUPLICATE_MAX_ROWS = int(env("DUPLICATE_MAX_ROWS", "2000000"))
 GRAPH_MAX_ROWS = int(env("GRAPH_MAX_ROWS", "2000000"))

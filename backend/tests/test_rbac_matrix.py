@@ -160,6 +160,14 @@ def _endpoints(
         ("get", "/api/v1/duplicates/scans/", None, "duplicates.read"),
         ("post", "/api/v1/invoices/upload/", {}, "duplicates.create"),
         ("post", "/api/v1/duplicates/scan/", {"kind": "invoice"}, "duplicates.run"),
+        ("get", "/api/v1/risk/assessments/", None, "risk.read"),
+        ("get", "/api/v1/risk/runs/", None, "risk.read"),
+        ("get", "/api/v1/risk/config/", None, "risk.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/risk/history/", None, "risk.read"),
+        ("get", f"/api/v1/accounts/{acct_pk}/risk/history/", None, "risk.read"),
+        ("get", "/api/v1/risk/compare/?a=1&b=2", None, "risk.read"),
+        ("post", "/api/v1/risk/runs/", {"dataset": ds_pk}, "risk.run"),
+        ("post", "/api/v1/risk/config/", {"weights": {}, "thresholds": {}}, "risk.configure"),
     ]
 
 

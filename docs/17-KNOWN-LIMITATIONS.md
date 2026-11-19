@@ -65,3 +65,7 @@
 - Transaction duplicate detection found nothing on the real PaySim slice (no repeating senders); it is validated on constructed cases. Repeated-payment detection is per dataset, exact amount only, and flags at most 20,000 pairs per scan.
 - Scores/thresholds/weights are uncalibrated. "Duplicate record alerts" are not built (Phase 11). The PDF report is plain (no charts or images) and its layout was not visually inspected.
 - Stored invoices have no virus scan and no retention/deletion policy yet; scans are manual (no schedule); invoice matching is O(blocked pairs) and was tested on tens of invoices, not thousands.
+- Risk weights, thresholds, the F and H definitions, and the normalisation of A are design choices; on the real PaySim slice the combined score was not better than the model score alone (RQ5 unresolved), and three of six components are unavailable for all PaySim transactions.
+- Risk scoring is batch (whole dataset per run, cap 2M transactions) and reads the *latest* detection/behaviour/graph/duplicate results of the dataset; there is no per-transaction on-demand scoring, no alerts yet (Phase 11), and no `risk_category` filter on the transaction list.
+- G visibility uses at most 50 listed transactions per finding; account-level graph metrics (PageRank, community) are not used by R. `neutral_prior` takes medians over a sample of at most ~50k transactions.
+- The calibration tool is a CLI experiment; weights are searched on a coarse grid (step 0.1) over the components that vary; no UI for it.

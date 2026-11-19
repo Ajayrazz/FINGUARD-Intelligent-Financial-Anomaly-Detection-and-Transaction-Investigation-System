@@ -235,3 +235,29 @@ Blocking (same number prefix / vendor prefix / amount ±1% / image hash) keeps m
 - Robustness (same 10 invoices, 40 fields each): clean 100%; rotate 2° 100%; JPEG q30 100%; noise 1% 100%; half resolution 100%; third resolution 97.5%; rotate 3° + JPEG q40 + noise 2% 80% (amount 4/10); **rotate 5° 67.5%** (number 3/10, amount 4/10); **noise 4% 50%** (vendor and date 0/10). There is no deskew or denoising step. These numbers describe clean, machine-rendered invoices; real invoices (stamps, tables, handwriting, other layouts) will be harder and are untested.
 - **Real PaySim slice (343,027 transactions):** the transaction scan finds 0 candidates in 1.4 s — senders do not repeat (doc 19), so there is nothing for repeated-payment detection to find on this data; the detector is validated on constructed cases only.
 - Bug found by running on real data: a scan took > 10 min because `DISTINCT` on dataset ids inherited the model's default ordering and reloaded the dataset once per row; fixed with `.order_by()` (scan now 1.4 s); a separate slowdown (a Python loop over 343k single-transaction groups) was removed by pre-filtering to groups that repeat.
+
+## Risk score R — as built (Phase 9, `risk_engine_lib`, algorithm `r1`)
+`R = Σ wᵢSᵢ / Σ wᵢ` over the available components, with default weights A .25, B .20, G .20, F .15, D .10, H .10 (initial design values, **uncalibrated**). Categories: Low < 30 ≤ Medium < 60 ≤ High < 80 ≤ Critical (configurable, validated, not regulatory). Every assessment stores its components, weights, contributions, coverage, configuration version and algorithm version, so it can be recomputed from the stored row alone (tested) and compared only within the same configuration (the compare API says when it cannot).
+
+| Component | Source (as of the transaction) | Unavailable when |
+|---|---|---|
+| **A** model anomaly | the configured (else latest) detection run; raw score mapped monotonically to 0–100 with the model's own alert threshold at 50 and the run's 99.9th percentile at 100 | no detection run, or the transaction was not scored |
+| **B** behaviour | stored behavioural components *except* burst, recombined with the behaviour engine's rule (0.5 max + 0.5 weighted mean) | sender is a cold start (< 5 earlier transactions) or no behaviour run |
+| **F** frequency | the burst component of the behaviour engine (counted once, here, not in B) | same as B |
+| **G** graph | highest score of a graph finding involving either account that had **completed** (its last listed transaction) by this transaction's time | no snapshot, or the snapshot's `as_of` is not after the transaction. A snapshot with no pattern gives 0 (a measurement), not "unavailable" |
+| **D** duplicate | similarity of the pair, carried by the *later* transaction of a candidate not dismissed by a reviewer (confirmed → 100; legitimate repeats excluded) | no completed duplicate scan. No candidate gives 0 |
+| **H** history | 100·(1−e^(−k/2)), k = human-confirmed duplicate events in either account's earlier transactions | neither account has an earlier transaction |
+
+**F and H are this project's definitions.** The planning documents name six components (A, B, G, F, D, H) but never define F and H; I chose "frequency" and "history" from signals that exist (D-067). They are easy to change, and a different definition needs only a new algorithm version.
+
+**Missing-signal policies** (per configuration): `renormalize` (default; unavailable components are excluded and `weight_coverage = Σw(available)/Σw` is stored), `neutral_prior` (a missing component takes the dataset's median of that component, only where a population exists; coverage still reports what was *measured*; imputed values are marked), `strict` (any missing weighted component → no score). All 64 availability patterns are tested under each policy. **Low coverage** (< `min_coverage`, default 50%) never auto-escalates: a score that would be Critical is held at High (`capped`) for analyst review. An assessment with nothing available is `unscored`, never 0.
+
+**Real PaySim slice run (executed; 343,027 transactions, steps 379–400, A from `xgb_paysim_core`):** 44 s; coverage 55% for 302,819 transactions (A, G, D) and 65% for 40,208 (plus H); B and F unavailable for all (every sender is a cold start, doc 19). Categories: Low 342,907, Medium 120, none High/Critical.
+
+**RQ5 calibration experiment (executed, `manage.py calibrate_risk --run 1`):** weights searched on the earlier half of the slice by time (190 frauds) and reported on the later half (80 frauds); labels are used only inside this evaluation command. Only A and G vary on this data, so the grid had 11 points and the tuned weights collapsed to **A = 1.0**. Later half (PR-AUC [95% bootstrap CI]; precision@100; alerts per true positive at 50% recall):
+| Score | PR-AUC | P@100 | alerts / TP @50% recall |
+|---|---|---|---|
+| A only (single model score) | 0.073 [0.034, 0.129] | 0.15 | 81.9 |
+| default weights | 0.069 [0.026, 0.135] | 0.15 | 82.0 |
+| calibrated weights (= A only) | 0.073 [0.033, 0.143] | 0.15 | 81.9 |
+**Result: on this data the combined score is no better than the single model score** (intervals overlap almost completely). This is not evidence against combining signals in general: with PaySim's single-use senders, three of six components carry no information, and only 80 evaluation frauds exist. RQ5 is therefore *unresolved*; it needs data with repeat accounts (or the planted DEMO scenarios, which have no labels). The calibrated weights were not activated.

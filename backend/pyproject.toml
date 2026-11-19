@@ -16,6 +16,7 @@ select = ["E", "F", "I", "B", "UP", "DJ"]
 "graph_engine_lib/*.py" = ["E501"]  # dense finding dictionaries
 "duplicates_lib/*.py" = ["E501"]  # dense evidence dictionaries
 "apps/duplicates/*.py" = ["E501"]  # dense field/evidence literals
+"apps/risk_engine/**/*.py" = ["E501"]  # dense component/assembly code and migrations
 "tests/*.py" = ["E501"]  # long literal CSV/header fixtures
 
 [tool.mypy]

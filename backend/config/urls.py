@@ -14,6 +14,7 @@ urlpatterns = [
     path("api/v1/", include("apps.behavior.urls")),
     path("api/v1/", include("apps.graph_engine.urls")),
     path("api/v1/", include("apps.duplicates.urls")),
+    path("api/v1/", include("apps.risk_engine.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 ]

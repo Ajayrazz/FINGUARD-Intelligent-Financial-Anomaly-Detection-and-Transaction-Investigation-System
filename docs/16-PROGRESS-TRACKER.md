@@ -13,7 +13,7 @@ Last updated: 2026-11-19 · Current phase: **4 — Dataset import & processing p
 | 6 | Behavioral analysis | **Implemented and checked — awaiting approval for Phase 7** | Backend 206 tests, frontend 41 tests pass; 5×40,000-in-10-min scenario scores 77–84; real PaySim is 100% cold start (not applicable); weights uncalibrated |
 | 7 / 7B | Graph + Neo4j / graph experiments | **7 implemented and checked — awaiting approval for Phase 8; 7B not started** | Backend 237 tests (incl. real Neo4j), frontend 46 pass; planted cycle/chain/fan-in/shared beneficiaries found; real PaySim slice: 84 weak fan-in findings only; Neo4j slower than PostgreSQL for neighborhoods (measured); Aura verified; diagram not browser-tested |
 | 8 | Duplicates, OCR | **Implemented and checked — awaiting approval for Phase 9** | Backend 258 tests (Tesseract really executed), frontend 51 pass; 40/40 OCR fields and 10/10 pair classes on the clean synthetic set, 50–68% under heavy rotation/noise; real PaySim slice has no repeats; UI not browser-tested |
-| 9 | Risk scoring | Not Started | |
+| 9 | Risk scoring engine | **Implemented and checked — awaiting approval for Phase 10; F/H definitions need your confirmation (D-067)** | Backend 281 tests, frontend 56 pass; 64 availability combinations x 3 policies tested; real slice scored in 44 s; RQ5 calibration: combined score no better than model score on this data; UI not browser-tested |
 | 10 | Explainable AI | Not Started | |
 | 11 | Alerts | Not Started | |
 | 12 | Case management | Not Started | |

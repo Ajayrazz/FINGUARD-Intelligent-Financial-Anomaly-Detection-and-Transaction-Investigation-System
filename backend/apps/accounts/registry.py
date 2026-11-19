@@ -45,6 +45,9 @@ PERMISSIONS: dict[str, str] = {
     "duplicates.create": "Upload invoices",
     "duplicates.run": "Start duplicate scans",
     "duplicates.review": "Verify OCR fields and record duplicate review decisions",
+    "risk.read": "View risk assessments, history and configurations",
+    "risk.run": "Start risk scoring runs",
+    "risk.configure": "Create and activate risk configurations (weights, thresholds, missing-signal policy)",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -69,6 +72,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "duplicates.create",
         "duplicates.run",
         "duplicates.review",
+        "risk.read",
+        "risk.run",
     },
     FRAUD_INVESTIGATOR: {
         "datasets.read",
@@ -81,6 +86,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "graph.read",
         "duplicates.read",
         "duplicates.review",
+        "risk.read",
     },
     AUDITOR: {
         "users.read",
@@ -95,6 +101,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "behavior.read",
         "graph.read",
         "duplicates.read",
+        "risk.read",
     },
     MANAGEMENT: set(),
 }

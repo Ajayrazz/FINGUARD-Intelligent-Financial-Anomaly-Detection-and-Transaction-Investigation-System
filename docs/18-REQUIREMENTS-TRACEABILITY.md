@@ -142,18 +142,18 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M7-01 | Calculate individual risk component scores | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | A,B,G,F,D,H each 0-100 or unavailable | Planned | TBD |
-| FR-M7-02 | Calculate overall risk score | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Weighted formula with renormalization | Planned | TBD |
-| FR-M7-03 | Assign risk category | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Thresholds 30/60/80 configurable | Planned | TBD |
-| FR-M7-04 | Store risk score history | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Immutable assessments retained | Planned | TBD |
-| FR-M7-05 | Explain risk factor contributions | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Per-component contribution in API | Planned | TBD |
-| FR-M7-06 | Configure risk weights | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Versioned RiskConfig; validation | Planned | TBD |
-| FR-M7-07 | Configure thresholds | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Versioned; ordering validated | Planned | TBD |
-| FR-M7-08 | Support missing or unavailable signals | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Every missing combination tested; coverage stored | Planned | TBD |
-| FR-M7-09 | Record scoring algorithm version | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | algorithm_version stored | Planned | TBD |
-| FR-M7-10 | Link risk scores to transactions and accounts | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | FKs + account history | Planned | TBD |
-| FR-M7-11 | Display risk breakdown | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | UI breakdown + coverage | Planned | TBD |
-| FR-M7-12 | Support historical risk comparisons | P1 | 9 | Ph5, Ph6, Ph7, Ph8 | Compare API | Planned | TBD |
+| FR-M7-01 | Calculate individual risk component scores | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | A,B,G,F,D,H each 0-100 or unavailable | Tested | tests/test_risk.py, test_risk_engine_lib.py (A,B,G,F,D,H each 0-100 or unavailable with a reason); F and H are this project's definitions (D-067) |
+| FR-M7-02 | Calculate overall risk score | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Weighted formula with renormalization | Tested | tests/test_risk_engine_lib.py (documented formula; renormalised weighted mean) |
+| FR-M7-03 | Assign risk category | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Thresholds 30/60/80 configurable | Tested | tests/test_risk_engine_lib.py::test_category_boundaries_*, configurable thresholds |
+| FR-M7-04 | Store risk score history | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Immutable assessments retained | Tested | tests/test_risk.py (assessments append-only: DB trigger blocks UPDATE/DELETE; AccountRiskHistory for Medium+) |
+| FR-M7-05 | Explain risk factor contributions | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Per-component contribution in API | Tested | tests/test_risk.py (per-component weight and contribution; contributions sum to the score) |
+| FR-M7-06 | Configure risk weights | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Versioned RiskConfig; validation | Tested | tests/test_risk.py (versioned RiskConfig; weights validated; used versions immutable; activation audited) |
+| FR-M7-07 | Configure thresholds | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Versioned; ordering validated | Tested | tests/test_risk_engine_lib.py, test_risk.py (ordering and range validated) |
+| FR-M7-08 | Support missing or unavailable signals | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | Every missing combination tested; coverage stored | Tested | tests/test_risk_engine_lib.py (all 64 availability combinations x 3 policies), test_risk.py (coverage, low-coverage cap) |
+| FR-M7-09 | Record scoring algorithm version | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | algorithm_version stored | Tested | algorithm_version stored on every assessment (tests/test_risk.py) |
+| FR-M7-10 | Link risk scores to transactions and accounts | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | FKs + account history | Tested | transaction and sender account FKs; GET /transactions/{id}/risk/, /accounts/{id}/risk/history/ |
+| FR-M7-11 | Display risk breakdown | P0 | 9 | Ph5, Ph6, Ph7, Ph8 | UI breakdown + coverage | Implemented | pages/risk.test.tsx (breakdown table, coverage, unavailable reasons); not browser-tested |
+| FR-M7-12 | Support historical risk comparisons | P1 | 9 | Ph5, Ph6, Ph7, Ph8 | Compare API | Tested | tests/test_risk.py (compare API; flags non-comparable config/algorithm versions) |
 
 ## M8 Explainable AI
 
@@ -233,7 +233,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
 | FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Implemented | pages/behavior.test.tsx (component tests; not browser-tested) |
 | FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Implemented | pages/graph.test.tsx (component tests; not browser-tested) |
-| FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Planned | TBD |
+| FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Implemented | pages/risk.test.tsx (component tests; not browser-tested) |
 | FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Implemented | pages/duplicates.test.tsx (component tests; not browser-tested) |
 | FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Planned | TBD |
 | FR-UI-10 | Investigations page | P0 | 12 | per feature phase; completion Ph13 | Workspace | Planned | TBD |
@@ -279,7 +279,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | RQ-02 | RQ2 Graph features vs transaction-only | P0 | 7B | Ph5, 7B, 9, 10 | Paired comparison reported | Planned | TBD |
 | RQ-03 | RQ3 Unsupervised detection of unlabeled patterns | P0 | 5 | Ph5, 7B, 9, 10 | Analysis reported | In Progress | unsupervised models evaluated (doc 08); overlap analysis with supervised alerts not done |
 | RQ-04 | RQ4 XAI communication effectiveness | P1 | 10 | Ph5, 7B, 9, 10 | Fidelity/stability reported | Planned | TBD |
-| RQ-05 | RQ5 Combined risk scoring improves prioritisation | P0 | 9 | Ph5, 7B, 9, 10 | precision@k/workload reported | Planned | TBD |
+| RQ-05 | RQ5 Combined risk scoring improves prioritisation | P0 | 9 | Ph5, 7B, 9, 10 | precision@k/workload reported | In Progress | calibration experiment executed on a real PaySim slice: combined score NOT better than the single model score (doc 08); hybrid RQ1 untested |
 | RQ-06 | RQ6 Performance under temporal change | P0 | 5 | Ph5, 7B, 9, 10 | Per-window metrics reported | Planned | TBD |
 
 ## Future scope

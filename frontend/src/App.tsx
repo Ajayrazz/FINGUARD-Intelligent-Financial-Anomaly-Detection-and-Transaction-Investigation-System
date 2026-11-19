@@ -18,6 +18,7 @@ import ImportWizardPage from './pages/ImportWizardPage'
 import LoginPage from './pages/LoginPage'
 import ModelPerformancePage from './pages/ModelPerformancePage'
 import RelationshipGraphPage from './pages/RelationshipGraphPage'
+import RiskAnalysisPage from './pages/RiskAnalysisPage'
 import StatusPage from './pages/StatusPage'
 import TransactionDetailPage from './pages/TransactionDetailPage'
 import TransactionsPage from './pages/TransactionsPage'
@@ -58,6 +59,9 @@ export default function App() {
                   </Route>
                   <Route element={<ProtectedRoute permission="duplicates.read" />}>
                     <Route path="duplicates" element={<DuplicatesPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="risk.read" />}>
+                    <Route path="risk" element={<RiskAnalysisPage />} />
                   </Route>
                   <Route element={<ProtectedRoute permission="models.read" />}>
                     <Route path="models" element={<ModelPerformancePage />} />
