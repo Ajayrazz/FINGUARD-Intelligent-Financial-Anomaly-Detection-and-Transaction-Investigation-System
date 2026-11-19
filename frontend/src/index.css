@@ -168,3 +168,10 @@ main a:not([class*="bg-"]) {
     transition-duration: 0.001ms !important;
   }
 }
+
+@keyframes ribbon {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.333%); }
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

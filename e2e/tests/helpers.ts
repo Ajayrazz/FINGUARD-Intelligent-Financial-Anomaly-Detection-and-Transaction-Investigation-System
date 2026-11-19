@@ -10,7 +10,7 @@ export function credentials(role: Role): { email: string; password: string } {
 }
 
 /** Sign in through the real login form and wait until the signed-in layout is on screen. */
-export async function login(page: Page, role: Role, startAt = '/'): Promise<void> {
+export async function login(page: Page, role: Role, startAt = '/login'): Promise<void> {
   await page.goto(startAt)
   await page.getByLabel('Email').fill(credentials(role).email)
   await page.getByLabel('Password').fill(credentials(role).password)

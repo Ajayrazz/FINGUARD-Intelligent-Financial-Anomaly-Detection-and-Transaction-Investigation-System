@@ -22,7 +22,8 @@ import LoginPage from "./pages/LoginPage";
 import ModelPerformancePage from "./pages/ModelPerformancePage";
 import RelationshipGraphPage from "./pages/RelationshipGraphPage";
 import RiskAnalysisPage from "./pages/RiskAnalysisPage";
-import StatusPage from "./pages/StatusPage";
+import DashboardPage from "./pages/DashboardPage";
+import LandingPage from "./pages/LandingPage";
 import TransactionDetailPage from "./pages/TransactionDetailPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import UsersPage from "./pages/UsersPage";
@@ -42,10 +43,11 @@ export default function App() {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
-                  <Route index element={<StatusPage />} />
+                  <Route path="dashboard" element={<DashboardPage />} />
                   <Route
                     element={<ProtectedRoute permission="transactions.read" />}
                   >

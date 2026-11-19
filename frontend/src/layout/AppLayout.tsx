@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { AlertToaster } from "../components/alerts/AlertToaster";
 import { NetworkBackground } from "../components/fx/NetworkBackground";
@@ -13,7 +13,7 @@ interface NavItem {
 }
 // Pages are added to this list by the phase that delivers them (nothing is shown that does not work).
 const NAV: NavItem[] = [
-  { to: "/", label: "System Status" },
+  { to: "/dashboard", label: "Dashboard" },
   {
     to: "/transactions",
     label: "Transactions",
@@ -54,10 +54,14 @@ export default function AppLayout() {
         className="glass relative z-10 shrink-0 border-0 border-b p-4 md:sticky md:top-0 md:h-screen md:w-60 md:overflow-y-auto md:border-b-0 md:border-r"
       >
         <div className="flex items-center justify-between">
-          <p className="flex items-center gap-2 text-lg font-semibold tracking-wide">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-lg font-semibold tracking-wide"
+            aria-label="FinGuard home"
+          >
             <Logo />
             <span className="gradient-text">FinGuard</span>
-          </p>
+          </Link>
           <button
             type="button"
             className="rounded-md border border-slate-300 px-3 py-1 text-sm md:hidden"
@@ -77,7 +81,7 @@ export default function AppLayout() {
             <li key={n.to}>
               <NavLink
                 to={n.to}
-                end={n.to === "/"}
+                end={n.to === "/dashboard"}
                 className={({ isActive }) =>
                   `block rounded-lg px-3 py-2 text-sm transition-all duration-200 ${isActive ? "btn-glow text-white" : "text-slate-700 hover:translate-x-1 hover:bg-white/10"}`
                 }
