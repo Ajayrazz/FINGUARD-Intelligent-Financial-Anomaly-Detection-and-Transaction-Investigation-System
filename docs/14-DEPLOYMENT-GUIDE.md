@@ -23,3 +23,6 @@ Compose runs `neo4j:5-community` (heap 1 GB, page cache 512 MB; ports bound to 1
 
 ## Tesseract (Phase 8)
 The backend image installs the `tesseract-ocr` system package (English language data) and the Python packages `pytesseract`, `Pillow`, `pypdfium2` (PDF rendering without Poppler), `rapidfuzz`, `imagehash` and `reportlab` (`requirements/ml.txt`). Uploaded invoices are stored under `MEDIA_ROOT/invoices/` and must live on storage shared by the web and worker containers in production. `INVOICE_MAX_BYTES` (default 10 MB) and `DUPLICATE_MAX_ROWS` (2M) are configurable. Generate demo invoices with `python manage.py generate_synthetic_invoices --email <user>`.
+
+## SHAP and LIME (Phase 10)
+`shap` (with `numba`/`llvmlite`) and `lime` (with `scikit-image`, `matplotlib`) are added to `requirements/ml.txt`; they make the backend image noticeably larger. Explanation jobs rebuild the dataset's features in the worker (about 3 s for 343k transactions) and load the model artifact from `ML_ARTIFACTS_DIR` after checking its SHA-256.

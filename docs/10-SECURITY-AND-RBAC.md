@@ -59,3 +59,6 @@ New permissions: `duplicates.read` (analyst, investigator, auditor), `duplicates
 
 ## Phase 9 additions
 New permissions: `risk.read` (analyst, investigator, auditor), `risk.run` (analyst), `risk.configure` (Super Admin only by default: weights, thresholds and policy change what gets prioritised). Configuration creation and activation, and every run, are audited. Assessments are append-only at the database level (trigger), so a score cannot be quietly rewritten; a used configuration cannot be edited. Assessments never include the ground-truth label.
+
+## Phase 10 additions
+New permissions: `explain.read` (analyst, investigator, auditor), `explain.generate` (analyst, investigator, which also runs model code over stored data). Management has none. Generation loads a pickled model only through the hash-verified path (D-050) and is audited (`explanation.requested`, `explanation.generated`). Explanations never contain the ground-truth label.

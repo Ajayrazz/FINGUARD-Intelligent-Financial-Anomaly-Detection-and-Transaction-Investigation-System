@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.graph_engine",
     "apps.duplicates",
     "apps.risk_engine",
+    "apps.explain",
 ]
 
 MIDDLEWARE = [

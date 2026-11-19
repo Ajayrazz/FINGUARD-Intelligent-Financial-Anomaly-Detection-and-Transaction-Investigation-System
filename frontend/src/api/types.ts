@@ -513,3 +513,51 @@ export interface RiskRun {
   created_at: string
   finished_at: string | null
 }
+
+export type ExplanationMethod = 'shap' | 'lime' | 'feature_importance' | 'behavioral' | 'graph' | 'risk_breakdown' | 'summary'
+
+export interface AttributionRow {
+  name: string
+  label: string
+  value: number
+  display: string
+  contribution: number
+  rule?: string
+}
+
+export interface Explanation {
+  id: number
+  transaction: number | null
+  method: ExplanationMethod
+  prediction: number | null
+  assessment: number | null
+  model_version: number | null
+  model_version_name: string | null
+  payload: {
+    features?: AttributionRow[]
+    score?: number
+    threshold?: number
+    space?: string
+    base_value?: number
+    algorithm?: string
+    note?: string
+    background?: string
+    sections?: { title: string; text: string }[]
+    timeline?: { transaction_id: number; external_id: string; occurred_at: string; amount: string; tx_type: string; sender: string; receiver: string | null; is_this_transaction: boolean }[]
+    disclaimer?: string
+  }
+  narrative: string
+  generator_version: string
+  generated_at: string
+  current: boolean
+  stale_reason: string
+  note: string
+  disclaimer: string
+}
+
+export interface ExplanationJob {
+  id: number
+  status: RunStatus
+  result: { created: string[]; skipped: Record<string, string> }
+  error_message: string
+}

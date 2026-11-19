@@ -48,6 +48,8 @@ PERMISSIONS: dict[str, str] = {
     "risk.read": "View risk assessments, history and configurations",
     "risk.run": "Start risk scoring runs",
     "risk.configure": "Create and activate risk configurations (weights, thresholds, missing-signal policy)",
+    "explain.read": "View explanations and download explanation reports",
+    "explain.generate": "Generate explanations (SHAP, LIME, summaries, feature importance)",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -74,6 +76,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "duplicates.review",
         "risk.read",
         "risk.run",
+        "explain.read",
+        "explain.generate",
     },
     FRAUD_INVESTIGATOR: {
         "datasets.read",
@@ -87,6 +91,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "duplicates.read",
         "duplicates.review",
         "risk.read",
+        "explain.read",
+        "explain.generate",
     },
     AUDITOR: {
         "users.read",
@@ -102,6 +108,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "graph.read",
         "duplicates.read",
         "risk.read",
+        "explain.read",
     },
     MANAGEMENT: set(),
 }

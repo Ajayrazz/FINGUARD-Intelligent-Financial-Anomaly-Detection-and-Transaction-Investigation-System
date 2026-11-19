@@ -168,6 +168,13 @@ def _endpoints(
         ("get", "/api/v1/risk/compare/?a=1&b=2", None, "risk.read"),
         ("post", "/api/v1/risk/runs/", {"dataset": ds_pk}, "risk.run"),
         ("post", "/api/v1/risk/config/", {"weights": {}, "thresholds": {}}, "risk.configure"),
+        ("get", f"/api/v1/transactions/{tx_pk}/explanations/", None, "explain.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/explanations/report/", None, "explain.read"),
+        ("get", "/api/v1/explanations/1/", None, "explain.read"),
+        ("get", "/api/v1/explanation-jobs/1/", None, "explain.read"),
+        ("get", f"/api/v1/model-versions/{mv_pk}/importance/", None, "explain.read"),
+        ("post", f"/api/v1/transactions/{tx_pk}/explanations/", {"methods": ["summary"]}, "explain.generate"),
+        ("post", f"/api/v1/model-versions/{mv_pk}/importance/", {}, "explain.generate"),
     ]
 
 

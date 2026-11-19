@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import type { AccountBrief, TransactionDetail, TransactionEvent, TransactionRow, TxStatus } from '../api/types'
 import { PermissionGate } from '../auth/guards'
+import { ExplanationPanel } from '../components/explain/ExplanationPanel'
 import { RiskPanel } from '../components/risk/RiskPanel'
 import { BehaviorPanel } from '../components/behavior/BehaviorPanel'
 import { TransactionTable } from '../components/transactions/TransactionTable'
@@ -104,6 +105,10 @@ export default function TransactionDetailPage() {
 
       <PermissionGate permission="risk.read">
         <RiskPanel transactionId={t.id} />
+      </PermissionGate>
+
+      <PermissionGate permission="explain.read">
+        <ExplanationPanel transactionId={t.id} />
       </PermissionGate>
 
       <PermissionGate permission="behavior.read">

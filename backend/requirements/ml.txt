@@ -12,3 +12,5 @@ pypdfium2>=4.30
 rapidfuzz>=3.10
 imagehash>=4.3
 reportlab>=4.2
+shap>=0.46
+lime>=0.2.0.1

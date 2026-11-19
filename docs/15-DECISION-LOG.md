@@ -78,3 +78,9 @@ Status: **Accepted** (follows master prompt), **Proposed** (needs your approval)
 | D-072 | Risk configurations are versioned and immutable once used; assessments are append-only (DB trigger); no edit API | Implemented | Reproducible history; changing weights never rewrites past scores. |
 | D-073 | Low coverage (< 50%) caps a Critical score at High (`capped`) | Implemented | Doc 08 policy: a score resting on little evidence must not auto-escalate. |
 | D-074 | Calibration = grid search on the earlier half by time, report on the later half; the result is stored as an *inactive* calibrated version and never auto-activated | Implemented | Prevents tuning on the evaluation data and silent changes to what analysts see. |
+| D-075 | Added `shap` and `lime` | Implemented | Required by the plan; SHAP for XGBoost/forests/logistic regression, LIME for everything. |
+| D-076 | An explanation is stale only when the *same model version* is re-run, or a newer risk assessment / graph analysis exists; a later run by another model adds a note | Implemented | Found live: several models legitimately score the same transaction, so "newer run" must be per model version. |
+| D-077 | Before explaining, the stored prediction is recomputed from rebuilt features and must match | Implemented | Guarantees the explanation describes the stored score (history features change if earlier transactions are added later). |
+| D-078 | LIME background = seeded sample of the scored dataset, seed = transaction id | Implemented | No training matrix is stored with the model; same-dataset background makes perturbations realistic and results reproducible. |
+| D-079 | Narratives are deterministic templates, no language model | Implemented | Plan requirement; testable for wording rules and facts. |
+| D-080 | SHAP is shown first; LIME is labelled as an approximation | Implemented | Measured: LIME top features unstable and weakly faithful on tree models (doc 08). |
