@@ -154,8 +154,10 @@ export default function CaseDetailPage() {
         <ul className="text-sm">{c.alerts.map((a) => <li key={a.id}><SeverityBadge severity={a.severity} /> <Link className="text-blue-700 hover:underline" to={`/alerts?open=${a.id}`}>{a.type_label}</Link>: {a.reason}</li>)}{c.alerts.length === 0 && <li className="text-slate-600">No alerts linked.</li>}</ul></div>
       <div><h2 className="text-lg font-semibold">Transactions</h2>
         {txs.data && txs.data.length > 0 && (
+          <div className="overflow-x-auto">
           <table className="w-full text-left text-sm"><thead className="border-b border-slate-300 text-slate-600"><tr><th className="py-1">Transaction</th><th>Time</th><th>Type</th><th className="text-right">Amount</th><th>From</th><th>To</th><th>Note</th></tr></thead>
             <tbody>{txs.data.map((t) => <tr key={t.id} className="border-b border-slate-100"><td className="py-1"><Link className="text-blue-700 hover:underline" to={`/transactions/${t.transaction}`}>{t.external_id}</Link></td><td className="whitespace-nowrap">{formatDateTime(t.occurred_at)}</td><td>{t.tx_type}</td><td className="text-right tabular-nums">{formatAmount(t.amount)}</td><td className="font-mono">{t.sender}</td><td className="font-mono">{t.receiver ?? '—'}</td><td>{t.note}</td></tr>)}</tbody></table>
+          </div>
         )}
         {txs.data?.length === 0 && <p className="text-sm text-slate-600">No transactions attached.</p>}
         {can('cases.update') && !closed && <p className="mt-1 text-sm"><label>Add transaction by id <input className="w-24 rounded border border-slate-300 p-1" value={txId} onChange={(e) => setTxId(e.target.value.replace(/\D/g, ''))} /></label> <Button variant="secondary" disabled={!txId || addTx.isPending} onClick={() => addTx.mutate()}>Add</Button></p>}</div>

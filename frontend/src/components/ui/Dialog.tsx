@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from "react";
 
 /** Accessible modal built on the native <dialog> element (focus trap + Esc handled by the browser). */
 export function Dialog({
@@ -7,18 +7,18 @@ export function Dialog({
   onClose,
   children,
 }: {
-  open: boolean
-  title: string
-  onClose: () => void
-  children: ReactNode
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
 }) {
-  const ref = useRef<HTMLDialogElement>(null)
+  const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (open && !el.open) el.showModal?.()
-    if (!open && el.open) el.close?.()
-  }, [open])
+    const el = ref.current;
+    if (!el) return;
+    if (open && !el.open) el.showModal?.();
+    if (!open && el.open) el.close?.();
+  }, [open]);
   return (
     <dialog
       ref={ref}
@@ -35,5 +35,5 @@ export function Dialog({
         </div>
       )}
     </dialog>
-  )
+  );
 }

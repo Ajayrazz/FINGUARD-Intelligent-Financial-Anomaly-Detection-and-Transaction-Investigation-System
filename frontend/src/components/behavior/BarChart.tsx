@@ -1,6 +1,14 @@
 /** Minimal accessible bar chart; every bar carries its value as a title and the whole chart has a text label. */
-export function BarChart({ values, labels, label }: { values: number[]; labels: string[]; label: string }) {
-  const max = Math.max(...values, 1)
+export function BarChart({
+  values,
+  labels,
+  label,
+}: {
+  values: number[];
+  labels: string[];
+  label: string;
+}) {
+  const max = Math.max(...values, 1);
   return (
     <div role="img" aria-label={label} className="flex h-28 items-end gap-px">
       {values.map((v, i) => (
@@ -12,5 +20,5 @@ export function BarChart({ values, labels, label }: { values: number[]; labels: 
         />
       ))}
     </div>
-  )
+  );
 }
