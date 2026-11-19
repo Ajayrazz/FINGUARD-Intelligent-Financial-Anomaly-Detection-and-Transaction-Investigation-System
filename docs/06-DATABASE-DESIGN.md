@@ -134,3 +134,9 @@ Real stack (HTTP upload → Celery worker → Postgres 16 in Docker on a laptop)
 - **Neo4jSyncState**(dataset 1:1, status never|running|synced|failed, last_tx_id watermark, nodes/edges_synced, last_error, timestamps).
 - **Neo4j model:** `(:Account {key:"<dataset>:<account pk>", ds, id})-[:TX {pk, amount, ts, type}]->(:Account)`; unique constraint on `Account.key`, range indexes on `TX.pk` and `Account.ds`. Display data (refs, types, scores) always comes from PostgreSQL. Only transactions with a receiver are projected; edge properties are immutable, so a watermark by transaction id is sufficient (status changes are not projected).
 - Measured on the real PaySim slice (343,027 transactions, 642,255 accounts): graph analysis 41–69 s; Neo4j full load 15 s (≈22k edges/s) with PostgreSQL↔Neo4j counts equal. Extrapolation (not measured): full PaySim 6.36M edges ≈ 5 min.
+
+## Phase 8 additions (duplicates)
+- **InvoiceDocument**(file_path [random name under MEDIA_ROOT/invoices], original_name [display only], sha256, mime, size, page_count, status uploaded|ocr_done|needs_review|reviewed|failed, ocr_text, ocr_confidence, phash [64-bit hex], error_message, uploaded_by, created_at).
+- **Invoice**(document 1:1, vendor_name/vendor_normalized, invoice_number/invoice_number_normalized, amount, currency, invoice_date, extracted_fields [raw OCR output, kept after correction], field_confidence, verified_by/verified_at).
+- **DuplicateCandidate**(kind, record_a/b type+id with a<b ordering enforced by a CHECK, match_class exact|strong_similar|potential|legitimate_repeat, similarity_score, evidence JSONB, review_status pending|confirmed_duplicate|not_duplicate|legitimate_repeat, reviewed_by/at, notes, scan_run); UNIQUE (kind, a, b); idx (kind, class, status), (status, -score).
+- **DuplicateScanRun**(kind, dataset, status, candidates_found, error, created_by, timestamps).

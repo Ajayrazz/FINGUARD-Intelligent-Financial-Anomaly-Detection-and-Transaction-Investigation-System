@@ -60,3 +60,8 @@
 - Snapshots analyse a whole dataset (cap 2M transactions; cycle search has a 300k-expansion budget per run — `truncated` is reported); there is no incremental graph update.
 - Neo4j projection: edges carry immutable fields only (status changes not projected), isolated accounts are not projected, no automatic scheduled sync (manual/API), and Neo4j was slower than PostgreSQL for neighborhoods on the measured data. Aura Free is too small for the PaySim slice.
 - The relationship diagram is not rendered in tests or a browser; communities are shown only as ids/findings; no ranked-neighbour list.
+- OCR and duplicate matching are validated only on clean machine-rendered synthetic invoices. Accuracy falls to 67.5% at 5° rotation and 50% at 4% noise (no deskew/denoise); real layouts, tables, stamps, handwriting and non-English text are untested. Currency symbols other than $ € £ ₹ and amounts in other number formats may be missed (fields are `null`, never guessed).
+- Date parsing assumes day-first for numeric dates (12/03/2026 = 12 March); ambiguous formats can be misread, which is why a person verifies every invoice.
+- Transaction duplicate detection found nothing on the real PaySim slice (no repeating senders); it is validated on constructed cases. Repeated-payment detection is per dataset, exact amount only, and flags at most 20,000 pairs per scan.
+- Scores/thresholds/weights are uncalibrated. "Duplicate record alerts" are not built (Phase 11). The PDF report is plain (no charts or images) and its layout was not visually inspected.
+- Stored invoices have no virus scan and no retention/deletion policy yet; scans are manual (no schedule); invoice matching is O(blocked pairs) and was tested on tens of invoices, not thousands.

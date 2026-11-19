@@ -12,7 +12,7 @@ Last updated: 2026-11-19 · Current phase: **4 — Dataset import & processing p
 | 5 | ML research & detection | **5A–5D implemented and checked — awaiting approval for Phase 6** — 7 algorithms evaluated on real PaySim and ULB; detection runs, predictions, model registry API, Anomaly Detection and Model Performance pages | Backend 179 tests, frontend 37 tests pass; platform scoring verified equal to the research pipeline on 343k real PaySim rows. Not done: RQ1 hybrid, RQ3 overlap analysis, rolling-window drift (RQ6), browser testing |
 | 6 | Behavioral analysis | **Implemented and checked — awaiting approval for Phase 7** | Backend 206 tests, frontend 41 tests pass; 5×40,000-in-10-min scenario scores 77–84; real PaySim is 100% cold start (not applicable); weights uncalibrated |
 | 7 / 7B | Graph + Neo4j / graph experiments | **7 implemented and checked — awaiting approval for Phase 8; 7B not started** | Backend 237 tests (incl. real Neo4j), frontend 46 pass; planted cycle/chain/fan-in/shared beneficiaries found; real PaySim slice: 84 weak fan-in findings only; Neo4j slower than PostgreSQL for neighborhoods (measured); Aura verified; diagram not browser-tested |
-| 8 | Duplicates & OCR | Not Started | |
+| 8 | Duplicates, OCR | **Implemented and checked — awaiting approval for Phase 9** | Backend 258 tests (Tesseract really executed), frontend 51 pass; 40/40 OCR fields and 10/10 pair classes on the clean synthetic set, 50–68% under heavy rotation/noise; real PaySim slice has no repeats; UI not browser-tested |
 | 9 | Risk scoring | Not Started | |
 | 10 | Explainable AI | Not Started | |
 | 11 | Alerts | Not Started | |

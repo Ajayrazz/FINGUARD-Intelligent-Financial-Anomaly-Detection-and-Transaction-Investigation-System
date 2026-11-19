@@ -10,6 +10,7 @@ import AccountPage from './pages/AccountPage'
 import AnomalyDetectionPage from './pages/AnomalyDetectionPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import DetectionRunPage from './pages/DetectionRunPage'
+import DuplicatesPage from './pages/DuplicatesPage'
 import GraphOverviewPage from './pages/GraphOverviewPage'
 import ImportDetailPage from './pages/ImportDetailPage'
 import ImportsPage from './pages/ImportsPage'
@@ -54,6 +55,9 @@ export default function App() {
                   <Route element={<ProtectedRoute permission="graph.read" />}>
                     <Route path="graph" element={<GraphOverviewPage />} />
                     <Route path="accounts/:id/graph" element={<RelationshipGraphPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="duplicates.read" />}>
+                    <Route path="duplicates" element={<DuplicatesPage />} />
                   </Route>
                   <Route element={<ProtectedRoute permission="models.read" />}>
                     <Route path="models" element={<ModelPerformancePage />} />

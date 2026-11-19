@@ -99,20 +99,20 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M5-01 | Exact duplicate transaction ID detection | P0 | 8 | Ph3, Ph4 | Detected and reported | Planned | TBD |
-| FR-M5-02 | Repeated payment detection | P0 | 8 | Ph3, Ph4 | Same sender/receiver/amount in window detected | Planned | TBD |
-| FR-M5-03 | Duplicate invoice number identification | P1 | 8 | Ph3, Ph4 | Normalized invoice-number match | Planned | TBD |
-| FR-M5-04 | Invoice amount comparison | P1 | 8 | Ph3, Ph4 | Amount equality/relative difference evidence | Planned | TBD |
-| FR-M5-05 | Vendor information matching | P1 | 8 | Ph3, Ph4 | Fuzzy vendor match with score | Planned | TBD |
-| FR-M5-06 | Invoice date comparison | P1 | 8 | Ph3, Ph4 | Date proximity evidence | Planned | TBD |
-| FR-M5-07 | OCR-based invoice data extraction | P1 | 8 | Ph3, Ph4 | Tesseract really executed; fields extracted with confidence | Planned | TBD |
-| FR-M5-08 | Similar invoice image detection | P2 | 8 | Ph3, Ph4 | pHash similarity on synthetic set | Planned | TBD |
+| FR-M5-01 | Exact duplicate transaction ID detection | P0 | 8 | Ph3, Ph4 | Detected and reported | Tested | tests/test_duplicate_transactions.py (same id in two datasets; rows flagged at import). Within one dataset the unique constraint already prevents duplicates |
+| FR-M5-02 | Repeated payment detection | P0 | 8 | Ph3, Ph4 | Same sender/receiver/amount in window detected | Tested | tests/test_duplicates_lib.py, test_duplicate_transactions.py (strong <=1 h, potential <=24 h, regular series = legitimate repeat); real PaySim slice: 0 candidates |
+| FR-M5-03 | Duplicate invoice number identification | P1 | 8 | Ph3, Ph4 | Normalized invoice-number match | Tested | tests/test_duplicates_lib.py, test_invoices.py (normalised number match, 1-char OCR slip) |
+| FR-M5-04 | Invoice amount comparison | P1 | 8 | Ph3, Ph4 | Amount equality/relative difference evidence | Tested | tests/test_duplicates_lib.py (equal / within 1%, relative difference in evidence) |
+| FR-M5-05 | Vendor information matching | P1 | 8 | Ph3, Ph4 | Fuzzy vendor match with score | Tested | tests/test_duplicates_lib.py (rapidfuzz token-set ratio on normalised vendor) |
+| FR-M5-06 | Invoice date comparison | P1 | 8 | Ph3, Ph4 | Date proximity evidence | Tested | tests/test_duplicates_lib.py (days apart, billing-interval recognition) |
+| FR-M5-07 | OCR-based invoice data extraction | P1 | 8 | Ph3, Ph4 | Tesseract really executed; fields extracted with confidence | Tested | tests/test_invoices.py (real Tesseract on PNG/JPEG/PDF; 40/40 fields on the clean synthetic set; degradation table in doc 08); synthetic invoices only |
+| FR-M5-08 | Similar invoice image detection | P2 | 8 | Ph3, Ph4 | pHash similarity on synthetic set | Tested | tests/test_duplicates_lib.py, test_invoices.py (pHash Hamming distance as supporting evidence; synthetic set only) |
 | FR-M5-09 | Duplicate record alerts | P1 | 11 | Ph3, Ph4 | Alert on candidate above threshold | Planned | TBD |
-| FR-M5-10 | Duplicate investigation reports | P1 | 8 | Ph3, Ph4 | PDF report generated | Planned | TBD |
-| FR-M5-11 | Exact matching | P0 | 8 | Ph3, Ph4 | Exact class assigned | Planned | TBD |
-| FR-M5-12 | Fuzzy matching | P1 | 8 | Ph3, Ph4 | Strong/potential classes assigned | Planned | TBD |
-| FR-M5-13 | Similarity score calculation | P1 | 8 | Ph3, Ph4 | Score stored; documented as non-proof | Planned | TBD |
-| FR-M5-14 | Human verification of potential duplicates | P0 | 8 | Ph3, Ph4 | Review decision required; audited | Planned | TBD |
+| FR-M5-10 | Duplicate investigation reports | P1 | 8 | Ph3, Ph4 | PDF report generated | Tested | tests/test_invoices.py (PDF generated with records, evidence, review status); layout not visually verified |
+| FR-M5-11 | Exact matching | P0 | 8 | Ph3, Ph4 | Exact class assigned | Tested | tests/test_invoices.py, test_duplicate_transactions.py (exact class) |
+| FR-M5-12 | Fuzzy matching | P1 | 8 | Ph3, Ph4 | Strong/potential classes assigned | Tested | tests/test_invoices.py (strong/potential/legitimate classes; 10/10 expected pairs on the synthetic set) |
+| FR-M5-13 | Similarity score calculation | P1 | 8 | Ph3, Ph4 | Score stored; documented as non-proof | Tested | score 0-100 stored with evidence; missing signals not counted as 0 (tests/test_duplicates_lib.py); documented as non-proof |
+| FR-M5-14 | Human verification of potential duplicates | P0 | 8 | Ph3, Ph4 | Review decision required; audited | Tested | tests/test_invoices.py (nothing auto-confirmed; review needs duplicates.review; audited; decisions survive rescans) |
 
 ## M6 Alerts
 
@@ -234,7 +234,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Implemented | pages/behavior.test.tsx (component tests; not browser-tested) |
 | FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Implemented | pages/graph.test.tsx (component tests; not browser-tested) |
 | FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Planned | TBD |
-| FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Planned | TBD |
+| FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Implemented | pages/duplicates.test.tsx (component tests; not browser-tested) |
 | FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Planned | TBD |
 | FR-UI-10 | Investigations page | P0 | 12 | per feature phase; completion Ph13 | Workspace | Planned | TBD |
 | FR-UI-11 | Reports page | P1 | 10 | per feature phase; completion Ph13 | Generate/download | Planned | TBD |

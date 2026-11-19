@@ -384,3 +384,55 @@ export interface GraphTimelineEvent {
   amount: string
   tx_type: string
 }
+
+export type InvoiceStatus = 'uploaded' | 'ocr_done' | 'needs_review' | 'reviewed' | 'failed'
+
+export interface InvoiceRow {
+  id: number
+  document_id: number | null
+  original_name: string
+  status: InvoiceStatus
+  ocr_confidence: number | null
+  error_message: string
+  vendor_name: string
+  invoice_number: string
+  amount: string | null
+  currency: string
+  invoice_date: string | null
+  extracted_fields: Record<string, string | null>
+  field_confidence: Record<string, number>
+  verified_by_email: string | null
+  verified_at: string | null
+  created_at: string | null
+}
+
+export type MatchClass = 'exact' | 'strong_similar' | 'potential' | 'legitimate_repeat'
+export type ReviewStatus = 'pending' | 'confirmed_duplicate' | 'not_duplicate' | 'legitimate_repeat'
+
+export interface DuplicateCandidate {
+  id: number
+  kind: 'transaction' | 'invoice'
+  record_a_type: string
+  record_a_id: number
+  record_b_type: string
+  record_b_id: number
+  match_class: MatchClass
+  similarity_score: number
+  review_status: ReviewStatus
+  reviewed_by_email: string | null
+  reviewed_at: string | null
+  notes: string
+  created_at: string
+}
+
+export interface DuplicateRecord {
+  type: 'transaction' | 'invoice'
+  id: number
+  [key: string]: string | number | boolean | null
+}
+
+export interface DuplicateCandidateDetail extends DuplicateCandidate {
+  evidence: Record<string, unknown>
+  record_a: DuplicateRecord | null
+  record_b: DuplicateRecord | null
+}

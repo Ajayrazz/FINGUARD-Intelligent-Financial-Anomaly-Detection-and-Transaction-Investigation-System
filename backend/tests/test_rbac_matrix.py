@@ -155,6 +155,11 @@ def _endpoints(
         ("get", f"/api/v1/graph/edges/{tx_pk}/", None, "graph.read"),
         ("get", f"/api/v1/graph/datasets/{ds_pk}/sync/", None, "graph.read"),
         ("post", "/api/v1/graph/snapshots/", {"dataset": ds_pk}, "graph.run"),
+        ("get", "/api/v1/invoices/", None, "duplicates.read"),
+        ("get", "/api/v1/duplicates/candidates/", None, "duplicates.read"),
+        ("get", "/api/v1/duplicates/scans/", None, "duplicates.read"),
+        ("post", "/api/v1/invoices/upload/", {}, "duplicates.create"),
+        ("post", "/api/v1/duplicates/scan/", {"kind": "invoice"}, "duplicates.run"),
     ]
 
 

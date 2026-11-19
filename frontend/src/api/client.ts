@@ -90,6 +90,18 @@ export const api = {
   patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, { body }),
 }
 
+/** Fetch an authenticated file as a Blob (e.g. an invoice image for preview). */
+export async function fetchBlob(path: string): Promise<Blob> {
+  const send = () => fetch(`/api/v1${path}`, { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} })
+  let res = await send()
+  if (res.status === 401) {
+    await refreshAccessToken()
+    res = await send()
+  }
+  if (!res.ok) throw await parseError(res)
+  return res.blob()
+}
+
 /** Download an authenticated file (the browser cannot attach the bearer token to a plain link). */
 export async function downloadFile(path: string, filename: string): Promise<void> {
   const send = () => fetch(`/api/v1${path}`, { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} })
