@@ -58,10 +58,11 @@ interface RequestOptions {
 export async function request<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
   const send = (): Promise<Response> => {
     const headers: Record<string, string> = { Accept: 'application/json' }
-    if (opts.body !== undefined) headers['Content-Type'] = 'application/json'
+    const isForm = opts.body instanceof FormData
+    if (opts.body !== undefined && !isForm) headers['Content-Type'] = 'application/json' // browser sets multipart boundary
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`
     const init: RequestInit = { method, headers, credentials: 'same-origin' }
-    if (opts.body !== undefined) init.body = JSON.stringify(opts.body)
+    if (opts.body !== undefined) init.body = isForm ? (opts.body as FormData) : JSON.stringify(opts.body)
     if (opts.signal) init.signal = opts.signal
     return fetch(`/api/v1${path}`, init)
   }
@@ -87,6 +88,23 @@ export const api = {
   post: <T>(path: string, body?: unknown, opts: Omit<RequestOptions, 'body'> = {}) =>
     request<T>('POST', path, { ...opts, body }),
   patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, { body }),
+}
+
+/** Download an authenticated file (the browser cannot attach the bearer token to a plain link). */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const send = () => fetch(`/api/v1${path}`, { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} })
+  let res = await send()
+  if (res.status === 401) {
+    await refreshAccessToken()
+    res = await send()
+  }
+  if (!res.ok) throw await parseError(res)
+  const url = URL.createObjectURL(await res.blob())
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export interface ReadinessResponse {

@@ -8,7 +8,7 @@ says so. It must never be used for research metrics (docs/09). Generation runs i
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
-from apps.datasets.models import Dataset
+from apps.datasets.models import Dataset, ImportJob
 from apps.transactions.models import Account, Transaction
 
 TX_TYPES = ["PAYMENT", "TRANSFER", "CASH_OUT", "CASH_IN", "DEBIT"]
@@ -26,9 +26,7 @@ class Command(BaseCommand):
     def handle(self, *args, **opts):  # noqa: ANN002, ANN003, ANN201
         name = opts["name"]
         if not name.upper().startswith("MOCK"):
-            raise CommandError(
-                "Mock dataset names must start with 'MOCK' so they cannot be mistaken for real data."
-            )
+            raise CommandError("Mock dataset names must start with 'MOCK' so they cannot be mistaken for real data.")
         if opts["purge"]:
             return self._purge(name)
         rows, accounts = opts["rows"], opts["accounts"]
@@ -98,5 +96,6 @@ class Command(BaseCommand):
         with transaction.atomic():
             Transaction.objects.filter(dataset=ds).delete()
             Account.objects.filter(dataset=ds).delete()
+            ImportJob.objects.filter(dataset=ds).delete()  # row errors cascade
             ds.delete()
         self.stdout.write(self.style.SUCCESS(f"Purged '{name}'"))

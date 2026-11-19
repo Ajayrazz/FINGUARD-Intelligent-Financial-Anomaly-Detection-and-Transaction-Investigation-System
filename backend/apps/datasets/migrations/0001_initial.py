@@ -18,9 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("name", models.CharField(max_length=120, unique=True)),
                 (
@@ -62,9 +60,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("name", models.CharField(max_length=80)),
                 ("mapping", models.JSONField(default=dict, help_text="source column -> canonical field")),
@@ -109,9 +105,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("file_name", models.CharField(max_length=255)),
                 ("file_size", models.PositiveBigIntegerField(default=0)),
@@ -180,9 +174,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("row_number", models.PositiveBigIntegerField()),
                 ("raw", models.JSONField(default=dict)),
@@ -203,9 +195,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="columnmappingprofile",
-            constraint=models.UniqueConstraint(
-                fields=("dataset", "name"), name="uniq_mapping_name_per_dataset"
-            ),
+            constraint=models.UniqueConstraint(fields=("dataset", "name"), name="uniq_mapping_name_per_dataset"),
         ),
         migrations.AddIndex(
             model_name="importrowerror",

@@ -34,9 +34,7 @@ class ModelVersion(models.Model):
     hyperparameters = models.JSONField(default=dict)
     feature_schema = models.JSONField(default=dict)
     preprocessing_artifact_path = models.CharField(max_length=300, blank=True)
-    training_dataset = models.ForeignKey(
-        Dataset, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
-    )
+    training_dataset = models.ForeignKey(Dataset, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
     training_data_sha256 = models.CharField(max_length=64, blank=True)
     split_strategy = models.JSONField(default=dict)
     random_seed = models.IntegerField(null=True, blank=True)

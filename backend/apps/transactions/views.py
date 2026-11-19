@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.db.models import Count, DecimalField, Q, Sum
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
 from . import services
@@ -13,6 +15,7 @@ from .pagination import HybridPagination
 from .serializers import (
     AccountDetailSerializer,
     AccountSerializer,
+    IngestRequestSerializer,
     StatusUpdateSerializer,
     TransactionDetailSerializer,
     TransactionEventSerializer,
@@ -35,6 +38,7 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
         "events": "transactions.read",
         "related": "transactions.read",
         "update_status": "transactions.update_status",
+        "ingest": "transactions.ingest",
     }
 
     def get_serializer_class(self):  # noqa: ANN201
@@ -43,6 +47,64 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "update_status":
             return StatusUpdateSerializer
         return TransactionDetailSerializer
+
+    @action(detail=False, methods=["post"], url_path="ingest", parser_classes=[JSONParser], pagination_class=None)
+    def ingest(self, request):  # noqa: ANN001, ANN201
+        """Submit up to 1000 transactions as JSON. Idempotent with dup_policy=skip (default): resubmitting the
+        same transaction_id is reported as duplicate_skipped, not re-inserted. One result per record, in order."""
+        from apps.datasets.ingestion.api import ingest_records
+        from apps.datasets.models import Dataset
+
+        ser = IngestRequestSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        records = ser.validated_data["transactions"]
+        if len(records) > settings.IMPORT_API_MAX_BATCH:
+            return Response(
+                {
+                    "error": {
+                        "code": "batch_too_large",
+                        "message": f"At most {settings.IMPORT_API_MAX_BATCH} transactions per request",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+        dataset = Dataset.objects.filter(pk=ser.validated_data["dataset"]).first()
+        if dataset is None:
+            return Response(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Unknown dataset",
+                        "details": {"dataset": ["Unknown dataset"]},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        job, results, problems = ingest_records(
+            dataset=dataset, user=request.user, records=records, dup_policy=ser.validated_data["dup_policy"]
+        )
+        if problems:
+            return Response(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Batch cannot be processed",
+                        "details": {"transactions": problems},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            {
+                "import_id": job.pk,
+                "accepted": job.rows_accepted,
+                "rejected": job.rows_rejected,
+                "duplicates": job.rows_duplicate,
+                "results": results,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=["patch"], url_path="status")
     def update_status(self, request, pk=None):  # noqa: ANN001, ANN201

@@ -108,9 +108,7 @@ def test_page_number_pagination(make_dataset, make_tx, make_user, api_as):
     assert client.get(f"{URL}?dataset={ds.pk}&page_size=1000").data["results"].__len__() == 7  # capped at 100
 
 
-def test_keyset_pagination_walks_everything_exactly_once_even_with_ties(
-    make_dataset, make_tx, make_user, api_as
-):
+def test_keyset_pagination_walks_everything_exactly_once_even_with_ties(make_dataset, make_tx, make_user, api_as):
     from datetime import UTC, datetime
 
     ds = make_dataset()
@@ -174,9 +172,7 @@ def test_status_change_validation(make_dataset, make_tx, make_user, api_as):
     client = api_as(make_user("financial_analyst"))
     tx = make_tx(make_dataset())
     assert client.patch(f"{URL}{tx.pk}/status/", {"status": "bogus"}, format="json").status_code == 400
-    assert (
-        client.patch(f"{URL}{tx.pk}/status/", {"status": "completed"}, format="json").status_code == 400
-    )  # no-op
+    assert client.patch(f"{URL}{tx.pk}/status/", {"status": "completed"}, format="json").status_code == 400  # no-op
     assert not TransactionEvent.objects.filter(transaction=tx).exists()
 
 
@@ -210,9 +206,7 @@ def test_account_detail_totals_and_transactions_by_direction(make_dataset, make_
     assert client.get(f"/api/v1/accounts/{acct['id']}/transactions/?direction=sideways").status_code == 400
 
 
-def test_same_account_ref_in_two_datasets_are_distinct_accounts(
-    make_dataset, make_account, make_user, api_as
-):
+def test_same_account_ref_in_two_datasets_are_distinct_accounts(make_dataset, make_account, make_user, api_as):
     a, b = make_dataset(), make_dataset()
     make_account(a, "C1")
     make_account(b, "C1")
@@ -223,9 +217,7 @@ def test_same_account_ref_in_two_datasets_are_distinct_accounts(
 # ------------------------------------------------------------------ datasets
 def test_dataset_create_list_and_audit(make_user, api_as):
     analyst = make_user("financial_analyst")
-    res = api_as(analyst).post(
-        "/api/v1/datasets/", {"name": "My upload", "source_type": "custom"}, format="json"
-    )
+    res = api_as(analyst).post("/api/v1/datasets/", {"name": "My upload", "source_type": "custom"}, format="json")
     assert res.status_code == 201 and res.data["row_count"] == 0
     assert any(d["name"] == "My upload" for d in api_as(analyst).get("/api/v1/datasets/").data)
     assert AuditLog.objects.filter(action="dataset.created").exists()

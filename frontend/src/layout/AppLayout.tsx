@@ -11,6 +11,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/', label: 'System Status' },
   { to: '/transactions', label: 'Transactions', permission: 'transactions.read' },
+  { to: '/imports', label: 'Imports', permission: 'imports.read' },
   { to: '/users', label: 'User Management', permission: 'users.read' },
   { to: '/audit', label: 'Audit Logs', permission: 'audit.read' },
 ]

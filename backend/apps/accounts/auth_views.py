@@ -1,7 +1,9 @@
+import secrets
 from functools import lru_cache
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
+from django.core.cache import cache
 from rest_framework import exceptions, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -141,9 +143,7 @@ class LogoutView(PublicAuthView):
                 user = User.objects.filter(pk=token["user_id"]).first()
                 token.blacklist()
                 if user is not None:
-                    audit.log(
-                        "auth.logout", request=request, actor=user, resource_type="user", resource_id=user.pk
-                    )
+                    audit.log("auth.logout", request=request, actor=user, resource_type="user", resource_id=user.pk)
             except TokenError:
                 pass
         response = Response(status=status.HTTP_204_NO_CONTENT)
@@ -156,3 +156,18 @@ class MeView(APIView):
 
     def get(self, request):  # noqa: ANN001, ANN201
         return Response(MeSerializer(request.user).data)
+
+
+WS_TICKET_TTL = 30  # seconds
+WS_TICKET_PREFIX = "wsticket:"
+
+
+class WsTicketView(APIView):
+    """Single-use, short-lived ticket so the browser can open a WebSocket without putting a JWT in the URL."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):  # noqa: ANN001, ANN201
+        ticket = secrets.token_urlsafe(24)
+        cache.set(f"{WS_TICKET_PREFIX}{ticket}", request.user.pk, WS_TICKET_TTL)
+        return Response({"ticket": ticket, "expires_in": WS_TICKET_TTL})

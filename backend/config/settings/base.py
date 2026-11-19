@@ -106,6 +106,16 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# --- Imports (Phase 4) ---
+IMPORT_MAX_CSV_BYTES = int(env("IMPORT_MAX_CSV_BYTES", str(2 * 1024**3)))
+IMPORT_MAX_XLSX_BYTES = int(env("IMPORT_MAX_XLSX_BYTES", str(100 * 1024**2)))
+IMPORT_MAX_XLSX_UNCOMPRESSED = 1024**3  # zip-bomb guard
+IMPORT_CHUNK_ROWS = int(env("IMPORT_CHUNK_ROWS", "50000"))
+IMPORT_MAX_STORED_ERRORS = 10_000  # per job; further rejects are counted but not stored
+IMPORT_PREVIEW_ROWS = 20
+IMPORT_API_MAX_BATCH = 1000
+IMPORT_STORAGE_SUBDIR = "imports"
+
 REDIS_URL = env("REDIS_URL", "redis://redis:6379/0")
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_CREDENTIALS = True
@@ -152,9 +162,7 @@ CACHES = {
     }
 }
 
-CHANNEL_LAYERS = {
-    "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}
-}
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}}
 
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
@@ -167,9 +175,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "json": {
-            "format": (
-                '{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}'
-            )
+            "format": ('{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}')
         }
     },
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},

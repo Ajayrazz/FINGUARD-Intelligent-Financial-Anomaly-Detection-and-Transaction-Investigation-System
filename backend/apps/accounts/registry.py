@@ -31,6 +31,9 @@ PERMISSIONS: dict[str, str] = {
     "transactions.read": "View transactions",
     "transactions.update_status": "Change a transaction's monitoring status",
     "accounts.read": "View financial accounts",
+    "imports.read": "View import history and row errors",
+    "imports.create": "Upload, cancel and resume imports",
+    "transactions.ingest": "Submit transactions through the ingestion API",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -41,8 +44,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "transactions.read",
         "transactions.update_status",
         "accounts.read",
+        "imports.read",
+        "imports.create",
+        "transactions.ingest",
     },
-    FRAUD_INVESTIGATOR: {"datasets.read", "transactions.read", "accounts.read"},
+    FRAUD_INVESTIGATOR: {"datasets.read", "transactions.read", "accounts.read", "imports.read"},
     AUDITOR: {
         "users.read",
         "roles.read",
@@ -50,6 +56,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "datasets.read",
         "transactions.read",
         "accounts.read",
+        "imports.read",
     },
     MANAGEMENT: set(),
 }

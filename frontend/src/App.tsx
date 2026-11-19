@@ -7,6 +7,9 @@ import { ToastProvider } from './components/ui/Toast'
 import AppLayout from './layout/AppLayout'
 import AccountPage from './pages/AccountPage'
 import AuditLogsPage from './pages/AuditLogsPage'
+import ImportDetailPage from './pages/ImportDetailPage'
+import ImportsPage from './pages/ImportsPage'
+import ImportWizardPage from './pages/ImportWizardPage'
 import LoginPage from './pages/LoginPage'
 import StatusPage from './pages/StatusPage'
 import TransactionDetailPage from './pages/TransactionDetailPage'
@@ -30,6 +33,13 @@ export default function App() {
                   <Route element={<ProtectedRoute permission="transactions.read" />}>
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="transactions/:id" element={<TransactionDetailPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="imports.read" />}>
+                    <Route path="imports" element={<ImportsPage />} />
+                    <Route path="imports/:id" element={<ImportDetailPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="imports.create" />}>
+                    <Route path="imports/new" element={<ImportWizardPage />} />
                   </Route>
                   <Route element={<ProtectedRoute permission="accounts.read" />}>
                     <Route path="accounts/:id" element={<AccountPage />} />

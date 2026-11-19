@@ -54,13 +54,8 @@ def test_duplicate_email_rejected_case_insensitively(make_user, api_as):
 def test_cannot_demote_or_deactivate_last_super_admin(make_user, api_as):
     only_admin = make_user("super_admin")
     client = api_as(only_admin)
-    assert (
-        client.patch(f"/api/v1/users/{only_admin.pk}/", {"is_active": False}, format="json").status_code
-        == 400
-    )
-    assert (
-        client.patch(f"/api/v1/users/{only_admin.pk}/", {"role": "auditor"}, format="json").status_code == 400
-    )
+    assert client.patch(f"/api/v1/users/{only_admin.pk}/", {"is_active": False}, format="json").status_code == 400
+    assert client.patch(f"/api/v1/users/{only_admin.pk}/", {"role": "auditor"}, format="json").status_code == 400
     second = make_user("super_admin")
     assert client.patch(f"/api/v1/users/{second.pk}/", {"is_active": False}, format="json").status_code == 200
 
@@ -108,10 +103,7 @@ def test_role_permission_edit_takes_effect_immediately(make_user, api_as):
 def test_super_admin_role_is_immutable(make_user, api_as):
     admin = make_user("super_admin")
     role = Role.objects.get(name="super_admin")
-    assert (
-        api_as(admin).patch(f"/api/v1/roles/{role.pk}/", {"permissions": []}, format="json").status_code
-        == 400
-    )
+    assert api_as(admin).patch(f"/api/v1/roles/{role.pk}/", {"permissions": []}, format="json").status_code == 400
 
 
 def test_seeding_preserves_admin_edits_and_is_idempotent(make_user):

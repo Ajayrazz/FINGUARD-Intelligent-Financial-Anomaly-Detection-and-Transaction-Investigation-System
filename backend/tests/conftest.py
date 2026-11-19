@@ -59,9 +59,9 @@ def make_account(db):
     from apps.transactions.models import Account
 
     def _make(dataset, ref: str, account_type: str = "customer") -> Account:
-        return Account.objects.get_or_create(
-            dataset=dataset, account_ref=ref, defaults={"account_type": account_type}
-        )[0]
+        return Account.objects.get_or_create(dataset=dataset, account_ref=ref, defaults={"account_type": account_type})[
+            0
+        ]
 
     return _make
 
@@ -75,9 +75,7 @@ def make_tx(db, make_account):
 
     counter = {"n": 0}
 
-    def _make(
-        dataset, sender: str = "C1", receiver: str | None = "C2", amount="100.00", **extra
-    ) -> Transaction:
+    def _make(dataset, sender: str = "C1", receiver: str | None = "C2", amount="100.00", **extra) -> Transaction:
         counter["n"] += 1
         n = counter["n"]
         return Transaction.objects.create(
@@ -92,3 +90,21 @@ def make_tx(db, make_account):
         )
 
     return _make
+
+
+@pytest.fixture
+def run_tasks(django_capture_on_commit_callbacks):
+    """Execute Celery tasks inline and fire transaction.on_commit callbacks (enqueue happens on commit)."""
+    from config.celery import app
+
+    old = (app.conf.task_always_eager, app.conf.task_eager_propagates)
+    app.conf.task_always_eager, app.conf.task_eager_propagates = True, False
+    try:
+        yield django_capture_on_commit_callbacks
+    finally:
+        app.conf.task_always_eager, app.conf.task_eager_propagates = old
+
+
+@pytest.fixture(autouse=True)
+def _tmp_media(settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path / "media")

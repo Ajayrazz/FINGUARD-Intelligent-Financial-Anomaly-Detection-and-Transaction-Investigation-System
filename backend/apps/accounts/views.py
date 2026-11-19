@@ -60,17 +60,13 @@ class UserViewSet(
         user = self.get_object()
         ser = self.get_serializer(user, data=request.data, partial=True)
         ser.is_valid(raise_exception=True)
-        user = services.update_user(
-            actor=request.user, request=request, user=user, validated=ser.validated_data
-        )
+        user = services.update_user(actor=request.user, request=request, user=user, validated=ser.validated_data)
         return Response(UserSerializer(user).data)
 
     @action(detail=True, methods=["post"], url_path="reset-password")
     def reset_password(self, request, pk=None):  # noqa: ANN001, ANN201
         user = self.get_object()
-        ser = self.get_serializer(
-            data=request.data, context={**self.get_serializer_context(), "target_user": user}
-        )
+        ser = self.get_serializer(data=request.data, context={**self.get_serializer_context(), "target_user": user})
         ser.is_valid(raise_exception=True)
         services.reset_password(
             actor=request.user, request=request, user=user, new_password=ser.validated_data["new_password"]

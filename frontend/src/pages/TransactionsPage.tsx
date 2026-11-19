@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import type { Dataset, Paginated, TransactionRow } from '../api/types'
 import { TransactionTable, type SortState } from '../components/transactions/TransactionTable'
@@ -12,6 +13,7 @@ const FILTER_KEYS = ['q', 'tx_type', 'status', 'amount_min', 'amount_max', 'occu
 
 export default function TransactionsPage() {
   const [params, setParams] = useSearchParams()
+  const { can } = useAuth()
   const datasets = useQuery({ queryKey: ['datasets'], queryFn: ({ signal }) => api.get<Dataset[]>('/datasets/', signal) })
 
   const dataset = params.get('dataset') ?? (datasets.data?.[0] ? String(datasets.data[0].id) : '')
@@ -46,12 +48,19 @@ export default function TransactionsPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-semibold">Transactions</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Transactions</h1>
+        {can('imports.create') && (
+          <Link to="/imports/new" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+            Import data
+          </Link>
+        )}
+      </div>
 
       {datasets.isError && <ErrorState message={datasets.error.message} onRetry={() => void datasets.refetch()} />}
       {datasets.data && datasets.data.length === 0 && (
         <div className="mt-4">
-          <EmptyState title="No datasets yet" hint="Datasets are created by importing transactions (Phase 4)." />
+          <EmptyState title="No datasets yet" hint={can('imports.create') ? 'Use “Import data” to upload a CSV or Excel file.' : 'Ask an analyst to import data.'} />
         </div>
       )}
 

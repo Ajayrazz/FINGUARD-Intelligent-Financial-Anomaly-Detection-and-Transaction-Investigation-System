@@ -4,7 +4,7 @@ Targets marked *(target)* are initial goals to be measured in Phase 15; they are
 
 | ID | Category | Requirement |
 |---|---|---|
-| NFR-01 | Performance | Imports of ≥1M rows run in background; API never blocks. Import throughput measured and documented *(target ≥ 20k rows/s via bulk COPY path)*. |
+| NFR-01 | Performance | Imports of ≥1M rows run in background; API never blocks. Import throughput measured and documented *(target ≥ 20k rows/s via bulk COPY path — measured ~12k rows/s at 1M rows, see doc 06; target not met)*. |
 | NFR-02 | Performance | Transaction list/search p95 < 500 ms on 1M+ rows with indexes *(target)*; keyset pagination for deep pages. |
 | NFR-03 | Performance | Single-transaction inference latency measured per model and reported (Detection Latency metric). Batch throughput measured (Throughput metric). |
 | NFR-04 | Scalability | Modular monolith; Celery workers horizontally scalable; Neo4j projection loadable from a subset when full graph is too large. |

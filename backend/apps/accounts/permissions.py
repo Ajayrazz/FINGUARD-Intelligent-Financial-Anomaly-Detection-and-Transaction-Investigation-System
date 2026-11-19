@@ -14,9 +14,7 @@ class HasRolePermission(BasePermission):
         required = getattr(view, "required_permissions", None)
         if not required:
             return False
-        codename = required.get(getattr(view, "action", None) or request.method) or required.get(
-            request.method
-        )
+        codename = required.get(getattr(view, "action", None) or request.method) or required.get(request.method)
         if codename is None:
             return False
         user = request.user

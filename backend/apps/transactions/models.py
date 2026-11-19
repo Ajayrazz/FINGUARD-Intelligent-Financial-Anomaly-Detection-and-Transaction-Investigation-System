@@ -22,9 +22,7 @@ class Account(models.Model):
 
     class Meta:
         ordering = ["account_ref"]
-        constraints = [
-            models.UniqueConstraint(fields=["dataset", "account_ref"], name="uniq_account_per_dataset")
-        ]
+        constraints = [models.UniqueConstraint(fields=["dataset", "account_ref"], name="uniq_account_per_dataset")]
         indexes = [models.Index(fields=["dataset", "account_type"])]
 
     def __str__(self) -> str:
@@ -39,12 +37,8 @@ class Transaction(models.Model):
         REVERSED = "reversed"
 
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT, related_name="transactions")
-    import_job = models.ForeignKey(
-        ImportJob, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
-    )
-    transaction_id = models.CharField(
-        max_length=64, help_text="External or generated identifier, unique per dataset"
-    )
+    import_job = models.ForeignKey(ImportJob, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    transaction_id = models.CharField(max_length=64, help_text="External or generated identifier, unique per dataset")
     sender = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="sent_transactions")
     receiver = models.ForeignKey(
         Account, null=True, blank=True, on_delete=models.PROTECT, related_name="received_transactions"

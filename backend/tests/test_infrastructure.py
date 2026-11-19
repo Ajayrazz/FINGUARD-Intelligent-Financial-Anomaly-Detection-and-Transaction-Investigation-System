@@ -1,8 +1,6 @@
 import pytest
-from channels.testing import WebsocketCommunicator
 from django.test import override_settings
 
-from config.asgi import application
 from shared.tasks import ping
 
 
@@ -28,12 +26,3 @@ def test_openapi_schema_served(client):
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 def test_ping_task_runs_eagerly():
     assert ping.delay("x").get() == "x"
-
-
-async def test_websocket_echo():
-    comm = WebsocketCommunicator(application, "/ws/echo/")
-    connected, _ = await comm.connect()
-    assert connected
-    await comm.send_json_to({"hello": "world"})
-    assert await comm.receive_json_from() == {"type": "echo", "data": {"hello": "world"}}
-    await comm.disconnect()

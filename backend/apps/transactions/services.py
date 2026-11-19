@@ -11,9 +11,7 @@ from .models import Transaction, TransactionEvent
 def record_event(
     tx: Transaction, event_type: str, *, actor: Any = None, payload: dict[str, Any] | None = None
 ) -> TransactionEvent:
-    return TransactionEvent.objects.create(
-        transaction=tx, event_type=event_type, actor=actor, payload=payload or {}
-    )
+    return TransactionEvent.objects.create(transaction=tx, event_type=event_type, actor=actor, payload=payload or {})
 
 
 @db_transaction.atomic

@@ -1,6 +1,7 @@
 # 06 — Database Design
 
 > **Implemented so far (migrations exist):** `accounts` (Permission, Role, User), `audit` (AuditLog + append-only trigger), `datasets` (Dataset, ColumnMappingProfile, ImportJob, ImportRowError), `transactions` (Account, Transaction, TransactionEvent + append-only trigger `transactions/0002`), `model_registry` (MLModel, ModelVersion, ModelEvaluation — tables only). Everything else is still a proposal.
+> **Phase 4 additions:** `ImportJob` gained `source` (file|api), `mapping` (resolved JSON), `dup_policy`, `stored_path`, `cancel_requested`, `updated_at`. Per-job provenance is the `Transaction.import_job` FK; no per-row 'imported' events are written (decision D-028).
 > **Deviations (Phase 3):** `Transaction` indexes named explicitly; the dataset/time index is `(dataset, -occurred_at, -id)` so the default list and keyset paging are index-ordered; `Dataset.row_count` is a stored counter (maintained by imports/seeding) because live `COUNT(*)` is too slow for list views.
 > **Deviation from proposal:** `Role↔Permission` is an M2M to a `Permission` table (codenames seeded from `apps/accounts/registry.py`); `User` has `failed_login_count`/`locked_until` and no `is_superuser` (admin access = Super Admin role).
 
@@ -100,3 +101,17 @@ Setup: **1,000,000 MOCK rows** (random data; 50,000 accounts) in Postgres 16 ins
 | **Keyset (`?cursor=`) pages 1–10 vs 391–400** | **4.3 ms vs 4.8 ms** (flat; 400 pages, 10,000 rows, 0 duplicates) |
 
 The 6.36M-row PaySim case has not been measured; `COUNT(*)` and OFFSET cost grow with size, so large datasets should use filters or `?cursor=`. Insert cost with 7 transaction indexes is the trade-off for fast reads; Phase 4 will measure real import throughput and may use deferred index creation for bulk loads.
+
+## Measured import performance (Phase 4, 2026-11-19)
+Real stack (HTTP upload → Celery worker → Postgres 16 in Docker on a laptop), **random PaySim-format MOCK files**, `preset=paysim`, `dup_policy=reject`, 50,000-row chunks, all 7 transaction indexes present. Single runs; indicative only.
+
+| File | Rows | Duration | Throughput |
+|---|---|---|---|
+| mock100k.csv (7.6 MB) | 100,000 | 6.8 s | ~14,700 rows/s |
+| mock1m.csv (76 MB) | 1,000,000 | 83.6 s | ~12,000 rows/s |
+
+* **Target missed:** NFR-01 aimed for ≥ 20k rows/s. Measured ~12k rows/s at 1M rows.
+* **Where the time goes (one 50k chunk):** read 0.12 s + clean 0.34 s (CPU, ~12%); duplicate-ID check 0.05 s; account upsert+lookup 0.74 s; full COPY incl. accounts 1.78 s. The rest is counters/row-error writes and index growth: throughput falls as the table grows (3.4 s/chunk at 100k vs 4.2 s/chunk at 1M). The bottleneck is PostgreSQL (COPY into 7 indexes + foreign-key checks), not Python.
+* **API stayed responsive** during a 1M-row import: list requests 20–50 ms vs ~20 ms idle; `/health/` < 10 ms.
+* **6.36M rows (full PaySim) not run.** Extrapolating linearly gives ~9–12 minutes but index growth makes that optimistic; schedule a real run in Phase 15. Possible optimisations if needed: create secondary indexes after bulk load, drop FK checks for the load, larger COPY batches.
+* **Bug found by this run:** the first version of the "first/last seen" account update planned badly on freshly loaded tables (minutes for 100k rows). Fixed by ANALYZE + temp-table aggregation; a regression test covers correctness but not the speed.

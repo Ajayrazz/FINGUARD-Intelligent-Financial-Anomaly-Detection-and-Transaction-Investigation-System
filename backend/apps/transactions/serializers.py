@@ -83,3 +83,9 @@ class TransactionEventSerializer(serializers.ModelSerializer):
         model = TransactionEvent
         fields = ["id", "event_type", "actor_email", "payload", "created_at"]
         read_only_fields = fields
+
+
+class IngestRequestSerializer(serializers.Serializer):
+    dataset = serializers.IntegerField()
+    dup_policy = serializers.ChoiceField(choices=["reject", "skip", "flag"], default="skip")
+    transactions = serializers.ListField(child=serializers.DictField(), allow_empty=False)

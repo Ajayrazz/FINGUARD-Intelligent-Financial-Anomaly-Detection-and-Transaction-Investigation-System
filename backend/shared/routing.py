@@ -1,5 +1,5 @@
 from django.urls import path
 
-from .consumers import EchoConsumer
+from .consumers import EventsConsumer
 
-websocket_urlpatterns = [path("ws/echo/", EchoConsumer.as_asgi())]
+websocket_urlpatterns = [path("ws/events/", EventsConsumer.as_asgi())]

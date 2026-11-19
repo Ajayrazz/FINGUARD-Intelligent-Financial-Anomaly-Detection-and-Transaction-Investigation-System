@@ -24,15 +24,11 @@ class TransactionFilter(django_filters.FilterSet):
         if not value:
             return queryset
         account_ids = list(Account.objects.filter(account_ref=value).values_list("id", flat=True)[:50])
-        return queryset.filter(
-            Q(transaction_id=value) | Q(sender_id__in=account_ids) | Q(receiver_id__in=account_ids)
-        )
+        return queryset.filter(Q(transaction_id=value) | Q(sender_id__in=account_ids) | Q(receiver_id__in=account_ids))
 
 
 class AccountFilter(django_filters.FilterSet):
-    q = django_filters.CharFilter(
-        field_name="account_ref", lookup_expr="exact", label="Exact account reference"
-    )
+    q = django_filters.CharFilter(field_name="account_ref", lookup_expr="exact", label="Exact account reference")
 
     class Meta:
         model = Account

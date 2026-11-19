@@ -16,9 +16,7 @@ def seed_roles() -> None:
         roles[name] = role
 
     for codename, description in PERMISSIONS.items():
-        perm, created = Permission.objects.get_or_create(
-            codename=codename, defaults={"description": description}
-        )
+        perm, created = Permission.objects.get_or_create(codename=codename, defaults={"description": description})
         if created:
             for role_name, defaults in DEFAULT_ROLE_PERMISSIONS.items():
                 if codename in defaults:

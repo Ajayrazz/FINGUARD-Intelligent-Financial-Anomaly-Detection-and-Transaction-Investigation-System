@@ -38,9 +38,7 @@ class ColumnMappingProfile(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="mapping_profiles")
     name = models.CharField(max_length=80)
     mapping = models.JSONField(default=dict, help_text="source column -> canonical field")
-    dup_policy = models.CharField(
-        max_length=10, choices=DuplicatePolicy.choices, default=DuplicatePolicy.REJECT
-    )
+    dup_policy = models.CharField(max_length=10, choices=DuplicatePolicy.choices, default=DuplicatePolicy.REJECT)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
     )
@@ -48,9 +46,7 @@ class ColumnMappingProfile(models.Model):
 
     class Meta:
         ordering = ["name"]
-        constraints = [
-            models.UniqueConstraint(fields=["dataset", "name"], name="uniq_mapping_name_per_dataset")
-        ]
+        constraints = [models.UniqueConstraint(fields=["dataset", "name"], name="uniq_mapping_name_per_dataset")]
 
     def __str__(self) -> str:
         return f"{self.dataset} / {self.name}"
@@ -66,10 +62,18 @@ class ImportJob(models.Model):
         FAILED = "failed"
         CANCELLED = "cancelled"
 
+    class Source(models.TextChoices):
+        FILE = "file"
+        API = "api"
+
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT, related_name="import_jobs")
-    mapping_profile = models.ForeignKey(
-        ColumnMappingProfile, null=True, blank=True, on_delete=models.SET_NULL
-    )
+    source = models.CharField(max_length=8, choices=Source.choices, default=Source.FILE)
+    mapping = models.JSONField(default=dict, blank=True, help_text="Resolved mapping used for this job")
+    dup_policy = models.CharField(max_length=10, choices=ColumnMappingProfile.DuplicatePolicy.choices, default="reject")
+    stored_path = models.CharField(max_length=300, blank=True)
+    cancel_requested = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    mapping_profile = models.ForeignKey(ColumnMappingProfile, null=True, blank=True, on_delete=models.SET_NULL)
     file_name = models.CharField(max_length=255)
     file_size = models.PositiveBigIntegerField(default=0)
     file_sha256 = models.CharField(max_length=64, blank=True)

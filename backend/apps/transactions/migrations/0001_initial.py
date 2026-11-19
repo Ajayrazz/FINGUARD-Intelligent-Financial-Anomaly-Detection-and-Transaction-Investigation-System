@@ -19,9 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("account_ref", models.CharField(max_length=64)),
                 (
@@ -53,15 +51,11 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 (
                     "transaction_id",
-                    models.CharField(
-                        help_text="External or generated identifier, unique per dataset", max_length=64
-                    ),
+                    models.CharField(help_text="External or generated identifier, unique per dataset", max_length=64),
                 ),
                 ("amount", models.DecimalField(decimal_places=2, max_digits=18)),
                 ("currency", models.CharField(blank=True, max_length=3)),
@@ -69,9 +63,7 @@ class Migration(migrations.Migration):
                 ("occurred_at", models.DateTimeField()),
                 (
                     "step",
-                    models.IntegerField(
-                        blank=True, help_text="Dataset time step (e.g. PaySim hour)", null=True
-                    ),
+                    models.IntegerField(blank=True, help_text="Dataset time step (e.g. PaySim hour)", null=True),
                 ),
                 (
                     "sender_balance_before",
@@ -153,9 +145,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
+                    models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
                 ),
                 ("event_type", models.CharField(max_length=40)),
                 ("payload", models.JSONField(blank=True, default=dict)),
@@ -189,9 +179,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="account",
-            constraint=models.UniqueConstraint(
-                fields=("dataset", "account_ref"), name="uniq_account_per_dataset"
-            ),
+            constraint=models.UniqueConstraint(fields=("dataset", "account_ref"), name="uniq_account_per_dataset"),
         ),
         migrations.AddIndex(
             model_name="transaction",
@@ -223,15 +211,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="transaction",
-            constraint=models.UniqueConstraint(
-                fields=("dataset", "transaction_id"), name="uniq_txid_per_dataset"
-            ),
+            constraint=models.UniqueConstraint(fields=("dataset", "transaction_id"), name="uniq_txid_per_dataset"),
         ),
         migrations.AddConstraint(
             model_name="transaction",
-            constraint=models.CheckConstraint(
-                condition=models.Q(("amount__gte", 0)), name="tx_amount_non_negative"
-            ),
+            constraint=models.CheckConstraint(condition=models.Q(("amount__gte", 0)), name="tx_amount_non_negative"),
         ),
         migrations.AddIndex(
             model_name="transactionevent",

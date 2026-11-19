@@ -124,3 +124,47 @@ export interface AccountDetail {
   received_count: number
   received_total: string
 }
+
+export type ImportStatus =
+  | 'pending' | 'validating' | 'running' | 'completed' | 'completed_with_errors' | 'failed' | 'cancelled'
+
+export interface ImportJob {
+  id: number
+  dataset: number
+  dataset_name: string
+  source: 'file' | 'api'
+  file_name: string
+  file_size: number
+  file_sha256: string
+  status: ImportStatus
+  dup_policy: 'reject' | 'skip' | 'flag'
+  rows_total: number
+  rows_processed: number
+  rows_accepted: number
+  rows_rejected: number
+  rows_duplicate: number
+  error_summary: string
+  created_by_email: string | null
+  created_at: string
+  updated_at: string
+  started_at: string | null
+  finished_at: string | null
+}
+
+export interface ImportRowError {
+  id: number
+  row_number: number
+  error_code: string
+  message: string
+  raw: Record<string, unknown>
+}
+
+export interface ImportPreview {
+  file_name: string
+  format: 'csv' | 'xlsx'
+  columns: string[]
+  rows: string[][]
+  estimated_rows: number | null
+  suggested_mapping: { columns: Record<string, string>; options: Record<string, unknown>; preset: string | null }
+  presets: string[]
+}

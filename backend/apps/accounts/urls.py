@@ -14,5 +14,6 @@ urlpatterns = [
     path("auth/refresh/", auth_views.RefreshView.as_view(), name="auth-refresh"),
     path("auth/logout/", auth_views.LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", auth_views.MeView.as_view(), name="auth-me"),
+    path("ws/ticket/", auth_views.WsTicketView.as_view(), name="ws-ticket"),
     *router.urls,
 ]

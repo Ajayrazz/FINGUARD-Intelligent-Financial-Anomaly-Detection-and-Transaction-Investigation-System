@@ -27,9 +27,7 @@ def _guard_last_super_admin(user: User, *, new_role: Role | None, new_active: bo
     demoted = new_role is not None and new_role.name != SUPER_ADMIN
     deactivated = new_active is False
     if (demoted or deactivated) and _active_super_admin_count() <= 1:
-        raise exceptions.ValidationError(
-            {"detail": "Cannot remove or deactivate the last active Super Admin."}
-        )
+        raise exceptions.ValidationError({"detail": "Cannot remove or deactivate the last active Super Admin."})
 
 
 @transaction.atomic

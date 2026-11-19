@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Dataset, TransactionRow } from '../api/types'
+import { AuthContext, type AuthValue } from '../auth/AuthContext'
 import { TransactionTable } from '../components/transactions/TransactionTable'
 import { formatAmount } from '../lib/format'
 import TransactionsPage from './TransactionsPage'
@@ -17,12 +18,18 @@ const row = (over: Partial<TransactionRow>): TransactionRow => ({
 })
 const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body }) as Response
 
+const auth: AuthValue = {
+  status: 'authenticated', user: null, login: vi.fn(), logout: vi.fn(), can: (p) => p === 'imports.create',
+}
+
 function renderPage(fetchMock: ReturnType<typeof vi.fn>) {
   vi.stubGlobal('fetch', fetchMock)
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={['/transactions']}><TransactionsPage /></MemoryRouter>
+      <AuthContext.Provider value={auth}>
+        <MemoryRouter initialEntries={['/transactions']}><TransactionsPage /></MemoryRouter>
+      </AuthContext.Provider>
     </QueryClientProvider>,
   )
 }
@@ -46,9 +53,10 @@ describe('TransactionsPage', () => {
     expect(await screen.findByText('No transactions match these filters')).toBeInTheDocument()
   })
 
-  it('shows an empty state when there are no datasets', async () => {
+  it('shows an empty state when there are no datasets, pointing to import', async () => {
     renderPage(vi.fn(async () => ok([])))
     expect(await screen.findByText('No datasets yet')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Import data' })).toHaveAttribute('href', '/imports/new')
   })
 
   it('shows an error state with retry when the API fails', async () => {

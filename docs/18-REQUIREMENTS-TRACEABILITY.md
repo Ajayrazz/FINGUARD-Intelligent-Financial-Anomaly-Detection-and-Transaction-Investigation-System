@@ -10,10 +10,10 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M1-01 | Import transactions via CSV | P0 | 4 | Ph2 auth, Ph3 schema | 100k-row CSV imports; accepted+rejected = total | Planned | TBD |
-| FR-M1-02 | Import transactions via Excel | P1 | 4 | Ph2 auth, Ph3 schema | XLSX imports through same pipeline; formulas not evaluated | Planned | TBD |
+| FR-M1-01 | Import transactions via CSV | P0 | 4 | Ph2 auth, Ph3 schema | 100k-row CSV imports; accepted+rejected = total | Tested | tests/test_imports.py (+ live 100k/1M run) |
+| FR-M1-02 | Import transactions via Excel | P1 | 4 | Ph2 auth, Ph3 schema | XLSX imports through same pipeline; formulas not evaluated | Tested | tests/test_imports.py::test_excel_import_and_formulas_are_not_evaluated (small files only) |
 | FR-M1-03 | Support structured transaction data | P0 | 3 | Ph2 auth, Ph3 schema | Canonical schema + JSONB metadata stores optional fields | Implemented | model/serializer tests; column-mapping import is Phase 4 |
-| FR-M1-04 | Generate or validate transaction IDs | P0 | 4 | Ph2 auth, Ph3 schema | Missing IDs generated deterministically; malformed flagged | Planned | TBD |
+| FR-M1-04 | Generate or validate transaction IDs | P0 | 4 | Ph2 auth, Ph3 schema | Missing IDs generated deterministically; malformed flagged | Tested | tests/test_imports.py (+ live 100k/1M run) |
 | FR-M1-05 | Identify sender accounts | P0 | 3 | Ph2 auth, Ph3 schema | Sender resolved to Account row per dataset | Tested | tests/test_transactions.py |
 | FR-M1-06 | Identify receiver accounts | P0 | 3 | Ph2 auth, Ph3 schema | Receiver resolved to Account; nullable for merchant-less data | Tested | tests/test_transactions.py |
 | FR-M1-07 | Store transaction amounts | P0 | 3 | Ph2 auth, Ph3 schema | Numeric(18,2); negatives rejected | Tested | tests/test_transactions.py |
@@ -25,13 +25,13 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-M1-13 | Sort transactions | P0 | 3 | Ph2 auth, Ph3 schema | Sort by amount/time/risk ascending/descending | Tested | tests/test_transactions.py |
 | FR-M1-14 | View individual transaction details | P0 | 3 | Ph2 auth, Ph3 schema | Detail API+page with related entities | Tested | tests/test_transactions.py |
 | FR-M1-15 | Monitor transaction status | P1 | 3 | Ph2 auth, Ph3 schema | Status changes validated and audited | Tested | tests/test_transactions.py |
-| FR-M1-16 | API-based transaction ingestion | P1 | 4 | Ph2 auth, Ph3 schema | Batch POST idempotent; per-row result | Planned | TBD |
-| FR-M1-17 | Extensible architecture for future event-stream ingestion | P2 | 4 | Ph2 auth, Ph3 schema | IngestionSource interface documented; API + file implement it | Planned | TBD |
-| FR-M1-18 | Validate imported records | P0 | 4 | Ph2 auth, Ph3 schema | Schema/type/range validation rules tested | Planned | TBD |
-| FR-M1-19 | Detect malformed records | P0 | 4 | Ph2 auth, Ph3 schema | Bad rows -> ImportRowError, import continues | Planned | TBD |
-| FR-M1-20 | Handle duplicate transaction identifiers | P0 | 4 | Ph2 auth, Ph3 schema | reject/skip/flag policy honored and reported | Planned | TBD |
-| FR-M1-21 | Track data import history | P0 | 4 | Ph2 auth, Ph3 schema | Every import listed with user, file hash, counts | Planned | TBD |
-| FR-M1-22 | Display import status and processing errors | P0 | 4 | Ph2 auth, Ph3 schema | Live progress + downloadable error report | Planned | TBD |
+| FR-M1-16 | API-based transaction ingestion | P1 | 4 | Ph2 auth, Ph3 schema | Batch POST idempotent; per-row result | Tested | tests/test_imports.py::test_api_ingest_* (<=1000 records per call) |
+| FR-M1-17 | Extensible architecture for future event-stream ingestion | P2 | 4 | Ph2 auth, Ph3 schema | IngestionSource interface documented; API + file implement it | Implemented | IngestionSource protocol; file + API sources implement it; no stream source built |
+| FR-M1-18 | Validate imported records | P0 | 4 | Ph2 auth, Ph3 schema | Schema/type/range validation rules tested | Tested | tests/test_imports.py (+ live 100k/1M run) |
+| FR-M1-19 | Detect malformed records | P0 | 4 | Ph2 auth, Ph3 schema | Bad rows -> ImportRowError, import continues | Tested | tests/test_imports.py (+ live 100k/1M run) |
+| FR-M1-20 | Handle duplicate transaction identifiers | P0 | 4 | Ph2 auth, Ph3 schema | reject/skip/flag policy honored and reported | Tested | tests/test_imports.py (+ live 100k/1M run) |
+| FR-M1-21 | Track data import history | P0 | 4 | Ph2 auth, Ph3 schema | Every import listed with user, file hash, counts | Tested | tests/test_imports.py (+ live 100k/1M run) |
+| FR-M1-22 | Display import status and processing errors | P0 | 4 | Ph2 auth, Ph3 schema | Live progress + downloadable error report | Implemented | API tested; UI pages component-tested only (ImportDetailPage), not browser-tested |
 | FR-M1-23 | Transaction-level auditability | P0 | 3 | Ph2 auth, Ph3 schema | TransactionEvent trail for each change | Tested | tests/test_transactions.py |
 
 ## M2 Anomaly Detection
@@ -258,11 +258,11 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| PLAT-01 | Celery + Redis background jobs with user-visible task status | P0 | 1 | Ph1 | Job status API + WS | In Progress | test_ping_task_runs_eagerly + manual real-worker round trip (job-status API pending) |
-| PLAT-02 | Django Channels WebSockets (alerts, import status, investigation updates, dashboard) | P0 | 1 | Ph1 | Realtime tests | In Progress | test_websocket_echo (alerts/import events pending) |
+| PLAT-01 | Celery + Redis background jobs with user-visible task status | P0 | 1 | Ph1 | Job status API + WS | In Progress | imports run as Celery jobs with REST+WS status (tests + live); other job types pending |
+| PLAT-02 | Django Channels WebSockets (alerts, import status, investigation updates, dashboard) | P0 | 1 | Ph1 | Realtime tests | In Progress | tests/test_realtime.py (ticket auth, import progress); alerts/cases/dashboard events pending |
 | PLAT-03 | Invoice pipeline: upload, validate, preprocess, OCR, parse, extract, validate, match, review | P1 | 8 | Ph1 | Each stage tested | Planned | TBD |
 | PLAT-04 | JWT auth, bcrypt-compatible hashing, rate limiting, session expiry | P0 | 2 | Ph1 | Security tests | Tested | tests/test_auth.py (login, lockout, throttle, rotation, blacklist, bcrypt) |
-| PLAT-05 | Secure file upload validation and evidence storage | P0 | 4 | Ph1 | Upload abuse tests | Planned | TBD |
+| PLAT-05 | Secure file upload validation and evidence storage | P0 | 4 | Ph1 | Upload abuse tests | In Progress | uploads validated (tests/test_imports.py); evidence storage still Phase 12 |
 | PLAT-06 | Sensitive-information masking | P1 | 2 | Ph1 | Masked for unauthorised roles | Planned | TBD |
 | PLAT-07 | Data retention/deletion policy and backup/recovery plan | P1 | 16 | Ph1 | Restore drill | Planned | TBD |
 | PLAT-08 | Dev/prod configuration separation, no hardcoded secrets | P0 | 1 | Ph1 | Settings test; secrets scan | Planned | TBD |

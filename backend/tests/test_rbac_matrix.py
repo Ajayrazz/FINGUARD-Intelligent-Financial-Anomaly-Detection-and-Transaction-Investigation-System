@@ -12,11 +12,13 @@ from rest_framework.test import APIClient
 
 from apps.accounts.models import Role
 from apps.accounts.registry import ROLES
+from apps.datasets.models import ImportJob
 
 pytestmark = pytest.mark.django_db
+INGEST_URL = "/api/v1/transactions/ingest/"
 
 PUBLIC_ROUTE_NAMES = {"health", "health-ready", "auth-login", "auth-refresh", "auth-logout"}
-AUTHENTICATED_ONLY_NAMES = {"auth-me"}  # any authenticated user, no role permission
+AUTHENTICATED_ONLY_NAMES = {"auth-me", "ws-ticket"}  # any authenticated user, no role permission
 
 
 def _walk(patterns, prefix=""):
@@ -56,7 +58,7 @@ def population(make_user):
     return {name: make_user(name) for name in ROLES}
 
 
-def _endpoints(target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0):
+def _endpoints(target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0, ds_pk: int = 0, job_pk: int = 0):
     return [
         ("get", "/api/v1/users/", None, "users.read"),
         ("get", f"/api/v1/users/{target_pk}/", None, "users.read"),
@@ -96,6 +98,22 @@ def _endpoints(target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0):
             {"status": "failed"},
             "transactions.update_status",
         ),
+        ("get", "/api/v1/imports/", None, "imports.read"),
+        ("get", f"/api/v1/imports/{job_pk}/", None, "imports.read"),
+        ("get", f"/api/v1/imports/{job_pk}/errors/", None, "imports.read"),
+        ("get", f"/api/v1/imports/{job_pk}/errors/export/", None, "imports.read"),
+        ("post", f"/api/v1/imports/{job_pk}/cancel/", None, "imports.create"),
+        ("post", f"/api/v1/imports/{job_pk}/resume/", None, "imports.create"),
+        ("get", "/api/v1/mapping-profiles/", None, "datasets.read"),
+        (
+            "post",
+            INGEST_URL,
+            {
+                "dataset": ds_pk,
+                "transactions": [{"sender": "C1", "amount": "1", "occurred_at": "2026-01-01T00:00:00Z"}],
+            },
+            "transactions.ingest",
+        ),
         ("get", "/api/v1/accounts/", None, "accounts.read"),
         ("get", f"/api/v1/accounts/{acct_pk}/", None, "accounts.read"),
         ("get", f"/api/v1/accounts/{acct_pk}/transactions/", None, "transactions.read"),
@@ -107,31 +125,29 @@ def test_each_role_gets_403_exactly_when_it_lacks_the_permission(
     role_name, population, make_user, make_dataset, make_tx
 ):
     target = make_user("financial_analyst")
-    tx = make_tx(make_dataset())
+    ds = make_dataset()
+    tx = make_tx(ds)
+    job = ImportJob.objects.create(dataset=ds, file_name="f.csv", status="completed")
     role = Role.objects.get(name="management")
     granted = set(Role.objects.get(name=role_name).permissions.values_list("codename", flat=True))
     user = population[role_name]
-    for method, url, body, codename in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id):
+    for method, url, body, codename in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk):
         client = APIClient()
         client.force_authenticate(user=user)
-        res = (
-            getattr(client, method)(url, body, format="json")
-            if body is not None
-            else getattr(client, method)(url)
-        )
+        res = getattr(client, method)(url, body, format="json") if body is not None else getattr(client, method)(url)
         if codename in granted:
             assert res.status_code != 403, f"{role_name} should reach {method} {url} -> {res.status_code}"
         else:
-            assert res.status_code == 403, (
-                f"{role_name} must be forbidden {method} {url} -> {res.status_code}"
-            )
+            assert res.status_code == 403, f"{role_name} must be forbidden {method} {url} -> {res.status_code}"
 
 
 def test_unauthenticated_requests_get_401_everywhere(population, make_user, make_dataset, make_tx):
     target = make_user()
-    tx = make_tx(make_dataset())
+    ds = make_dataset()
+    tx = make_tx(ds)
+    job = ImportJob.objects.create(dataset=ds, file_name="f.csv", status="completed")
     role = Role.objects.get(name="management")
-    for method, url, body, _ in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id):
+    for method, url, body, _ in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk):
         res = (
             getattr(APIClient(), method)(url, body, format="json")
             if body is not None

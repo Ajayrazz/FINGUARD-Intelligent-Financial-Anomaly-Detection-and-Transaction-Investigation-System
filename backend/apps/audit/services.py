@@ -7,9 +7,7 @@ _SENSITIVE = ("password", "token", "secret")
 
 def _redact(value: Any) -> Any:
     if isinstance(value, dict):
-        return {
-            k: "***" if any(s in str(k).lower() for s in _SENSITIVE) else _redact(v) for k, v in value.items()
-        }
+        return {k: "***" if any(s in str(k).lower() for s in _SENSITIVE) else _redact(v) for k, v in value.items()}
     if isinstance(value, list):
         return [_redact(v) for v in value]
     return value

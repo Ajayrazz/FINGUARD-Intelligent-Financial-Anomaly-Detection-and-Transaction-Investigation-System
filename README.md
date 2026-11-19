@@ -4,7 +4,7 @@
 
 FinGuard is a final-year project to build a financial-intelligence platform that monitors transactions, flags suspicious activity, explains *why* it was flagged, and supports human investigators through alerts and case management. It is built as a product-style system, not a notebook or a CRUD demo.
 
-> **Status: under active development.** Phases 0–3 are complete (planning, project foundation, authentication/RBAC/audit, transaction schema and browsing). The detection, graph, risk, explainability, alert and case-management modules described below are **planned and not yet implemented**. See [Project status](#project-status) for exactly what works today.
+> **Status: under active development.** Phases 0–4 are complete (planning, project foundation, authentication/RBAC/audit, transaction browsing, and the dataset import pipeline). The detection, graph, risk, explainability, alert and case-management modules described below are **planned and not yet implemented**. See [Project status](#project-status) for exactly what works today.
 
 > **Design principle:** FinGuard never declares a person or transaction criminal. Models and rules produce *risk indicators and review alerts*; authorised human investigators make the final decision. The data model keeps model prediction, anomaly indicator, supporting evidence, investigator assessment and final outcome separate.
 
@@ -101,11 +101,12 @@ The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-
 | 1 | Docker stack, Django/DRF/Celery/Channels skeleton, frontend shell, CI, health endpoints | ✅ Done |
 | 2 | JWT auth (rotating httpOnly refresh cookie, lockout, throttling), RBAC, user & role management, audit log | ✅ Implemented and tested |
 | 3 | Transaction/account/dataset schema, transaction & account APIs (search, filter, sort, pagination), transactions UI, 1M-row query check | ✅ Implemented and tested |
-| 4 | Dataset import pipeline (CSV/Excel, mapping, validation, background jobs) | ⏳ Next |
-| 5–16 | Import pipeline, ML, behavioral, graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
+| 4 | Dataset import pipeline: CSV/Excel upload, column mapping, validation, duplicate-ID policies, background jobs with live progress, resume/cancel, API ingestion | ✅ Implemented and tested |
+| 5 | ML research and detection models | ⏳ Next |
+| 6–16 | Import pipeline, ML, behavioral, graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
 
-**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. There is no data import yet (Phase 4); demo data comes from `python manage.py seed_mock_transactions` (random MOCK data, clearly labelled).
-**Verified so far:** 70 backend tests and 20 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
+**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; the real PaySim file has not been imported yet.
+**Verified so far:** 120 backend tests and 32 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
 
 Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
 
@@ -149,7 +150,7 @@ backend/
   config/          Django settings (base/development/production), ASGI, Celery, URLs
   apps/accounts/   Users, roles, permissions, JWT auth, RBAC
   apps/audit/      Append-only audit log
-  apps/datasets/   Datasets, mapping profiles, import jobs (import logic: Phase 4)
+  apps/datasets/   Datasets, mapping profiles, import jobs and the ingestion pipeline (sources, cleaning, loader)
   apps/transactions/ Accounts, transactions, per-transaction events, APIs
   apps/model_registry/ Model/version/evaluation tables (used from Phase 5)
   shared/          Health checks, error handling, middleware
