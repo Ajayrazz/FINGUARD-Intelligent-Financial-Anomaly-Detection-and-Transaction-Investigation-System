@@ -56,7 +56,7 @@ def population(make_user):
     return {name: make_user(name) for name in ROLES}
 
 
-def _endpoints(target_pk: int, role_pk: int):
+def _endpoints(target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0):
     return [
         ("get", "/api/v1/users/", None, "users.read"),
         ("get", f"/api/v1/users/{target_pk}/", None, "users.read"),
@@ -84,16 +84,34 @@ def _endpoints(target_pk: int, role_pk: int):
         ("patch", f"/api/v1/roles/{role_pk}/", {"description": "x"}, "roles.update"),
         ("get", "/api/v1/permissions/", None, "roles.read"),
         ("get", "/api/v1/audit/logs/", None, "audit.read"),
+        ("get", "/api/v1/datasets/", None, "datasets.read"),
+        ("post", "/api/v1/datasets/", {"name": "rbac-ds"}, "datasets.create"),
+        ("get", "/api/v1/transactions/", None, "transactions.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/", None, "transactions.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/events/", None, "transactions.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/related/", None, "transactions.read"),
+        (
+            "patch",
+            f"/api/v1/transactions/{tx_pk}/status/",
+            {"status": "failed"},
+            "transactions.update_status",
+        ),
+        ("get", "/api/v1/accounts/", None, "accounts.read"),
+        ("get", f"/api/v1/accounts/{acct_pk}/", None, "accounts.read"),
+        ("get", f"/api/v1/accounts/{acct_pk}/transactions/", None, "transactions.read"),
     ]
 
 
 @pytest.mark.parametrize("role_name", list(ROLES))
-def test_each_role_gets_403_exactly_when_it_lacks_the_permission(role_name, population, make_user):
+def test_each_role_gets_403_exactly_when_it_lacks_the_permission(
+    role_name, population, make_user, make_dataset, make_tx
+):
     target = make_user("financial_analyst")
+    tx = make_tx(make_dataset())
     role = Role.objects.get(name="management")
     granted = set(Role.objects.get(name=role_name).permissions.values_list("codename", flat=True))
     user = population[role_name]
-    for method, url, body, codename in _endpoints(target.pk, role.pk):
+    for method, url, body, codename in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id):
         client = APIClient()
         client.force_authenticate(user=user)
         res = (
@@ -109,10 +127,11 @@ def test_each_role_gets_403_exactly_when_it_lacks_the_permission(role_name, popu
             )
 
 
-def test_unauthenticated_requests_get_401_everywhere(population, make_user):
+def test_unauthenticated_requests_get_401_everywhere(population, make_user, make_dataset, make_tx):
     target = make_user()
+    tx = make_tx(make_dataset())
     role = Role.objects.get(name="management")
-    for method, url, body, _ in _endpoints(target.pk, role.pk):
+    for method, url, body, _ in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id):
         res = (
             getattr(APIClient(), method)(url, body, format="json")
             if body is not None

@@ -1,6 +1,7 @@
 # 06 — Database Design
 
-> **Implemented so far (migrations exist):** `accounts` (Permission, Role, User) and `audit` (AuditLog + append-only trigger, migration `audit/0002`). Plus Django/SimpleJWT token-blacklist tables. Everything else is still a proposal.
+> **Implemented so far (migrations exist):** `accounts` (Permission, Role, User), `audit` (AuditLog + append-only trigger), `datasets` (Dataset, ColumnMappingProfile, ImportJob, ImportRowError), `transactions` (Account, Transaction, TransactionEvent + append-only trigger `transactions/0002`), `model_registry` (MLModel, ModelVersion, ModelEvaluation — tables only). Everything else is still a proposal.
+> **Deviations (Phase 3):** `Transaction` indexes named explicitly; the dataset/time index is `(dataset, -occurred_at, -id)` so the default list and keyset paging are index-ordered; `Dataset.row_count` is a stored counter (maintained by imports/seeding) because live `COUNT(*)` is too slow for list views.
 > **Deviation from proposal:** `Role↔Permission` is an M2M to a `Permission` table (codenames seeded from `apps/accounts/registry.py`); `User` has `failed_login_count`/`locked_until` and no `is_superuser` (admin access = Super Admin role).
 
 Conventions: `bigint` identity PKs (UUID only for public-facing tokens); `created_at/updated_at` on mutable tables; money as `Numeric(18,2)`; timestamps `timestamptz` UTC; JSONB for flexible metadata; FK `PROTECT` for evidential records (nothing in evidence tables cascades on delete).
@@ -83,3 +84,19 @@ Amount ≥ 0; case status/transition enforced in service + DB CHECK on enum; one
 Constraints: UNIQUE (dataset_id, account_ref) on Account; UNIQUE tx_pk on TRANSFERRED (via relationship property index)
 ```
 **Boundary:** PG owns all business/investigation data. Neo4j stores only IDs + minimal edge attributes needed for traversal; details always re-fetched from PG by `pg_id`.
+
+## Measured query performance (Phase 3, 2026-11-19)
+Setup: **1,000,000 MOCK rows** (random data; 50,000 accounts) in Postgres 16 inside Docker on a laptop, all indexes present, timed through the real DRF stack (serialization, permission check, filters, COUNT), median of 5 runs after a warm-up. Bulk generation took 33 s. Indicative only: single run, one machine, no concurrent load.
+
+| Request | Median |
+|---|---|
+| List page 1 (dataset filter, with COUNT) | 34 ms |
+| List with type+status filter | 32 ms |
+| Amount range / 1-day range / exact sender | 16 / 6 / 6 ms |
+| Search `q` = transaction ID / account ref | 4 / 5 ms |
+| Sort by amount desc (with/without type filter) | 32 / 29 ms |
+| Transaction detail / related / account detail / account transactions | 2 / 2 / 2 / 3 ms |
+| **Page-number, page 20,000 (OFFSET 500k)** | **832 ms** (misses the 500 ms target; why keyset exists) |
+| **Keyset (`?cursor=`) pages 1–10 vs 391–400** | **4.3 ms vs 4.8 ms** (flat; 400 pages, 10,000 rows, 0 duplicates) |
+
+The 6.36M-row PaySim case has not been measured; `COUNT(*)` and OFFSET cost grow with size, so large datasets should use filters or `?cursor=`. Insert cost with 7 transaction indexes is the trade-off for fast reads; Phase 4 will measure real import throughput and may use deferred index creation for bulk loads.

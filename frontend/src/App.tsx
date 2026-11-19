@@ -5,9 +5,12 @@ import { AuthProvider } from './auth/AuthContext'
 import { ProtectedRoute } from './auth/guards'
 import { ToastProvider } from './components/ui/Toast'
 import AppLayout from './layout/AppLayout'
+import AccountPage from './pages/AccountPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import LoginPage from './pages/LoginPage'
 import StatusPage from './pages/StatusPage'
+import TransactionDetailPage from './pages/TransactionDetailPage'
+import TransactionsPage from './pages/TransactionsPage'
 import UsersPage from './pages/UsersPage'
 
 export default function App() {
@@ -24,6 +27,13 @@ export default function App() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route index element={<StatusPage />} />
+                  <Route element={<ProtectedRoute permission="transactions.read" />}>
+                    <Route path="transactions" element={<TransactionsPage />} />
+                    <Route path="transactions/:id" element={<TransactionDetailPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="accounts.read" />}>
+                    <Route path="accounts/:id" element={<AccountPage />} />
+                  </Route>
                   <Route element={<ProtectedRoute permission="users.read" />}>
                     <Route path="users" element={<UsersPage />} />
                   </Route>

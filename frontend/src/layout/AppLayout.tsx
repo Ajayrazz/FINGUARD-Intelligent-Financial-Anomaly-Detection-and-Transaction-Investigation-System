@@ -10,6 +10,7 @@ interface NavItem {
 // Pages are added to this list by the phase that delivers them (nothing is shown that does not work).
 const NAV: NavItem[] = [
   { to: '/', label: 'System Status' },
+  { to: '/transactions', label: 'Transactions', permission: 'transactions.read' },
   { to: '/users', label: 'User Management', permission: 'users.read' },
   { to: '/audit', label: 'Audit Logs', permission: 'audit.read' },
 ]

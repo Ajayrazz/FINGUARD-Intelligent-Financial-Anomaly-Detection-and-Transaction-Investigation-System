@@ -1,13 +1,13 @@
 # 16 — Progress Tracker
 
-Last updated: 2026-11-19 · Current phase: **2 — Auth, users, RBAC, audit (implemented & checked; awaiting your approval)**
+Last updated: 2026-11-19 · Current phase: **3 — DB foundation & transaction management (implemented & checked; awaiting your approval)**
 
 | Phase | Name | Status | Notes |
 |---|---|---|---|
 | 0 | Requirement analysis & architecture | **Approved** (2026-11-19) | Docs 00–18 |
 | 1 | Environment & foundation | **Done (approved)** | Remaining deferred items: prod compose (16), Neo4j (7), import-linter |
-| 2 | Auth, users, RBAC, audit | **Implemented & checked — awaiting approval for Phase 3** | Backend 42 tests, frontend 13 tests pass; UI pages not browser-tested |
-| 3 | DB foundation & transactions | Not Started | |
+| 2 | Auth, users, RBAC, audit | **Done (approved)** | |
+| 3 | DB foundation & transactions | **Implemented & checked — awaiting approval for Phase 4** | Backend 70 tests, frontend 20 tests pass; 1M-row query check done; UI pages not browser-tested |
 | 4 | Import pipeline | Not Started | |
 | 5 | ML research & detection | Not Started | |
 | 6 | Behavioral analysis | Not Started | |

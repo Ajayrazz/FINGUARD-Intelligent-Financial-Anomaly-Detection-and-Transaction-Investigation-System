@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     "shared",
     "apps.accounts",
     "apps.audit",
+    "apps.datasets",
+    "apps.transactions",
+    "apps.model_registry",
 ]
 
 MIDDLEWARE = [

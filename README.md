@@ -4,7 +4,7 @@
 
 FinGuard is a final-year project to build a financial-intelligence platform that monitors transactions, flags suspicious activity, explains *why* it was flagged, and supports human investigators through alerts and case management. It is built as a product-style system, not a notebook or a CRUD demo.
 
-> **Status: under active development.** Phases 0–2 are complete (planning, project foundation, authentication/RBAC/audit). The detection, graph, risk, explainability, alert and case-management modules described below are **planned and not yet implemented**. See [Project status](#project-status) for exactly what works today.
+> **Status: under active development.** Phases 0–3 are complete (planning, project foundation, authentication/RBAC/audit, transaction schema and browsing). The detection, graph, risk, explainability, alert and case-management modules described below are **planned and not yet implemented**. See [Project status](#project-status) for exactly what works today.
 
 > **Design principle:** FinGuard never declares a person or transaction criminal. Models and rules produce *risk indicators and review alerts*; authorised human investigators make the final decision. The data model keeps model prediction, anomaly indicator, supporting evidence, investigator assessment and final outcome separate.
 
@@ -100,11 +100,12 @@ The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-
 | 0 | Requirements, architecture, roadmap, traceability matrix | ✅ Done |
 | 1 | Docker stack, Django/DRF/Celery/Channels skeleton, frontend shell, CI, health endpoints | ✅ Done |
 | 2 | JWT auth (rotating httpOnly refresh cookie, lockout, throttling), RBAC, user & role management, audit log | ✅ Implemented and tested |
-| 3 | Transaction/account/dataset schema, transaction APIs and UI | ⏳ Next |
-| 4–16 | Import pipeline, ML, behavioral, graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
+| 3 | Transaction/account/dataset schema, transaction & account APIs (search, filter, sort, pagination), transactions UI, 1M-row query check | ✅ Implemented and tested |
+| 4 | Dataset import pipeline (CSV/Excel, mapping, validation, background jobs) | ⏳ Next |
+| 5–16 | Import pipeline, ML, behavioral, graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
 
-**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, health endpoints, OpenAPI docs.
-**Verified so far:** 42 backend tests and 13 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
+**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. There is no data import yet (Phase 4); demo data comes from `python manage.py seed_mock_transactions` (random MOCK data, clearly labelled).
+**Verified so far:** 70 backend tests and 20 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
 
 Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
 
@@ -148,6 +149,9 @@ backend/
   config/          Django settings (base/development/production), ASGI, Celery, URLs
   apps/accounts/   Users, roles, permissions, JWT auth, RBAC
   apps/audit/      Append-only audit log
+  apps/datasets/   Datasets, mapping profiles, import jobs (import logic: Phase 4)
+  apps/transactions/ Accounts, transactions, per-transaction events, APIs
+  apps/model_registry/ Model/version/evaluation tables (used from Phase 5)
   shared/          Health checks, error handling, middleware
   tests/           pytest suite (incl. generated RBAC matrix)
 frontend/src/      React app: api client, auth, pages, UI components
@@ -156,7 +160,7 @@ docs/              Requirements, architecture, DB/API design, ML methodology, ro
                    decision log, progress tracker, traceability matrix, session handoff
 datasets/          Git-ignored raw datasets (download steps added with the ML phase)
 ```
-More apps (`transactions`, `detection`, `graph_engine`, `risk_engine`, `alerts`, `investigations`, …) and the `ml_engine/` and graph libraries are created in the phase that implements them.
+More apps (`detection`, `graph_engine`, `risk_engine`, `alerts`, `investigations`, …) and the `ml_engine/` and graph libraries are created in the phase that implements them.
 
 ## Datasets
 

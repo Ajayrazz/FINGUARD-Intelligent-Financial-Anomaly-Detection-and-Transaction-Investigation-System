@@ -26,12 +26,30 @@ PERMISSIONS: dict[str, str] = {
     "roles.create": "Create roles",
     "roles.update": "Edit role permissions",
     "audit.read": "View audit logs",
+    "datasets.read": "View datasets and import history",
+    "datasets.create": "Create datasets",
+    "transactions.read": "View transactions",
+    "transactions.update_status": "Change a transaction's monitoring status",
+    "accounts.read": "View financial accounts",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
 DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
-    FINANCIAL_ANALYST: set(),
-    FRAUD_INVESTIGATOR: set(),
-    AUDITOR: {"users.read", "roles.read", "audit.read"},
+    FINANCIAL_ANALYST: {
+        "datasets.read",
+        "datasets.create",
+        "transactions.read",
+        "transactions.update_status",
+        "accounts.read",
+    },
+    FRAUD_INVESTIGATOR: {"datasets.read", "transactions.read", "accounts.read"},
+    AUDITOR: {
+        "users.read",
+        "roles.read",
+        "audit.read",
+        "datasets.read",
+        "transactions.read",
+        "accounts.read",
+    },
     MANAGEMENT: set(),
 }

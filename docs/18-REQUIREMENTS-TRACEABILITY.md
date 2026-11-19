@@ -12,19 +12,19 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 |---|---|---|---|---|---|---|---|
 | FR-M1-01 | Import transactions via CSV | P0 | 4 | Ph2 auth, Ph3 schema | 100k-row CSV imports; accepted+rejected = total | Planned | TBD |
 | FR-M1-02 | Import transactions via Excel | P1 | 4 | Ph2 auth, Ph3 schema | XLSX imports through same pipeline; formulas not evaluated | Planned | TBD |
-| FR-M1-03 | Support structured transaction data | P0 | 3 | Ph2 auth, Ph3 schema | Canonical schema + JSONB metadata stores optional fields | Planned | TBD |
+| FR-M1-03 | Support structured transaction data | P0 | 3 | Ph2 auth, Ph3 schema | Canonical schema + JSONB metadata stores optional fields | Implemented | model/serializer tests; column-mapping import is Phase 4 |
 | FR-M1-04 | Generate or validate transaction IDs | P0 | 4 | Ph2 auth, Ph3 schema | Missing IDs generated deterministically; malformed flagged | Planned | TBD |
-| FR-M1-05 | Identify sender accounts | P0 | 3 | Ph2 auth, Ph3 schema | Sender resolved to Account row per dataset | Planned | TBD |
-| FR-M1-06 | Identify receiver accounts | P0 | 3 | Ph2 auth, Ph3 schema | Receiver resolved to Account; nullable for merchant-less data | Planned | TBD |
-| FR-M1-07 | Store transaction amounts | P0 | 3 | Ph2 auth, Ph3 schema | Numeric(18,2); negatives rejected | Planned | TBD |
-| FR-M1-08 | Store transaction timestamps | P0 | 3 | Ph2 auth, Ph3 schema | UTC timestamptz; step-to-time mapping documented | Planned | TBD |
-| FR-M1-09 | Identify transaction types | P0 | 3 | Ph2 auth, Ph3 schema | tx_type stored/filterable; unknown types preserved | Planned | TBD |
-| FR-M1-10 | Maintain historical transaction records | P0 | 3 | Ph2 auth, Ph3 schema | Records never overwritten; re-import creates new job | Planned | TBD |
-| FR-M1-11 | Search transactions | P0 | 3 | Ph2 auth, Ph3 schema | Search by id/account returns correct rows; indexed | Planned | TBD |
-| FR-M1-12 | Filter transactions | P0 | 3 | Ph2 auth, Ph3 schema | Filters by type/status/amount/date/risk/dataset | Planned | TBD |
-| FR-M1-13 | Sort transactions | P0 | 3 | Ph2 auth, Ph3 schema | Sort by amount/time/risk ascending/descending | Planned | TBD |
-| FR-M1-14 | View individual transaction details | P0 | 3 | Ph2 auth, Ph3 schema | Detail API+page with related entities | Planned | TBD |
-| FR-M1-15 | Monitor transaction status | P1 | 3 | Ph2 auth, Ph3 schema | Status changes validated and audited | Planned | TBD |
+| FR-M1-05 | Identify sender accounts | P0 | 3 | Ph2 auth, Ph3 schema | Sender resolved to Account row per dataset | Tested | tests/test_transactions.py |
+| FR-M1-06 | Identify receiver accounts | P0 | 3 | Ph2 auth, Ph3 schema | Receiver resolved to Account; nullable for merchant-less data | Tested | tests/test_transactions.py |
+| FR-M1-07 | Store transaction amounts | P0 | 3 | Ph2 auth, Ph3 schema | Numeric(18,2); negatives rejected | Tested | tests/test_transactions.py |
+| FR-M1-08 | Store transaction timestamps | P0 | 3 | Ph2 auth, Ph3 schema | UTC timestamptz; step-to-time mapping documented | Implemented | stored as timestamptz; step-to-time mapping in Phase 4 |
+| FR-M1-09 | Identify transaction types | P0 | 3 | Ph2 auth, Ph3 schema | tx_type stored/filterable; unknown types preserved | Tested | tests/test_transactions.py |
+| FR-M1-10 | Maintain historical transaction records | P0 | 3 | Ph2 auth, Ph3 schema | Records never overwritten; re-import creates new job | Implemented | no update/delete path in API; no dedicated test |
+| FR-M1-11 | Search transactions | P0 | 3 | Ph2 auth, Ph3 schema | Search by id/account returns correct rows; indexed | Tested | tests/test_transactions.py |
+| FR-M1-12 | Filter transactions | P0 | 3 | Ph2 auth, Ph3 schema | Filters by type/status/amount/date/risk/dataset | Tested | tests/test_transactions.py |
+| FR-M1-13 | Sort transactions | P0 | 3 | Ph2 auth, Ph3 schema | Sort by amount/time/risk ascending/descending | Tested | tests/test_transactions.py |
+| FR-M1-14 | View individual transaction details | P0 | 3 | Ph2 auth, Ph3 schema | Detail API+page with related entities | Tested | tests/test_transactions.py |
+| FR-M1-15 | Monitor transaction status | P1 | 3 | Ph2 auth, Ph3 schema | Status changes validated and audited | Tested | tests/test_transactions.py |
 | FR-M1-16 | API-based transaction ingestion | P1 | 4 | Ph2 auth, Ph3 schema | Batch POST idempotent; per-row result | Planned | TBD |
 | FR-M1-17 | Extensible architecture for future event-stream ingestion | P2 | 4 | Ph2 auth, Ph3 schema | IngestionSource interface documented; API + file implement it | Planned | TBD |
 | FR-M1-18 | Validate imported records | P0 | 4 | Ph2 auth, Ph3 schema | Schema/type/range validation rules tested | Planned | TBD |
@@ -32,7 +32,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-M1-20 | Handle duplicate transaction identifiers | P0 | 4 | Ph2 auth, Ph3 schema | reject/skip/flag policy honored and reported | Planned | TBD |
 | FR-M1-21 | Track data import history | P0 | 4 | Ph2 auth, Ph3 schema | Every import listed with user, file hash, counts | Planned | TBD |
 | FR-M1-22 | Display import status and processing errors | P0 | 4 | Ph2 auth, Ph3 schema | Live progress + downloadable error report | Planned | TBD |
-| FR-M1-23 | Transaction-level auditability | P0 | 3 | Ph2 auth, Ph3 schema | TransactionEvent trail for each change | Planned | TBD |
+| FR-M1-23 | Transaction-level auditability | P0 | 3 | Ph2 auth, Ph3 schema | TransactionEvent trail for each change | Tested | tests/test_transactions.py |
 
 ## M2 Anomaly Detection
 
@@ -49,10 +49,10 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-M2-09 | Historical transaction comparison | P1 | 5 | Ph3, Ph4, model_registry tables | Compare against account history as-of | Planned | TBD |
 | FR-M2-10 | Automatic generation of suspicious activity alerts | P0 | 11 | Ph3, Ph4, model_registry tables | Detection/risk output creates deduplicated alerts | Planned | TBD |
 | FR-M2-11 | Anomaly score calculation | P0 | 5 | Ph3, Ph4, model_registry tables | Stored normalized score per prediction | Planned | TBD |
-| FR-M2-12 | Model prediction storage | P0 | 5 | Ph3, Ph4, model_registry tables | TransactionPrediction rows linked to run/version | Planned | TBD |
-| FR-M2-13 | Model version tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelVersion with artifact hash, seed, data hash | Planned | TBD |
+| FR-M2-12 | Model prediction storage | P0 | 5 | Ph3, Ph4, model_registry tables | TransactionPrediction rows linked to run/version | In Progress | tables only (model_registry); no logic until Phase 5 |
+| FR-M2-13 | Model version tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelVersion with artifact hash, seed, data hash | In Progress | tables only (model_registry); no logic until Phase 5 |
 | FR-M2-14 | Detection result history | P0 | 5 | Ph3, Ph4, model_registry tables | History per transaction across versions | Planned | TBD |
-| FR-M2-15 | Model performance tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelEvaluation per split/time; comparison page | Planned | TBD |
+| FR-M2-15 | Model performance tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelEvaluation per split/time; comparison page | In Progress | tables only (model_registry); no logic until Phase 5 |
 
 ## M3 Spending Patterns
 
@@ -229,7 +229,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 |---|---|---|---|---|---|---|---|
 | FR-UI-01 | Login page | P0 | 2 | per feature phase; completion Ph13 | Auth flow + states | Implemented | frontend auth.test.tsx (component tests only; no browser E2E yet) |
 | FR-UI-02 | Overview Dashboard page | P0 | 14 | per feature phase; completion Ph13 | Real KPIs; states | Planned | TBD |
-| FR-UI-03 | Transactions page | P0 | 3 | per feature phase; completion Ph13 | Table+import wizard; states | Planned | TBD |
+| FR-UI-03 | Transactions page | P0 | 3 | per feature phase; completion Ph13 | Table+import wizard; states | Implemented | pages/transactions.test.tsx (component tests; not browser-tested) |
 | FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Planned | TBD |
 | FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Planned | TBD |
 | FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Planned | TBD |

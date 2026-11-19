@@ -20,3 +20,7 @@
 - Access tokens are not revocable before their 15-minute expiry (refresh tokens are). Role/permission changes apply on the next request because permissions load per request.
 - `/ws/echo/` is still an unauthenticated Phase 1 smoke route; ticket-authenticated WebSockets arrive with Phase 4 (import progress) and Phase 11 (alerts).
 - Frontend lint reports 3 fast-refresh warnings (context + hook exported from the same file).
+- Phase 3: performance was measured once on 1M random rows, not on 6.36M PaySim rows or under concurrent load. Page-number paging gets slow at very deep pages (use `?cursor=`).
+- Search is exact-match only (D-026). The transaction UI uses page-number paging only; it does not yet expose keyset mode.
+- Phase 3 pages (Transactions, detail, account) are type-checked, built and component-tested, and the APIs were exercised live, but the pages were not opened in a browser.
+- Datasets can be listed and created via API but there is no dataset-creation UI yet (arrives with the import wizard in Phase 4).

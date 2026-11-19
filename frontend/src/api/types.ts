@@ -46,3 +46,81 @@ export interface AuditLogEntry {
   request_id: string
   changes: Record<string, unknown>
 }
+
+export interface Dataset {
+  id: number
+  name: string
+  source_type: string
+  is_synthetic: boolean
+  description: string
+  row_count: number
+  created_at: string
+}
+
+export type TxStatus = 'pending' | 'completed' | 'failed' | 'reversed'
+
+export interface TransactionRow {
+  id: number
+  dataset: number
+  transaction_id: string
+  sender: number
+  sender_ref: string
+  receiver: number | null
+  receiver_ref: string | null
+  amount: string
+  currency: string
+  tx_type: string
+  occurred_at: string
+  status: TxStatus
+}
+
+export interface AccountBrief {
+  id: number
+  account_ref: string
+  account_type: string
+}
+
+export interface TransactionDetail {
+  id: number
+  dataset: number
+  dataset_name: string
+  transaction_id: string
+  sender: AccountBrief
+  receiver: AccountBrief | null
+  amount: string
+  currency: string
+  tx_type: string
+  occurred_at: string
+  step: number | null
+  sender_balance_before: string | null
+  sender_balance_after: string | null
+  receiver_balance_before: string | null
+  receiver_balance_after: string | null
+  merchant_name: string
+  merchant_category: string
+  status: TxStatus
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+export interface TransactionEvent {
+  id: number
+  event_type: string
+  actor_email: string | null
+  payload: Record<string, unknown>
+  created_at: string
+}
+
+export interface AccountDetail {
+  id: number
+  dataset: number
+  dataset_name: string
+  account_ref: string
+  account_type: string
+  first_seen_at: string | null
+  last_seen_at: string | null
+  sent_count: number
+  sent_total: string
+  received_count: number
+  received_total: string
+}
