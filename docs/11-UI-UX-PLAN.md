@@ -35,3 +35,8 @@ Prototyping rule: any UI built before its API exists uses a clearly labelled moc
 - **Anomaly Detection** (`/detection`, `/detection/:id`; `detection.read`, start form needs `detection.run`): model-version and dataset selectors (only scorable models), run list with live status polling, run page with threshold/flag counts, log-scaled score histogram, and a paginated table of highest-scoring transactions (flagged-only toggle) linking to the transaction. MOCK datasets show a warning.
 - **Model Performance** (`/models`; `models.read`): registered versions ranked by test PR-AUC with bootstrap interval, base rate, ROC-AUC and recall at 1% false-positive rate; dataset filter; a standing caution that `core+balance` PaySim results are saturated.
 - Both are component-tested only (not browser-tested). Not built: side-by-side comparison charts, threshold slider, per-transaction score panel on the transaction page.
+
+## Phase 6 as built
+- **Account Behavior** (`/accounts/:id/behavior`, `behavior.read`, linked from the account page): direction (outgoing/incoming) and window selectors, summary statistics, last-7-days vs window table, spending trend (daily/weekly/monthly bars), hour-of-day histogram, merchant categories or an explicit "not available". Empty and thin-history states are explained instead of showing zeros.
+- **Transaction detail** gains a *Behavioral deviation* panel: score, signal coverage, one row per component with its evidence, unavailable components with the reason, and an explicit cold-start message.
+- Component-tested only. Not built: batch-run UI (runs are API/worker only), a true heatmap (hour histogram only), run-result browsing page, baseline-vs-current charts.

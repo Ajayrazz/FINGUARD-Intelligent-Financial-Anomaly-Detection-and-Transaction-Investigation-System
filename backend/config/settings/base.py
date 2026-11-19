@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "apps.transactions",
     "apps.model_registry",
     "apps.detection",
+    "apps.behavior",
 ]
 
 MIDDLEWARE = [
@@ -110,6 +111,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # --- Imports (Phase 4) ---
 # Model artifacts (joblib) are only loaded from this directory, and only when their SHA-256 matches the registry.
 ML_ARTIFACTS_DIR = Path(env("FINGUARD_DATASETS_DIR", "/datasets")) / "artifacts"
+BEHAVIOR_MAX_ROWS = int(env("BEHAVIOR_MAX_ROWS", "2000000"))
 DETECTION_MAX_ROWS = int(env("DETECTION_MAX_ROWS", "2000000"))
 IMPORT_MAX_CSV_BYTES = int(env("IMPORT_MAX_CSV_BYTES", str(2 * 1024**3)))
 IMPORT_MAX_XLSX_BYTES = int(env("IMPORT_MAX_XLSX_BYTES", str(100 * 1024**2)))

@@ -239,3 +239,50 @@ export interface PredictionRow {
   score: number
   flagged: boolean
 }
+
+export interface BehaviorPeriod {
+  period: string
+  count: number
+  total: number
+}
+
+export interface BehaviorProfile {
+  account: number
+  account_ref: string
+  as_of: string
+  window_days: number
+  direction: 'out' | 'in'
+  profile_version: string
+  tx_count: number
+  sufficient_history: boolean
+  avg_amount: number | null
+  median_amount: number | null
+  std_amount: number | null
+  p95_amount: number | null
+  mad_amount: number | null
+  tx_per_day: number
+  unique_counterparties: number
+  hour_histogram: number[]
+  merchant_category_dist: Record<string, number> | null
+  aggregates: { daily: BehaviorPeriod[]; weekly: BehaviorPeriod[]; monthly: BehaviorPeriod[] }
+  recent_7d: { count: number; total: number; avg: number | null }
+}
+
+export interface BehaviorComponent {
+  available: boolean
+  score: number | null
+  reason?: string
+  value?: number
+  detail?: Record<string, unknown>
+}
+
+export interface TransactionBehavior {
+  transaction: number
+  account: number
+  profile_version: string
+  status: 'scored' | 'unavailable_cold_start'
+  deviation_score: number | null
+  coverage: number
+  history_count: number
+  components: Record<string, BehaviorComponent>
+}

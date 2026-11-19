@@ -5,6 +5,7 @@ import { AuthProvider } from './auth/AuthContext'
 import { ProtectedRoute } from './auth/guards'
 import { ToastProvider } from './components/ui/Toast'
 import AppLayout from './layout/AppLayout'
+import AccountBehaviorPage from './pages/AccountBehaviorPage'
 import AccountPage from './pages/AccountPage'
 import AnomalyDetectionPage from './pages/AnomalyDetectionPage'
 import AuditLogsPage from './pages/AuditLogsPage'
@@ -53,6 +54,9 @@ export default function App() {
                   </Route>
                   <Route element={<ProtectedRoute permission="accounts.read" />}>
                     <Route path="accounts/:id" element={<AccountPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="behavior.read" />}>
+                    <Route path="accounts/:id/behavior" element={<AccountBehaviorPage />} />
                   </Route>
                   <Route element={<ProtectedRoute permission="users.read" />}>
                     <Route path="users" element={<UsersPage />} />

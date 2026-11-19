@@ -51,3 +51,7 @@
 - Detection runs score an entire dataset and store a `Prediction` row per transaction (capped at 2M rows); there is no single-transaction real-time scoring endpoint yet, no run cancellation, and no model activation/training API.
 - The Anomaly Detection and Model Performance pages are component-tested only; there is no threshold slider, comparison chart or per-transaction score panel.
 - The detection tests use small synthetic data; real-data checks were run manually (doc 08) and are not part of the automated suite.
+- Behavioral deviation is not applicable to PaySim (every transaction is cold start); the engine is validated on a synthetic DEMO scenario and unit tests only, so its fraud-detection value is unmeasured. Weights, τ and thresholds are uncalibrated design choices (calibration: Phase 9).
+- Behavior covers outgoing spending only; receiver-side profiles are descriptive. Hour of day is UTC (no per-account time zones). The scoring baseline uses the latest 500 prior transactions in 90 days (profiles use the whole window).
+- Behavior runs are worker/API only (no UI to start one); a run scores a whole dataset (cap 2M rows) and stores a result row per transaction.
+- Merchant-category behavior works only when a dataset supplies categories; none of the real datasets do.

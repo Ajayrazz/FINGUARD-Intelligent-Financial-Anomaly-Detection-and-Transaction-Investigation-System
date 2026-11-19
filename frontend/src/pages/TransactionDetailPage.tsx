@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import type { AccountBrief, TransactionDetail, TransactionEvent, TransactionRow, TxStatus } from '../api/types'
 import { PermissionGate } from '../auth/guards'
+import { BehaviorPanel } from '../components/behavior/BehaviorPanel'
 import { TransactionTable } from '../components/transactions/TransactionTable'
 import { StatusBadge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -99,6 +100,10 @@ export default function TransactionDetailPage() {
         <AccountCard title="Sender" account={t.sender} before={t.sender_balance_before} after={t.sender_balance_after} />
         <AccountCard title="Receiver" account={t.receiver} before={t.receiver_balance_before} after={t.receiver_balance_after} />
       </div>
+
+      <PermissionGate permission="behavior.read">
+        <BehaviorPanel transactionId={t.id} />
+      </PermissionGate>
 
       <div>
         <h2 className="text-lg font-semibold">Related transactions</h2>

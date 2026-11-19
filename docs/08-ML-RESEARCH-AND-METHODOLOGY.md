@@ -180,3 +180,18 @@ Detection runs (`apps/detection`) rebuild the research features from stored tran
 - Scores are raw model outputs (probabilities for LR/RF/XGBoost, rarity scores for the unsupervised models), not calibrated across models.
 - The alert threshold is the one frozen on validation during training (stored in the registry); the API accepts an override.
 - ULB-trained models are not scorable here (they need PCA components the platform does not have); the API rejects them with a clear error.
+
+## Behavioral score B — as built (Phase 6, engine `b1`)
+Source: `backend/apps/behavior/engine.py` (pure functions). Behavior is an account's **outgoing** transactions; history for a transaction is everything strictly before it in (occurred_at, id) order, within 90 days, at most the latest 500 (profiles use the whole window). Parameters are versioned in `engine.CONFIG` and stored on each run.
+
+| Component | Definition | Score (0–100) | Available when |
+|---|---|---|---|
+| amount | robust z = (amount − median)/max(1.4826·MAD, 0.1·median, 1), only upward | 100·(1−e^(−z/3)) | ≥ 5 prior transactions |
+| burst | k = this transaction + prior ones in the last 10 min; z = (k−1)/√(1+expected per 10 min) | 100·(1−e^(−z/2)) | ≥ 5 prior |
+| spend_jump | last-7-day total (incl. this) ÷ historical weekly average; z = log₂(max(ratio,1)) | 100·(1−e^(−z/2)) | ≥ 5 prior and ≥ 14 days of history |
+| new_counterparty | receiver never paid before | 50 if new else 0 | ≥ 5 prior and receiver present |
+| hour | surprisal of the UTC hour beyond uniform (bits, Laplace-smoothed histogram) | 100·(1−e^(−z/2)) | ≥ 20 prior |
+
+Overall = 0.5·max(available components) + 0.5·weighted mean of available (weights amount .30, burst .25, spend_jump .20, new_counterparty .15, hour .10). `coverage` = share of weight available. With fewer than 5 prior transactions the status is `unavailable_cold_start`, the score is null and every component states why. The constants (τ, weights, 50, blend) are design choices, **not calibrated on labelled data** — calibration belongs to Phase 9 (risk weights).
+- **Scenario test (5 × ₹40,000 in 10 minutes, executed):** a customer with 60 days of ~₹800 payments then five ₹40,000 payments to a new payee, two minutes apart: deviation 77.5 → 78.2 → 81.1 → 82.8 → 83.9 (rising as the burst grows); the regular customer's maximum is 31. The amount component is 100 for all five; burst rises 0 → 86; the hour component stays 0 (usual hour); `new_counterparty` is 50 only for the first payment. Batch results equal live recomputation (tested), and rewriting later transactions does not change an earlier score (tested).
+- **Real PaySim (executed, 343,027 rows, steps 379–400):** 100% cold start — 0 scored — because PaySim senders have at most 3 transactions (doc 19). Sender-side behavior is therefore *not applicable* to PaySim; the engine is exercised on the synthetic DEMO scenario only, and its detection value on real data is untested. Receiver-side profiles (`direction=in`) work for merchants that receive many payments but are descriptive only (no deviation score).

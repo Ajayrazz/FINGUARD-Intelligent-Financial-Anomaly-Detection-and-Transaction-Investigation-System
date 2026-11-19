@@ -37,6 +37,8 @@ PERMISSIONS: dict[str, str] = {
     "models.read": "View registered models, versions and offline evaluation results",
     "detection.read": "View detection runs and predictions",
     "detection.run": "Start detection runs",
+    "behavior.read": "View behavioral profiles, trends and deviation scores",
+    "behavior.run": "Start behavioral analysis runs",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -53,6 +55,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "models.read",
         "detection.read",
         "detection.run",
+        "behavior.read",
+        "behavior.run",
     },
     FRAUD_INVESTIGATOR: {
         "datasets.read",
@@ -61,6 +65,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "imports.read",
         "models.read",
         "detection.read",
+        "behavior.read",
     },
     AUDITOR: {
         "users.read",
@@ -72,6 +77,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "imports.read",
         "models.read",
         "detection.read",
+        "behavior.read",
     },
     MANAGEMENT: set(),
 }

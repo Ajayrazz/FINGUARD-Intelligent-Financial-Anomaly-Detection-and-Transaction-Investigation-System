@@ -58,20 +58,20 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M3-01 | Calculate average transaction amount | P0 | 6 | Ph3, Ph4 | Mean/median/std per account as-of | Planned | TBD |
-| FR-M3-02 | Analyze daily spending | P1 | 6 | Ph3, Ph4 | Daily aggregates API | Planned | TBD |
-| FR-M3-03 | Analyze weekly spending | P1 | 6 | Ph3, Ph4 | Weekly aggregates API | Planned | TBD |
-| FR-M3-04 | Analyze monthly spending | P1 | 6 | Ph3, Ph4 | Monthly aggregates API | Planned | TBD |
-| FR-M3-05 | Detect unusually high-value spending | P0 | 6 | Ph3, Ph4 | Robust z/MAD threshold test | Planned | TBD |
-| FR-M3-06 | Identify sudden spending increases | P1 | 6 | Ph3, Ph4 | Rate/amount jump detected in test scenario | Planned | TBD |
-| FR-M3-07 | Identify unusual transaction timings | P1 | 6 | Ph3, Ph4 | Hour-of-day rarity score | Planned | TBD |
-| FR-M3-08 | Analyze merchant-category behavior where available | P2 | 6 | Ph3, Ph4 | Computed only when data present; else unavailable | Planned | TBD |
-| FR-M3-09 | Compare transaction frequency | P1 | 6 | Ph3, Ph4 | Current vs historical rate | Planned | TBD |
-| FR-M3-10 | Generate historical account behavioral profiles | P0 | 6 | Ph3, Ph4 | Profile stored with as_of and version | Planned | TBD |
-| FR-M3-11 | Calculate behavioral deviation scores | P0 | 6 | Ph3, Ph4 | 0-100 score with component breakdown; cold-start unavailable | Planned | TBD |
-| FR-M3-12 | Show account spending trends | P1 | 6 | Ph3, Ph4 | Trends API + chart | Planned | TBD |
-| FR-M3-13 | Compare current vs historical behavior | P1 | 6 | Ph3, Ph4 | Side-by-side baseline vs current | Planned | TBD |
-| FR-M3-14 | Store behavioral analysis results | P0 | 6 | Ph3, Ph4 | BehaviorAnalysisResult persisted | Planned | TBD |
+| FR-M3-01 | Calculate average transaction amount | P0 | 6 | Ph3, Ph4 | Mean/median/std per account as-of | Tested | tests/test_behavior_engine.py::test_profile_statistics_and_aggregates, test_behavior.py (profile API) |
+| FR-M3-02 | Analyze daily spending | P1 | 6 | Ph3, Ph4 | Daily aggregates API | Tested | tests/test_behavior.py::test_trends_granularity_and_validation (daily) |
+| FR-M3-03 | Analyze weekly spending | P1 | 6 | Ph3, Ph4 | Weekly aggregates API | Tested | tests/test_behavior_engine.py::test_aggregate_fills_gaps (weekly); trends API |
+| FR-M3-04 | Analyze monthly spending | P1 | 6 | Ph3, Ph4 | Monthly aggregates API | Tested | tests/test_behavior_engine.py::test_aggregate_fills_gaps (monthly); trends API |
+| FR-M3-05 | Detect unusually high-value spending | P0 | 6 | Ph3, Ph4 | Robust z/MAD threshold test | Tested | tests/test_behavior_engine.py (robust median/MAD amount score; scenario) |
+| FR-M3-06 | Identify sudden spending increases | P1 | 6 | Ph3, Ph4 | Rate/amount jump detected in test scenario | Tested | tests/test_behavior_engine.py (weekly spend-jump component in the 5 x 40,000 scenario) |
+| FR-M3-07 | Identify unusual transaction timings | P1 | 6 | Ph3, Ph4 | Hour-of-day rarity score | Tested | tests/test_behavior_engine.py::test_unusual_hour_is_detected_and_only_with_enough_history |
+| FR-M3-08 | Analyze merchant-category behavior where available | P2 | 6 | Ph3, Ph4 | Computed only when data present; else unavailable | Tested | tests/test_behavior_engine.py (distribution when present, null when absent); no real dataset has categories |
+| FR-M3-09 | Compare transaction frequency | P1 | 6 | Ph3, Ph4 | Current vs historical rate | Tested | burst + tx_per_day + recent_7d vs window (engine scenario test) |
+| FR-M3-10 | Generate historical account behavioral profiles | P0 | 6 | Ph3, Ph4 | Profile stored with as_of and version | Tested | tests/test_behavior.py (as-of profile, stored snapshots) |
+| FR-M3-11 | Calculate behavioral deviation scores | P0 | 6 | Ph3, Ph4 | 0-100 score with component breakdown; cold-start unavailable | Tested | tests/test_behavior_engine.py + test_behavior.py (scenario 77-84, cold start unavailable, batch == live) |
+| FR-M3-12 | Show account spending trends | P1 | 6 | Ph3, Ph4 | Trends API + chart | Tested | tests/test_behavior.py (trends API); UI component-tested |
+| FR-M3-13 | Compare current vs historical behavior | P1 | 6 | Ph3, Ph4 | Side-by-side baseline vs current | Implemented | UI table (last 7 days vs window); behavior.test.tsx; not browser-tested |
+| FR-M3-14 | Store behavioral analysis results | P0 | 6 | Ph3, Ph4 | BehaviorAnalysisResult persisted | Tested | tests/test_behavior.py (BehaviorAnalysisResult per run/transaction) |
 
 ## M4 Graph Analysis
 
@@ -231,7 +231,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-02 | Overview Dashboard page | P0 | 14 | per feature phase; completion Ph13 | Real KPIs; states | Planned | TBD |
 | FR-UI-03 | Transactions page | P0 | 3 | per feature phase; completion Ph13 | Table+import wizard; states | Implemented | pages/transactions.test.tsx (component tests; not browser-tested) |
 | FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
-| FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Planned | TBD |
+| FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Implemented | pages/behavior.test.tsx (component tests; not browser-tested) |
 | FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Planned | TBD |
 | FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Planned | TBD |
 | FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Planned | TBD |

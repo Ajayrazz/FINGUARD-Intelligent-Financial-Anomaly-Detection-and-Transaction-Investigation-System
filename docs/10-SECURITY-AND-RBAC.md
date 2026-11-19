@@ -47,3 +47,6 @@ IDOR on case/evidence IDs (object checks + tests); mass assignment (explicit ser
 
 ## Phase 5D additions
 New permissions: `models.read`, `detection.read`, `detection.run`. Defaults: analyst — all three; investigator and auditor — `models.read`, `detection.read`; management — none (aggregates come in Phase 14). Model artifacts are pickle/joblib files, which execute code when loaded: the loader only opens files inside `ML_ARTIFACTS_DIR` whose SHA-256 equals the registered hash, so a swapped or tampered file fails the run (tested) and is audited. Run creation, completion and failure are written to the audit log. Predictions are model scores and never carry the dataset's ground-truth label (D-018).
+
+## Phase 6 additions
+New permissions: `behavior.read` (analyst, investigator, auditor), `behavior.run` (analyst). Management has none. Runs are audited (created / completed / failed). Behavior endpoints return amounts and counterparty identifiers, so they require the same read-level trust as transaction access; no ground-truth label is returned.

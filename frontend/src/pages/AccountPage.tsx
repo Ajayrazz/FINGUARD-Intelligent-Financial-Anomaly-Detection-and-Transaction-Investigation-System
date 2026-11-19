@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import type { AccountDetail, Paginated, TransactionRow } from '../api/types'
 import { TransactionTable } from '../components/transactions/TransactionTable'
 import { Button } from '../components/ui/Button'
@@ -16,6 +17,7 @@ const DIRECTIONS = [
 
 export default function AccountPage() {
   const { id = '' } = useParams()
+  const { can } = useAuth()
   const [direction, setDirection] = useState<'both' | 'out' | 'in'>('both')
   const [page, setPage] = useState(1)
 
@@ -35,6 +37,9 @@ export default function AccountPage() {
         <Link to="/transactions" className="text-sm text-blue-700 hover:underline">← Transactions</Link>
         <h1 className="mt-1 font-mono text-2xl font-semibold">{a.account_ref}</h1>
         <p className="text-sm text-slate-600 capitalize">{a.account_type} · {a.dataset_name}</p>
+        {can('behavior.read') && (
+          <p className="mt-1 text-sm"><Link to={`/accounts/${id}/behavior`} className="text-blue-700 hover:underline">View behavior profile →</Link></p>
+        )}
       </div>
       <dl className="grid grid-cols-2 gap-4 rounded-lg border border-slate-200 p-4 sm:grid-cols-3">
         <div><dt className="text-xs text-slate-500">Sent</dt><dd className="text-sm tabular-nums">{a.sent_count.toLocaleString()} · {formatAmount(a.sent_total)}</dd></div>

@@ -141,6 +141,12 @@ def _endpoints(
         ("get", f"/api/v1/detection/runs/{run_pk}/predictions/", None, "detection.read"),
         ("get", f"/api/v1/transactions/{tx_pk}/predictions/", None, "detection.read"),
         ("post", "/api/v1/detection/runs/", {"model_version": mv_pk, "dataset": ds_pk}, "detection.run"),
+        ("get", f"/api/v1/accounts/{acct_pk}/behavior/profile/", None, "behavior.read"),
+        ("get", f"/api/v1/accounts/{acct_pk}/behavior/trends/", None, "behavior.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/behavior/", None, "behavior.read"),
+        ("get", "/api/v1/behavior/runs/", None, "behavior.read"),
+        ("get", f"/api/v1/behavior/runs/{run_pk}/", None, "behavior.read"),
+        ("post", "/api/v1/behavior/runs/", {"dataset": ds_pk}, "behavior.run"),
     ]
 
 
