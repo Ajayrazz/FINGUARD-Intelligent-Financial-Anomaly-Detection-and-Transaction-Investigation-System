@@ -102,11 +102,12 @@ The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-
 | 2 | JWT auth (rotating httpOnly refresh cookie, lockout, throttling), RBAC, user & role management, audit log | ✅ Implemented and tested |
 | 3 | Transaction/account/dataset schema, transaction & account APIs (search, filter, sort, pagination), transactions UI, 1M-row query check | ✅ Implemented and tested |
 | 4 | Dataset import pipeline: CSV/Excel upload, column mapping, validation, duplicate-ID policies, background jobs with live progress, resume/cancel, API ingestion | ✅ Implemented and tested |
-| 5 | ML research and detection models | ⏳ Next |
-| 6–16 | Import pipeline, ML, behavioral, graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
+| 5 | ML research and detection: real PaySim/ULB data pipeline, 7 algorithms evaluated, model registry, detection runs and pages | ✅ Implemented and tested |
+| 6–16 | Behavioral, graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
 
-**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; the real PaySim file has not been imported yet.
-**Verified so far:** 120 backend tests and 32 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
+**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; real PaySim rows can be imported through the normal import page (a 343k-row slice was imported and scored as a check).
+**Also works:** scoring a dataset's transactions with a registered model (Anomaly Detection page) and comparing registered models' offline results (Model Performance page). Research results on the real PaySim and ULB data are in [docs/08](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) (PaySim balance fields saturate the problem; the cautious figure is the `core` feature set).
+**Verified so far:** 179 backend tests and 37 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
 
 Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
 
@@ -152,7 +153,8 @@ backend/
   apps/audit/      Append-only audit log
   apps/datasets/   Datasets, mapping profiles, import jobs and the ingestion pipeline (sources, cleaning, loader)
   apps/transactions/ Accounts, transactions, per-transaction events, APIs
-  apps/model_registry/ Model/version/evaluation tables (used from Phase 5)
+  apps/model_registry/ Registered models, versions, offline evaluations (read-only API)
+  apps/detection/   Detection runs, per-transaction predictions, hash-verified model loading
   shared/          Health checks, error handling, middleware
   tests/           pytest suite (incl. generated RBAC matrix)
 frontend/src/      React app: api client, auth, pages, UI components

@@ -47,3 +47,7 @@
 - LOF and One-Class SVM see only 0.3–1% of PaySim train rows; the autoencoder did not early-stop within 15 epochs and may be under-trained. None of the 5C models was tuned.
 - Saved models are joblib/pickle files: only load artifacts produced by this project (pickle executes code on load).
 - The `torch` CPU wheel comes from an additional package index (`download.pytorch.org`), a supply-chain consideration to review before production.
+- Detection scores raw model output (not calibrated probabilities); scores from different models are not comparable. Only PaySim-feature models can score platform data; the receiver-history features assume PaySim-style account references (`M…` = merchant) and need as much past data as training had (doc 08, Phase 5D).
+- Detection runs score an entire dataset and store a `Prediction` row per transaction (capped at 2M rows); there is no single-transaction real-time scoring endpoint yet, no run cancellation, and no model activation/training API.
+- The Anomaly Detection and Model Performance pages are component-tested only; there is no threshold slider, comparison chart or per-transaction score panel.
+- The detection tests use small synthetic data; real-data checks were run manually (doc 08) and are not part of the automated suite.

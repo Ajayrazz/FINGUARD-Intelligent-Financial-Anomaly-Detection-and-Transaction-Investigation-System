@@ -9,7 +9,7 @@ Last updated: 2026-11-19 · Current phase: **4 — Dataset import & processing p
 | 2 | Auth, users, RBAC, audit | **Done (approved)** | |
 | 3 | DB foundation & transactions | **Done (approved)** | |
 | 4 | Import pipeline | **Implemented & checked — awaiting approval for Phase 5** | Backend 120 tests, frontend 32 tests pass; 1M-row import measured (~12k rows/s, target 20k missed); 6.36M and real PaySim not run |
-| 5 | ML research & detection | **5A, 5B, 5C done — awaiting approval for 5D** — seven algorithms (LR, RF, XGBoost, Isolation Forest, LOF, One-Class SVM, autoencoder) evaluated on real PaySim (core and core+balance) and ULB; 21 versions registered | Backend 168 tests pass; results and caveats in doc 08. 5D (inference layer, detection APIs/UI) not started; RQ1 hybrid and RQ3 overlap analysis pending |
+| 5 | ML research & detection | **5A–5D implemented and checked — awaiting approval for Phase 6** — 7 algorithms evaluated on real PaySim and ULB; detection runs, predictions, model registry API, Anomaly Detection and Model Performance pages | Backend 179 tests, frontend 37 tests pass; platform scoring verified equal to the research pipeline on 343k real PaySim rows. Not done: RQ1 hybrid, RQ3 overlap analysis, rolling-window drift (RQ6), browser testing |
 | 6 | Behavioral analysis | Not Started | |
 | 7 / 7B | Graph + Neo4j / graph experiments | Not Started | |
 | 8 | Duplicates & OCR | Not Started | |

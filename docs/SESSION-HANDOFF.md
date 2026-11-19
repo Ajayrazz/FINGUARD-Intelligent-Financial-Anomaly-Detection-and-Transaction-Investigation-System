@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Date:** 2026-11-19 · **Current phase:** 4 (import pipeline) — implemented & checked, awaiting approval · **Phase 5A, 5B, 5C complete** (doc 08/19) — awaiting approval · **Next:** 5D (inference layer, detection APIs/UI)
+**Date:** 2026-11-19 · **Current phase:** 4 (import pipeline) — implemented & checked, awaiting approval · **Phase 5 (5A–5D) complete** (doc 08/19) — awaiting approval · **Next:** Phase 6 (behavioral analysis); optional first: RQ1 hybrid + RQ3 overlap experiments
 
 ## Completed
 - **Phases 1–2** (approved): Docker stack, Django/DRF/Celery/Channels skeleton, JWT auth, default-deny RBAC, audit log, users/roles/audit UI.

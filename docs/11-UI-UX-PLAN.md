@@ -30,3 +30,8 @@
 Language rules: use "flagged for review", "risk indicators", "model score"; never "fraudster/criminal/guilty". Explanation panel always splits Prediction / Indicator / Evidence / Assessment / Outcome and shows the non-proof disclaimer.
 
 Prototyping rule: any UI built before its API exists uses a clearly labelled mock provider, removed before the phase is accepted.
+
+## Phase 5D as built
+- **Anomaly Detection** (`/detection`, `/detection/:id`; `detection.read`, start form needs `detection.run`): model-version and dataset selectors (only scorable models), run list with live status polling, run page with threshold/flag counts, log-scaled score histogram, and a paginated table of highest-scoring transactions (flagged-only toggle) linking to the transaction. MOCK datasets show a warning.
+- **Model Performance** (`/models`; `models.read`): registered versions ranked by test PR-AUC with bootstrap interval, base rate, ROC-AUC and recall at 1% false-positive rate; dataset filter; a standing caution that `core+balance` PaySim results are saturated.
+- Both are component-tested only (not browser-tested). Not built: side-by-side comparison charts, threshold slider, per-transaction score panel on the transaction page.

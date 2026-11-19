@@ -44,3 +44,6 @@ Notes: *No role may delete transactions, audit logs, or case history.* Deactivat
 
 ## Threat considerations
 IDOR on case/evidence IDs (object checks + tests); mass assignment (explicit serializer fields); JWT theft (short access life, cookie refresh); privilege escalation via role edit (only Super Admin; audited; cannot remove last Super Admin); WS subscription hijack (permission re-check); malicious uploads/zip-bombs/polyglot PDFs (limits, parse in worker with timeouts); log injection; SSRF none (no URL fetches); denial via huge graph queries (depth/limit caps, query timeouts).
+
+## Phase 5D additions
+New permissions: `models.read`, `detection.read`, `detection.run`. Defaults: analyst — all three; investigator and auditor — `models.read`, `detection.read`; management — none (aggregates come in Phase 14). Model artifacts are pickle/joblib files, which execute code when loaded: the loader only opens files inside `ML_ARTIFACTS_DIR` whose SHA-256 equals the registered hash, so a swapped or tampered file fails the run (tested) and is audited. Run creation, completion and failure are written to the audit log. Predictions are model scores and never carry the dataset's ground-truth label (D-018).

@@ -53,12 +53,29 @@ def test_every_route_declares_a_permission_or_is_allowlisted():
     assert not missing, f"Routes without a permission declaration (default-deny would block them): {missing}"
 
 
+def _registry_fixtures(ds):
+    from apps.detection.models import DetectionRun
+    from apps.model_registry.services import register_results
+
+    mv = register_results(
+        {
+            "run": "rbac_model", "dataset": "paysim", "algorithm": "LogisticRegression", "artifact": "/x/model.joblib",
+            "artifact_sha256": "a" * 64, "seed": 1, "raw_sha256": "b" * 64, "features": ["log_amount"],
+            "metrics": {"validation": {"at_validation_threshold": {"threshold": 0.5}}, "latency": {}},
+        }
+    )  # fmt: skip
+    return mv, DetectionRun.objects.create(model_version=mv, dataset=ds, threshold=0.5, threshold_source="test")
+
+
 @pytest.fixture
 def population(make_user):
     return {name: make_user(name) for name in ROLES}
 
 
-def _endpoints(target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0, ds_pk: int = 0, job_pk: int = 0):
+def _endpoints(
+    target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0, ds_pk: int = 0, job_pk: int = 0, mv_pk: int = 0,
+    run_pk: int = 0,
+):  # fmt: skip
     return [
         ("get", "/api/v1/users/", None, "users.read"),
         ("get", f"/api/v1/users/{target_pk}/", None, "users.read"),
@@ -117,6 +134,13 @@ def _endpoints(target_pk: int, role_pk: int, tx_pk: int = 0, acct_pk: int = 0, d
         ("get", "/api/v1/accounts/", None, "accounts.read"),
         ("get", f"/api/v1/accounts/{acct_pk}/", None, "accounts.read"),
         ("get", f"/api/v1/accounts/{acct_pk}/transactions/", None, "transactions.read"),
+        ("get", "/api/v1/model-versions/", None, "models.read"),
+        ("get", f"/api/v1/model-versions/{mv_pk}/", None, "models.read"),
+        ("get", "/api/v1/detection/runs/", None, "detection.read"),
+        ("get", f"/api/v1/detection/runs/{run_pk}/", None, "detection.read"),
+        ("get", f"/api/v1/detection/runs/{run_pk}/predictions/", None, "detection.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/predictions/", None, "detection.read"),
+        ("post", "/api/v1/detection/runs/", {"model_version": mv_pk, "dataset": ds_pk}, "detection.run"),
     ]
 
 
@@ -128,10 +152,13 @@ def test_each_role_gets_403_exactly_when_it_lacks_the_permission(
     ds = make_dataset()
     tx = make_tx(ds)
     job = ImportJob.objects.create(dataset=ds, file_name="f.csv", status="completed")
+    mv, run = _registry_fixtures(ds)
     role = Role.objects.get(name="management")
     granted = set(Role.objects.get(name=role_name).permissions.values_list("codename", flat=True))
     user = population[role_name]
-    for method, url, body, codename in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk):
+    for method, url, body, codename in _endpoints(
+        target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk, mv.pk, run.pk
+    ):
         client = APIClient()
         client.force_authenticate(user=user)
         res = getattr(client, method)(url, body, format="json") if body is not None else getattr(client, method)(url)
@@ -146,8 +173,11 @@ def test_unauthenticated_requests_get_401_everywhere(population, make_user, make
     ds = make_dataset()
     tx = make_tx(ds)
     job = ImportJob.objects.create(dataset=ds, file_name="f.csv", status="completed")
+    mv, run = _registry_fixtures(ds)
     role = Role.objects.get(name="management")
-    for method, url, body, _ in _endpoints(target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk):
+    for method, url, body, _ in _endpoints(
+        target.pk, role.pk, tx.pk, tx.sender_id, tx.dataset_id, job.pk, mv.pk, run.pk
+    ):
         res = (
             getattr(APIClient(), method)(url, body, format="json")
             if body is not None

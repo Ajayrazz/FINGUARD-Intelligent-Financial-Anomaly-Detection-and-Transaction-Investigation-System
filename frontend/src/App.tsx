@@ -6,11 +6,14 @@ import { ProtectedRoute } from './auth/guards'
 import { ToastProvider } from './components/ui/Toast'
 import AppLayout from './layout/AppLayout'
 import AccountPage from './pages/AccountPage'
+import AnomalyDetectionPage from './pages/AnomalyDetectionPage'
 import AuditLogsPage from './pages/AuditLogsPage'
+import DetectionRunPage from './pages/DetectionRunPage'
 import ImportDetailPage from './pages/ImportDetailPage'
 import ImportsPage from './pages/ImportsPage'
 import ImportWizardPage from './pages/ImportWizardPage'
 import LoginPage from './pages/LoginPage'
+import ModelPerformancePage from './pages/ModelPerformancePage'
 import StatusPage from './pages/StatusPage'
 import TransactionDetailPage from './pages/TransactionDetailPage'
 import TransactionsPage from './pages/TransactionsPage'
@@ -40,6 +43,13 @@ export default function App() {
                   </Route>
                   <Route element={<ProtectedRoute permission="imports.create" />}>
                     <Route path="imports/new" element={<ImportWizardPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="detection.read" />}>
+                    <Route path="detection" element={<AnomalyDetectionPage />} />
+                    <Route path="detection/:id" element={<DetectionRunPage />} />
+                  </Route>
+                  <Route element={<ProtectedRoute permission="models.read" />}>
+                    <Route path="models" element={<ModelPerformancePage />} />
                   </Route>
                   <Route element={<ProtectedRoute permission="accounts.read" />}>
                     <Route path="accounts/:id" element={<AccountPage />} />

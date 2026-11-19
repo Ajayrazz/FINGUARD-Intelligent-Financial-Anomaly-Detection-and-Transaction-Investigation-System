@@ -168,3 +168,74 @@ export interface ImportPreview {
   suggested_mapping: { columns: Record<string, string>; options: Record<string, unknown>; preset: string | null }
   presets: string[]
 }
+
+export interface TestMetrics {
+  pr_auc: number
+  pr_auc_ci95?: [number, number]
+  roc_auc: number
+  base_rate: number
+  positives: number
+  rows: number
+  recall_at_fpr_1pct: number
+}
+
+export interface ModelVersionRow {
+  id: number
+  model_name: string
+  algorithm: string
+  task_type: 'supervised' | 'unsupervised' | 'graph'
+  version: string
+  status: 'candidate' | 'active' | 'retired'
+  dataset: string
+  feature_set: string | null
+  random_seed: number | null
+  trained_at: string | null
+  test_metrics: TestMetrics | null
+  scorable: boolean
+}
+
+export type RunStatus = 'pending' | 'running' | 'succeeded' | 'failed'
+
+export interface ScoreSummary {
+  min: number
+  max: number
+  mean: number
+  quantiles: Record<string, number>
+  histogram: { counts: number[]; edges: number[] }
+  threshold: number
+}
+
+export interface DetectionRun {
+  id: number
+  model_version: number
+  model_name: string
+  algorithm: string
+  version: string
+  dataset: number
+  dataset_name: string
+  is_mock_data: boolean
+  threshold: number
+  threshold_source: string
+  status: RunStatus
+  rows_scored: number
+  rows_flagged: number
+  score_summary: ScoreSummary | Record<string, never>
+  error_message: string
+  created_by_email: string | null
+  created_at: string
+  started_at: string | null
+  finished_at: string | null
+}
+
+export interface PredictionRow {
+  id: number
+  transaction_id: number
+  external_id: string
+  amount: string
+  tx_type: string
+  occurred_at: string
+  sender: string
+  receiver: string | null
+  score: number
+  flagged: boolean
+}

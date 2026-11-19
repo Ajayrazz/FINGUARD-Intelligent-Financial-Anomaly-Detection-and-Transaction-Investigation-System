@@ -115,3 +115,8 @@ Real stack (HTTP upload → Celery worker → Postgres 16 in Docker on a laptop)
 * **API stayed responsive** during a 1M-row import: list requests 20–50 ms vs ~20 ms idle; `/health/` < 10 ms.
 * **6.36M rows (full PaySim) not run.** Extrapolating linearly gives ~9–12 minutes but index growth makes that optimistic; schedule a real run in Phase 15. Possible optimisations if needed: create secondary indexes after bulk load, drop FK checks for the load, larger COPY batches.
 * **Bug found by this run:** the first version of the "first/last seen" account update planned badly on freshly loaded tables (minutes for 100k rows). Fixed by ANALYZE + temp-table aggregation; a regression test covers correctness but not the speed.
+
+## Phase 5D additions (detection)
+- **DetectionRun**(model_version FK PROTECT, dataset FK PROTECT, threshold, threshold_source, status pending|running|succeeded|failed, rows_scored, rows_flagged, score_summary JSONB [quantiles + 20-bin histogram], error_message, created_by, created_at/started_at/finished_at). `scope` from the original design is not built: a run scores a whole dataset.
+- **Prediction**(run FK CASCADE, transaction FK CASCADE, score float, flagged bool); unique (run, transaction); indexes (run, -score), (run, flagged, -score), (transaction). Named `Prediction` rather than `TransactionPrediction`. One row per scored transaction; a 2M-row cap (`DETECTION_MAX_ROWS`) bounds storage. Measured: 343,027 real PaySim rows scored and stored in ~10–12 s end to end.
+- Model artifacts are not stored in the database: `ModelVersion.artifact_path` + SHA-256 point at files under `datasets/artifacts/`, loaded only after the hash matches.

@@ -44,15 +44,15 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-M2-04 | Rapid successive transaction identification | P1 | 5 | Ph3, Ph4, model_registry tables | Inter-transaction time bursts flagged; scenario test | Planned | TBD |
 | FR-M2-05 | Unusual fund transfer detection | P1 | 5 | Ph3, Ph4, model_registry tables | Transfer-specific anomalies scored | Planned | TBD |
 | FR-M2-06 | Account activity deviation detection | P1 | 6 | Ph3, Ph4, model_registry tables | Links to behavioral deviation | Planned | TBD |
-| FR-M2-07 | Supervised ML transaction classification | P0 | 5 | Ph3, Ph4, model_registry tables | LR/RF/XGB trained on chronological split; reproducible | Planned | TBD |
-| FR-M2-08 | Unsupervised anomaly detection | P0 | 5 | Ph3, Ph4, model_registry tables | IF/LOF/OCSVM/AE run without labels | Planned | TBD |
+| FR-M2-07 | Supervised ML transaction classification | P0 | 5 | Ph3, Ph4, model_registry tables | LR/RF/XGB trained on chronological split; reproducible | Tested | tests/test_ml_models.py, test_ml_features_eval.py (LR/RF/XGBoost on real PaySim+ULB; results in doc 08) |
+| FR-M2-08 | Unsupervised anomaly detection | P0 | 5 | Ph3, Ph4, model_registry tables | IF/LOF/OCSVM/AE run without labels | Tested | tests/test_ml_models.py (labels never used); results in doc 08 (IF/LOF/OCSVM/AE) |
 | FR-M2-09 | Historical transaction comparison | P1 | 5 | Ph3, Ph4, model_registry tables | Compare against account history as-of | Planned | TBD |
 | FR-M2-10 | Automatic generation of suspicious activity alerts | P0 | 11 | Ph3, Ph4, model_registry tables | Detection/risk output creates deduplicated alerts | Planned | TBD |
-| FR-M2-11 | Anomaly score calculation | P0 | 5 | Ph3, Ph4, model_registry tables | Stored normalized score per prediction | Planned | TBD |
-| FR-M2-12 | Model prediction storage | P0 | 5 | Ph3, Ph4, model_registry tables | TransactionPrediction rows linked to run/version | In Progress | tables only (model_registry); no logic until Phase 5 |
-| FR-M2-13 | Model version tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelVersion with artifact hash, seed, data hash | In Progress | tables only (model_registry); no logic until Phase 5 |
-| FR-M2-14 | Detection result history | P0 | 5 | Ph3, Ph4, model_registry tables | History per transaction across versions | Planned | TBD |
-| FR-M2-15 | Model performance tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelEvaluation per split/time; comparison page | In Progress | tables only (model_registry); no logic until Phase 5 |
+| FR-M2-11 | Anomaly score calculation | P0 | 5 | Ph3, Ph4, model_registry tables | Stored normalized score per prediction | Tested | tests/test_detection.py (stored score equals research pipeline); raw model score, not a calibrated probability |
+| FR-M2-12 | Model prediction storage | P0 | 5 | Ph3, Ph4, model_registry tables | TransactionPrediction rows linked to run/version | Tested | tests/test_detection.py (Prediction rows per run/transaction) |
+| FR-M2-13 | Model version tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelVersion with artifact hash, seed, data hash | Tested | tests/test_model_registry.py, test_detection.py (hash-verified artifact load) |
+| FR-M2-14 | Detection result history | P0 | 5 | Ph3, Ph4, model_registry tables | History per transaction across versions | Tested | tests/test_detection.py::test_predictions_endpoint_* (history across runs per transaction) |
+| FR-M2-15 | Model performance tracking | P0 | 5 | Ph3, Ph4, model_registry tables | ModelEvaluation per split/time; comparison page | Tested | tests/test_model_registry.py; doc 08 results; offline metrics only (no drift tracking yet) |
 
 ## M3 Spending Patterns
 
@@ -230,7 +230,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-01 | Login page | P0 | 2 | per feature phase; completion Ph13 | Auth flow + states | Implemented | frontend auth.test.tsx (component tests only; no browser E2E yet) |
 | FR-UI-02 | Overview Dashboard page | P0 | 14 | per feature phase; completion Ph13 | Real KPIs; states | Planned | TBD |
 | FR-UI-03 | Transactions page | P0 | 3 | per feature phase; completion Ph13 | Table+import wizard; states | Implemented | pages/transactions.test.tsx (component tests; not browser-tested) |
-| FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Planned | TBD |
+| FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
 | FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Planned | TBD |
 | FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Planned | TBD |
 | FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Planned | TBD |
@@ -238,7 +238,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Planned | TBD |
 | FR-UI-10 | Investigations page | P0 | 12 | per feature phase; completion Ph13 | Workspace | Planned | TBD |
 | FR-UI-11 | Reports page | P1 | 10 | per feature phase; completion Ph13 | Generate/download | Planned | TBD |
-| FR-UI-12 | Model Performance page | P0 | 5 | per feature phase; completion Ph13 | Compare versions | Planned | TBD |
+| FR-UI-12 | Model Performance page | P0 | 5 | per feature phase; completion Ph13 | Compare versions | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
 | FR-UI-13 | User Management page | P0 | 2 | per feature phase; completion Ph13 | Users/roles | Implemented | no UI tests yet; backend users/roles tests pass |
 | FR-UI-14 | Audit Logs page | P0 | 2 | per feature phase; completion Ph13 | Search/filter | Implemented | no UI tests yet; backend audit tests pass |
 | FR-UI-15 | Cross-page navigation workflow (transaction -> accounts -> behavior -> graph -> risk -> explanation -> alert -> case) | P0 | 13 | per feature phase; completion Ph13 | Playwright journey | Planned | TBD |
@@ -267,7 +267,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | PLAT-07 | Data retention/deletion policy and backup/recovery plan | P1 | 16 | Ph1 | Restore drill | Planned | TBD |
 | PLAT-08 | Dev/prod configuration separation, no hardcoded secrets | P0 | 1 | Ph1 | Settings test; secrets scan | Planned | TBD |
 | PLAT-09 | PostgreSQL <-> Neo4j consistency strategy | P0 | 7 | Ph1 | Rebuild-equivalence test | Planned | TBD |
-| PLAT-10 | Reproducible model training with persisted artifacts/metadata | P0 | 5 | Ph1 | Re-run equals metrics | Planned | TBD |
+| PLAT-10 | Reproducible model training with persisted artifacts/metadata | P0 | 5 | Ph1 | Re-run equals metrics | Tested | tests/test_ml_features_eval.py (same seed => identical scores); artifact hashes in registry |
 | PLAT-11 | OpenAPI documentation via drf-spectacular | P1 | 1 | Ph1 | Schema served | Tested | tests/test_infrastructure.py::test_openapi_schema_served |
 | PLAT-12 | Django Admin for internal administration | P2 | 2 | Ph1 | Admin registered for core models | Implemented | registered; not covered by tests |
 
@@ -277,7 +277,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 |---|---|---|---|---|---|---|---|
 | RQ-01 | RQ1 Hybrid framework vs individual algorithms | P0 | 5 | Ph5, 7B, 9, 10 | Reported with real metrics | Planned | TBD |
 | RQ-02 | RQ2 Graph features vs transaction-only | P0 | 7B | Ph5, 7B, 9, 10 | Paired comparison reported | Planned | TBD |
-| RQ-03 | RQ3 Unsupervised detection of unlabeled patterns | P0 | 5 | Ph5, 7B, 9, 10 | Analysis reported | Planned | TBD |
+| RQ-03 | RQ3 Unsupervised detection of unlabeled patterns | P0 | 5 | Ph5, 7B, 9, 10 | Analysis reported | In Progress | unsupervised models evaluated (doc 08); overlap analysis with supervised alerts not done |
 | RQ-04 | RQ4 XAI communication effectiveness | P1 | 10 | Ph5, 7B, 9, 10 | Fidelity/stability reported | Planned | TBD |
 | RQ-05 | RQ5 Combined risk scoring improves prioritisation | P0 | 9 | Ph5, 7B, 9, 10 | precision@k/workload reported | Planned | TBD |
 | RQ-06 | RQ6 Performance under temporal change | P0 | 5 | Ph5, 7B, 9, 10 | Per-window metrics reported | Planned | TBD |
