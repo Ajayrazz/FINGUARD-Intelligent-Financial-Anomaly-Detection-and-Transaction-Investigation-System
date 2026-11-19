@@ -19,7 +19,7 @@ services:
   backend: &backend
     build: {context: ., dockerfile: docker/backend/Dockerfile}
     env_file: .env
-    volumes: ["./backend:/app"]
+    volumes: ["./backend:/app", "./datasets:/datasets"]
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}

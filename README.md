@@ -159,7 +159,8 @@ frontend/src/      React app: api client, auth, pages, UI components
 docker/            Dockerfiles        docker-compose.yml   Dev stack
 docs/              Requirements, architecture, DB/API design, ML methodology, roadmap,
                    decision log, progress tracker, traceability matrix, session handoff
-datasets/          Git-ignored raw datasets (download steps added with the ML phase)
+datasets/          Git-ignored raw/ and processed/ data (see datasets/README.md, docs/19)
+  backend/ml_engine/ ML research package: dataset validation, cleaning, chronological splits (Phase 5)
 ```
 More apps (`detection`, `graph_engine`, `risk_engine`, `alerts`, `investigations`, …) and the `ml_engine/` and graph libraries are created in the phase that implements them.
 
@@ -179,7 +180,7 @@ JWT with short-lived in-memory access tokens and rotating httpOnly refresh cooki
 
 ## Documentation index
 
-[00 Overview](docs/00-PROJECT-OVERVIEW.md) · [01 Product requirements](docs/01-PRODUCT-REQUIREMENTS.md) · [02 Functional](docs/02-FUNCTIONAL-REQUIREMENTS.md) · [03 Non-functional](docs/03-NON-FUNCTIONAL-REQUIREMENTS.md) · [04 Stack](docs/04-TECHNOLOGY-STACK.md) · [05 Architecture](docs/05-SYSTEM-ARCHITECTURE.md) · [06 Database](docs/06-DATABASE-DESIGN.md) · [07 API](docs/07-API-SPECIFICATION.md) · [08 ML & research](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) · [09 Datasets](docs/09-DATASET-STRATEGY.md) · [10 Security & RBAC](docs/10-SECURITY-AND-RBAC.md) · [11 UI/UX](docs/11-UI-UX-PLAN.md) · [12 Roadmap](docs/12-IMPLEMENTATION-ROADMAP.md) · [13 Testing](docs/13-TESTING-STRATEGY.md) · [14 Deployment](docs/14-DEPLOYMENT-GUIDE.md) · [15 Decisions](docs/15-DECISION-LOG.md) · [16 Progress](docs/16-PROGRESS-TRACKER.md) · [17 Limitations](docs/17-KNOWN-LIMITATIONS.md) · [18 Traceability](docs/18-REQUIREMENTS-TRACEABILITY.md) · [Session handoff](docs/SESSION-HANDOFF.md)
+[00 Overview](docs/00-PROJECT-OVERVIEW.md) · [01 Product requirements](docs/01-PRODUCT-REQUIREMENTS.md) · [02 Functional](docs/02-FUNCTIONAL-REQUIREMENTS.md) · [03 Non-functional](docs/03-NON-FUNCTIONAL-REQUIREMENTS.md) · [04 Stack](docs/04-TECHNOLOGY-STACK.md) · [05 Architecture](docs/05-SYSTEM-ARCHITECTURE.md) · [06 Database](docs/06-DATABASE-DESIGN.md) · [07 API](docs/07-API-SPECIFICATION.md) · [08 ML & research](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) · [09 Datasets](docs/09-DATASET-STRATEGY.md) · [10 Security & RBAC](docs/10-SECURITY-AND-RBAC.md) · [11 UI/UX](docs/11-UI-UX-PLAN.md) · [12 Roadmap](docs/12-IMPLEMENTATION-ROADMAP.md) · [13 Testing](docs/13-TESTING-STRATEGY.md) · [14 Deployment](docs/14-DEPLOYMENT-GUIDE.md) · [15 Decisions](docs/15-DECISION-LOG.md) · [16 Progress](docs/16-PROGRESS-TRACKER.md) · [17 Limitations](docs/17-KNOWN-LIMITATIONS.md) · [18 Traceability](docs/18-REQUIREMENTS-TRACEABILITY.md) · [19 Dataset profile](docs/19-DATASET-PROFILE-AND-PREPROCESSING.md) · [Session handoff](docs/SESSION-HANDOFF.md)
 
 ## Limitations
 

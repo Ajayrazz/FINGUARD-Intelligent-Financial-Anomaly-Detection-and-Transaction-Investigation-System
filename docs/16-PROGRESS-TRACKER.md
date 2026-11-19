@@ -9,7 +9,7 @@ Last updated: 2026-11-19 · Current phase: **4 — Dataset import & processing p
 | 2 | Auth, users, RBAC, audit | **Done (approved)** | |
 | 3 | DB foundation & transactions | **Done (approved)** | |
 | 4 | Import pipeline | **Implemented & checked — awaiting approval for Phase 5** | Backend 120 tests, frontend 32 tests pass; 1M-row import measured (~12k rows/s, target 20k missed); 6.36M and real PaySim not run |
-| 5 | ML research & detection | Not Started | |
+| 5 | ML research & detection | **5A in progress** — data stage done: real PaySim + ULB profiled, cleaned, split chronologically, leakage-checked (17 tests); features, baseline and evaluation harness not started | Backend 137 tests pass; see doc 19. Awaiting go-ahead for the 5A feature/baseline stage |
 | 6 | Behavioral analysis | Not Started | |
 | 7 / 7B | Graph + Neo4j / graph experiments | Not Started | |
 | 8 | Duplicates & OCR | Not Started | |

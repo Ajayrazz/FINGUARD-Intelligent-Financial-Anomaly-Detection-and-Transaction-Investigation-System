@@ -33,3 +33,7 @@
 - No antivirus scan hook on uploads (type/size/magic-byte checks only).
 - The backend test run prints a harmless teardown warning ("test database is being accessed by other users") after the async WebSocket tests.
 - The import wizard and detail pages are component-tested and the API/WebSocket path was exercised live, but the pages were not opened in a browser.
+- PaySim: 99.86% of senders appear once (max 3 transactions), so per-sender behavioural/graph features cannot be learned from it; cold-start handling is the realistic path (doc 19).
+- PaySim fraud rate differs sharply across the chronological splits (0.082% train, 0.058% validation, 0.436% test); thresholds tuned on validation will not transfer cleanly. Reported as data drift, not hidden.
+- ULB chronological validation/test contain only 55 / 52 frauds after de-duplication; metrics there carry wide uncertainty (bootstrap CIs required).
+- Elliptic is not downloaded yet (needed for Phase 7B only).

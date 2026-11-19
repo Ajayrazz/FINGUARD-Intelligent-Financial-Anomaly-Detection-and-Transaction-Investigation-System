@@ -67,3 +67,6 @@ Categories: 0–29 Low, 30–59 Medium, 60–79 High, 80–100 Critical (configu
 
 ## Reproducibility
 `python manage.py train_model --config experiments/<name>.yaml` (or Celery) → writes `ModelVersion`, `ModelEvaluation`, artifacts, and a JSON experiment record. Seeds fixed; dataset SHA recorded; library versions captured.
+
+## Data stage status
+Splits, leakage checks (register items 1, 4 groundwork, 7) and dataset findings: see doc 19. Item 3 now has measured motivation (98.1% of PaySim frauds leave the sender at balance 0).

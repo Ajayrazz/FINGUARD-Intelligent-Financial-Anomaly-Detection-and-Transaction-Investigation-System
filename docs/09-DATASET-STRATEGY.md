@@ -19,3 +19,6 @@ Three datasets, kept **separate** (different schemas, contexts, label meanings; 
 
 ## Import mapping for PaySim (Phase 4)
 Preset `paysim` (auto-detected in the preview): `step→step`, `type→tx_type`, `amount`, `nameOrig→sender`, `nameDest→receiver`, balances→`sender/receiver_balance_before/after`, `isFraud→ground_truth_label`; `isFlaggedFraud` is left unmapped so it lands in `metadata` (excluded from ML features). Time: `occurred_at = 2026-01-01T00:00Z + step hours` (arbitrary epoch, configurable; PaySim has no real clock). Accounts with prefix `M` are typed merchant, `C` customer. No transaction-ID column exists in PaySim, so IDs are generated as `G<dataset>-<job>-<row>`. Download from Kaggle is still a manual step (needs your account); until then `python manage.py generate_mock_paysim_csv` produces a random PaySim-format file (labelled mock) for testing — never use it for research metrics.
+
+## Phase 5 data stage (done)
+Real PaySim and ULB files are in `datasets/raw/`; profiling, cleaning decisions, splits and measured findings are in [19-DATASET-PROFILE-AND-PREPROCESSING.md](19-DATASET-PROFILE-AND-PREPROCESSING.md). ULB is de-duplicated (283,726 rows) before splitting.
