@@ -77,22 +77,22 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M4-01 | Generate account relationship graphs | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Snapshot built from PG; counts match | Planned | TBD |
-| FR-M4-02 | Map sender and receiver relationships | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Directed edges with amount/time/type | Planned | TBD |
-| FR-M4-03 | Track multi-account transaction chains | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Time-respecting chains found in planted data | Planned | TBD |
-| FR-M4-04 | Identify suspicious transaction chains | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Rapid chain scored and stored | Planned | TBD |
-| FR-M4-05 | Detect circular transaction patterns | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Planted cycle detected | Planned | TBD |
-| FR-M4-06 | Identify shared beneficiaries | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Fan-in with common senders found | Planned | TBD |
-| FR-M4-07 | Analyze rapid movement of funds | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Hop-time limited path scoring | Planned | TBD |
-| FR-M4-08 | Detect highly interconnected accounts | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Degree/PageRank/clustering metrics | Planned | TBD |
-| FR-M4-09 | Identify communities and clusters | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Louvain communities stored | Planned | TBD |
-| FR-M4-10 | Visualize suspicious account networks | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | React Flow page on real Neo4j/PG data | Planned | TBD |
-| FR-M4-11 | View individual account relationships | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Neighborhood API with caps | Planned | TBD |
-| FR-M4-12 | Examine incoming and outgoing transactions | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Direction filter works | Planned | TBD |
-| FR-M4-13 | Display transaction details on edge selection | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Edge click loads transaction detail | Planned | TBD |
-| FR-M4-14 | Identify relevant neighboring accounts | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Ranked neighbors | Planned | TBD |
-| FR-M4-15 | Show transaction timelines in connected networks | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Timeline API/UI | Planned | TBD |
-| FR-M4-16 | Store graph analysis results | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | GraphFinding/Metrics persisted | Planned | TBD |
+| FR-M4-01 | Generate account relationship graphs | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Snapshot built from PG; counts match | Tested | tests/test_graph.py (snapshot edge count equals PostgreSQL; real 343k-row slice built in ~41-69 s) |
+| FR-M4-02 | Map sender and receiver relationships | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Directed edges with amount/time/type | Tested | tests/test_graph.py, test_graph_lib.py (directed aggregated edges with count/amount/time) |
+| FR-M4-03 | Track multi-account transaction chains | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Time-respecting chains found in planted data | Tested | tests/test_graph_lib.py::test_rapid_pass_through_chain_* (time-respecting, hop-limited) |
+| FR-M4-04 | Identify suspicious transaction chains | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Rapid chain scored and stored | Tested | tests/test_graph_lib.py, test_graph.py (planted 4-hop chain found and scored); none occur in the real PaySim slice |
+| FR-M4-05 | Detect circular transaction patterns | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Planted cycle detected | Tested | tests/test_graph_lib.py::test_time_ordered_cycle_*, test_graph.py (planted A1>A2>A3>A1); none in the real PaySim slice |
+| FR-M4-06 | Identify shared beneficiaries | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Fan-in with common senders found | Tested | tests/test_graph_lib.py (needs >=3 senders x >=2 payees, Poisson significance, merchants exempt), test_graph.py |
+| FR-M4-07 | Analyze rapid movement of funds | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Hop-time limited path scoring | Tested | tests/test_graph_lib.py (chain hop limit/retention); same detector as FR-M4-03 |
+| FR-M4-08 | Detect highly interconnected accounts | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Degree/PageRank/clustering metrics | Tested | tests/test_graph_lib.py::test_metrics_* (degree, PageRank, clustering); stored per account |
+| FR-M4-09 | Identify communities and clusters | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Louvain communities stored | Tested | Louvain community id stored per account; dense_cluster finding (stars excluded); tests/test_graph_lib.py |
+| FR-M4-10 | Visualize suspicious account networks | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | React Flow page on real Neo4j/PG data | Implemented | pages/graph.test.tsx (React Flow mocked in jsdom: the diagram itself is not rendered in tests or a browser) |
+| FR-M4-11 | View individual account relationships | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Neighborhood API with caps | Tested | tests/test_graph.py (neighborhood API, caps reported) |
+| FR-M4-12 | Examine incoming and outgoing transactions | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | Direction filter works | Tested | tests/test_graph.py::test_neighborhood_depth_direction_and_amount_filters |
+| FR-M4-13 | Display transaction details on edge selection | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Edge click loads transaction detail | Tested | tests/test_graph.py (edge detail API); UI panel component-tested |
+| FR-M4-14 | Identify relevant neighboring accounts | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Ranked neighbors | In Progress | nodes carry graph risk score and finding flags; no ranked-neighbour list yet |
+| FR-M4-15 | Show transaction timelines in connected networks | P1 | 7 | Ph3, Ph4 (+Ph5 for 17) | Timeline API/UI | Tested | tests/test_graph.py (timeline API); UI list component-tested |
+| FR-M4-16 | Store graph analysis results | P0 | 7 | Ph3, Ph4 (+Ph5 for 17) | GraphFinding/Metrics persisted | Tested | tests/test_graph.py (GraphFinding / AccountGraphMetrics persisted per snapshot) |
 | FR-M4-17 | Integrate graph-derived features into risk scoring | P0 | 9 | Ph3, Ph4 (+Ph5 for 17) | G component consumed by risk engine; also 7B experiment | Planned | TBD |
 
 ## M5 Duplicates
@@ -232,7 +232,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-03 | Transactions page | P0 | 3 | per feature phase; completion Ph13 | Table+import wizard; states | Implemented | pages/transactions.test.tsx (component tests; not browser-tested) |
 | FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
 | FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Implemented | pages/behavior.test.tsx (component tests; not browser-tested) |
-| FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Planned | TBD |
+| FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Implemented | pages/graph.test.tsx (component tests; not browser-tested) |
 | FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Planned | TBD |
 | FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Planned | TBD |
 | FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Planned | TBD |

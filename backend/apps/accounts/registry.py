@@ -39,6 +39,8 @@ PERMISSIONS: dict[str, str] = {
     "detection.run": "Start detection runs",
     "behavior.read": "View behavioral profiles, trends and deviation scores",
     "behavior.run": "Start behavioral analysis runs",
+    "graph.read": "View graph snapshots, findings, neighborhoods and Neo4j sync status",
+    "graph.run": "Build graph snapshots and sync the Neo4j projection",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -57,6 +59,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "detection.run",
         "behavior.read",
         "behavior.run",
+        "graph.read",
+        "graph.run",
     },
     FRAUD_INVESTIGATOR: {
         "datasets.read",
@@ -66,6 +70,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "models.read",
         "detection.read",
         "behavior.read",
+        "graph.read",
     },
     AUDITOR: {
         "users.read",
@@ -78,6 +83,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "models.read",
         "detection.read",
         "behavior.read",
+        "graph.read",
     },
     MANAGEMENT: set(),
 }

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.model_registry",
     "apps.detection",
     "apps.behavior",
+    "apps.graph_engine",
 ]
 
 MIDDLEWARE = [
@@ -111,6 +112,18 @@ MEDIA_ROOT = BASE_DIR / "media"
 # --- Imports (Phase 4) ---
 # Model artifacts (joblib) are only loaded from this directory, and only when their SHA-256 matches the registry.
 ML_ARTIFACTS_DIR = Path(env("FINGUARD_DATASETS_DIR", "/datasets")) / "artifacts"
+# NEO4J_TARGET=local (default, the compose container) or aura (a Neo4j Aura instance, NEO4J_AURA_* in .env).
+if env("NEO4J_TARGET", "local") == "aura":
+    NEO4J_URI = env("NEO4J_AURA_URI", "")
+    NEO4J_USER = env("NEO4J_AURA_USERNAME", "neo4j")
+    NEO4J_PASSWORD = env("NEO4J_AURA_PASSWORD", "")
+    NEO4J_DATABASE = env("NEO4J_AURA_DATABASE", "") or None
+else:
+    NEO4J_URI = env("NEO4J_URI", "bolt://neo4j:7687")
+    NEO4J_USER = env("NEO4J_USER", "neo4j")
+    NEO4J_PASSWORD = env("NEO4J_PASSWORD", "")
+    NEO4J_DATABASE = None
+GRAPH_MAX_ROWS = int(env("GRAPH_MAX_ROWS", "2000000"))
 BEHAVIOR_MAX_ROWS = int(env("BEHAVIOR_MAX_ROWS", "2000000"))
 DETECTION_MAX_ROWS = int(env("DETECTION_MAX_ROWS", "2000000"))
 IMPORT_MAX_CSV_BYTES = int(env("IMPORT_MAX_CSV_BYTES", str(2 * 1024**3)))

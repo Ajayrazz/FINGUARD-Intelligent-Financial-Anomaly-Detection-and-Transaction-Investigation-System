@@ -13,6 +13,7 @@ const NAV: NavItem[] = [
   { to: '/transactions', label: 'Transactions', permission: 'transactions.read' },
   { to: '/imports', label: 'Imports', permission: 'imports.read' },
   { to: '/detection', label: 'Anomaly Detection', permission: 'detection.read' },
+  { to: '/graph', label: 'Relationship Graph', permission: 'graph.read' },
   { to: '/models', label: 'Model Performance', permission: 'models.read' },
   { to: '/users', label: 'User Management', permission: 'users.read' },
   { to: '/audit', label: 'Audit Logs', permission: 'audit.read' },

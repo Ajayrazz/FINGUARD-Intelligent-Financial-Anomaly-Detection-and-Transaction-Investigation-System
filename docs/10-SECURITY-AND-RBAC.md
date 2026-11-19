@@ -50,3 +50,6 @@ New permissions: `models.read`, `detection.read`, `detection.run`. Defaults: ana
 
 ## Phase 6 additions
 New permissions: `behavior.read` (analyst, investigator, auditor), `behavior.run` (analyst). Management has none. Runs are audited (created / completed / failed). Behavior endpoints return amounts and counterparty identifiers, so they require the same read-level trust as transaction access; no ground-truth label is returned.
+
+## Phase 7 additions
+New permissions: `graph.read` (analyst, investigator, auditor), `graph.run` (analyst; build snapshots, start syncs). Management has none. Snapshot creation and sync requests are audited. Neo4j credentials come from environment variables (`.env`, git-ignored); the compose service binds its ports to 127.0.0.1 only. `NEO4J_TARGET=aura` selects a Neo4j Aura instance (`NEO4J_AURA_*`, TLS via `neo4j+s://`). Neighborhood queries are parameterised (no user text in Cypher or SQL) and capped (depth 3, 200 nodes, 500 edges). Edge details never include the ground-truth label.

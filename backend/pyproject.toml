@@ -13,6 +13,7 @@ select = ["E", "F", "I", "B", "UP", "DJ"]
 [tool.ruff.lint.per-file-ignores]
 "apps/transactions/management/commands/*.py" = ["E501"]  # embedded SQL
 "apps/*/serializers.py" = ["E501"]  # explicit one-line field lists
+"graph_engine_lib/*.py" = ["E501"]  # dense finding dictionaries
 "tests/*.py" = ["E501"]  # long literal CSV/header fixtures
 
 [tool.mypy]

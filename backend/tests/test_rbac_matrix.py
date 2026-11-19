@@ -147,6 +147,14 @@ def _endpoints(
         ("get", "/api/v1/behavior/runs/", None, "behavior.read"),
         ("get", f"/api/v1/behavior/runs/{run_pk}/", None, "behavior.read"),
         ("post", "/api/v1/behavior/runs/", {"dataset": ds_pk}, "behavior.run"),
+        ("get", "/api/v1/graph/snapshots/", None, "graph.read"),
+        ("get", f"/api/v1/graph/findings/?dataset={ds_pk}", None, "graph.read"),
+        ("get", f"/api/v1/graph/accounts/{acct_pk}/metrics/", None, "graph.read"),
+        ("get", f"/api/v1/graph/accounts/{acct_pk}/neighborhood/?source=postgres", None, "graph.read"),
+        ("get", f"/api/v1/graph/accounts/{acct_pk}/timeline/?source=postgres", None, "graph.read"),
+        ("get", f"/api/v1/graph/edges/{tx_pk}/", None, "graph.read"),
+        ("get", f"/api/v1/graph/datasets/{ds_pk}/sync/", None, "graph.read"),
+        ("post", "/api/v1/graph/snapshots/", {"dataset": ds_pk}, "graph.run"),
     ]
 
 

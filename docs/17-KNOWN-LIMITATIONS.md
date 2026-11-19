@@ -55,3 +55,8 @@
 - Behavior covers outgoing spending only; receiver-side profiles are descriptive. Hour of day is UTC (no per-account time zones). The scoring baseline uses the latest 500 prior transactions in 90 days (profiles use the whole window).
 - Behavior runs are worker/API only (no UI to start one); a run scores a whole dataset (cap 2M rows) and stores a result row per transaction.
 - Merchant-category behavior works only when a dataset supplies categories; none of the real datasets do.
+- Graph scores are heuristic and uncalibrated; "proximity to flagged accounts" is not implemented; the graph-risk component G is not yet consumed by a risk score (Phase 9) and RQ2 (do graph features help detection?) is untested.
+- On the real PaySim slice the graph detectors find only 84 weak fan-in patterns and no cycles/chains/clusters; they are validated on planted patterns in a synthetic DEMO dataset. Fraud evidence from graph patterns on PaySim is not demonstrated.
+- Snapshots analyse a whole dataset (cap 2M transactions; cycle search has a 300k-expansion budget per run — `truncated` is reported); there is no incremental graph update.
+- Neo4j projection: edges carry immutable fields only (status changes not projected), isolated accounts are not projected, no automatic scheduled sync (manual/API), and Neo4j was slower than PostgreSQL for neighborhoods on the measured data. Aura Free is too small for the PaySim slice.
+- The relationship diagram is not rendered in tests or a browser; communities are shown only as ids/findings; no ranked-neighbour list.

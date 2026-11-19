@@ -72,7 +72,7 @@ Full diagrams and design: [docs/05-SYSTEM-ARCHITECTURE.md](docs/05-SYSTEM-ARCHIT
 | Frontend | React, Vite, TypeScript (strict), Tailwind CSS, TanStack Query, React Router, React Hook Form + Zod; Recharts and React Flow for charts and graphs (planned) |
 | Backend | Python 3.12, Django 5.2, Django REST Framework, drf-spectacular (OpenAPI), SimpleJWT, Django Channels |
 | Async | Celery, Redis |
-| Databases | PostgreSQL 16, Neo4j (planned) |
+| Databases | PostgreSQL 16, Neo4j 5 Community (or Aura) |
 | ML / data (planned) | scikit-learn, XGBoost, PyTorch, pandas, NumPy, NetworkX, SHAP, LIME |
 | OCR (planned) | Tesseract |
 | Infra | Docker, Docker Compose, GitHub Actions CI |
@@ -104,11 +104,12 @@ The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-
 | 4 | Dataset import pipeline: CSV/Excel upload, column mapping, validation, duplicate-ID policies, background jobs with live progress, resume/cancel, API ingestion | ✅ Implemented and tested |
 | 5 | ML research and detection: real PaySim/ULB data pipeline, 7 algorithms evaluated, model registry, detection runs and pages | ✅ Implemented and tested |
 | 6 | Behavioral analysis: as-of account profiles, trends, robust deviation scoring with component breakdown, batch runs, Account Behavior page | ✅ Implemented and tested |
-| 7–16 | Graph, duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
+| 7 | Graph analytics: cycle/chain/fan-in/shared-beneficiary detection, graph risk score, Neo4j projection (sync, drift check), Relationship Graph pages | ✅ Implemented and tested |
+| 8–16 | Duplicates/OCR, risk, XAI, alerts, cases, analytics, deployment | 📋 Planned |
 
 **Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; real PaySim rows can be imported through the normal import page (a 343k-row slice was imported and scored as a check).
 **Also works:** account behavior profiles and per-transaction behavioral deviation (validated on a synthetic scenario; not applicable to PaySim, where every transaction is cold start), and scoring a dataset's transactions with a registered model (Anomaly Detection page) and comparing registered models' offline results (Model Performance page). Research results on the real PaySim and ULB data are in [docs/08](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) (PaySim balance fields saturate the problem; the cautious figure is the `core` feature set).
-**Verified so far:** 206 backend tests and 41 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
+**Verified so far:** 237 backend tests and 46 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
 
 Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
 
@@ -155,6 +156,8 @@ backend/
   apps/datasets/   Datasets, mapping profiles, import jobs and the ingestion pipeline (sources, cleaning, loader)
   apps/transactions/ Accounts, transactions, per-transaction events, APIs
   apps/model_registry/ Registered models, versions, offline evaluations (read-only API)
+  apps/graph_engine/ Graph snapshots, findings, Neo4j sync, neighborhood APIs
+  graph_engine_lib/ Pure-Python graph detectors (cycles, chains, fan-in/out, shared beneficiaries, communities)
   apps/behavior/    As-of account profiles, trends, deviation engine, behavior runs
   apps/detection/   Detection runs, per-transaction predictions, hash-verified model loading
   shared/          Health checks, error handling, middleware

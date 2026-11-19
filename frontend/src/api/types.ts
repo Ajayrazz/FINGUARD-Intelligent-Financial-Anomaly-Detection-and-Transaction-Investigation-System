@@ -286,3 +286,101 @@ export interface TransactionBehavior {
   history_count: number
   components: Record<string, BehaviorComponent>
 }
+
+export type FindingType = 'cycle' | 'chain' | 'fan_in' | 'fan_out' | 'shared_beneficiary' | 'dense_cluster'
+
+export interface GraphSnapshot {
+  id: number
+  dataset: number
+  dataset_name: string
+  is_mock_data: boolean
+  as_of: string
+  window_days: number | null
+  status: RunStatus
+  node_count: number
+  edge_count: number
+  finding_count: number
+  truncated: Record<string, boolean>
+  error_message: string
+  created_by_email: string | null
+  created_at: string
+  built_at: string | null
+}
+
+export interface GraphFinding {
+  id: number
+  snapshot: number
+  finding_type: FindingType
+  score: number
+  account_ids: number[]
+  accounts: { id: number; account_ref: string }[]
+  transaction_ids: number[]
+  evidence: Record<string, unknown>
+  detected_at: string
+}
+
+export interface GraphNode {
+  id: number
+  account_ref: string
+  account_type: string
+  depth: number
+  graph_risk_score: number | null
+  in_finding: boolean
+}
+
+export interface GraphEdge {
+  source: number
+  target: number
+  count: number
+  total: number
+  first_at: string
+  last_at: string
+  transaction_ids: number[]
+}
+
+export interface Neighborhood {
+  center: number
+  source: 'neo4j' | 'postgres'
+  depth: number
+  truncated: boolean
+  snapshot: number | null
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+export interface SyncStatus {
+  dataset: number
+  status: 'never' | 'running' | 'synced' | 'failed'
+  last_tx_id: number
+  edges_synced: number
+  last_error: string
+  updated_at: string | null
+  drift: {
+    postgres: { nodes: number; edges: number }
+    neo4j: { nodes: number; edges: number } | null
+    in_sync: boolean | null
+    error: string | null
+  }
+}
+
+export interface GraphEdgeDetail {
+  transaction_id: number
+  external_id: string
+  sender: { id: number; account_ref: string }
+  receiver: { id: number; account_ref: string } | null
+  amount: string
+  currency: string
+  tx_type: string
+  occurred_at: string
+  status: string
+}
+
+export interface GraphTimelineEvent {
+  transaction_id: number
+  external_id: string
+  occurred_at: string
+  sender: string
+  receiver: string | null
+  amount: string
+  tx_type: string
+}

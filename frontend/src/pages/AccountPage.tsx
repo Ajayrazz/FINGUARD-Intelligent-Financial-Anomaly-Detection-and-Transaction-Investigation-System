@@ -37,6 +37,9 @@ export default function AccountPage() {
         <Link to="/transactions" className="text-sm text-blue-700 hover:underline">← Transactions</Link>
         <h1 className="mt-1 font-mono text-2xl font-semibold">{a.account_ref}</h1>
         <p className="text-sm text-slate-600 capitalize">{a.account_type} · {a.dataset_name}</p>
+        {can('graph.read') && (
+          <p className="mt-1 text-sm"><Link to={`/accounts/${id}/graph`} className="text-blue-700 hover:underline">View relationship network →</Link></p>
+        )}
         {can('behavior.read') && (
           <p className="mt-1 text-sm"><Link to={`/accounts/${id}/behavior`} className="text-blue-700 hover:underline">View behavior profile →</Link></p>
         )}

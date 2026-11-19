@@ -17,3 +17,6 @@ Render: simplest (managed Postgres/Redis; Neo4j and workers as private services;
 
 ## Procedures to be written in Phase 16
 Migrations on deploy · seed roles/config · create first Super Admin (management command) · backup/restore drill (`pg_dump`, media volume, Neo4j rebuild) · log access · rollback · scaling workers · demo-data loading.
+
+## Neo4j (Phase 7)
+Compose runs `neo4j:5-community` (heap 1 GB, page cache 512 MB; ports bound to 127.0.0.1). Set `NEO4J_PASSWORD` in `.env` (compose refuses to start without it). To use a managed Neo4j Aura instance instead set `NEO4J_TARGET=aura` and `NEO4J_AURA_URI/USERNAME/PASSWORD/DATABASE`; recreate the backend and worker containers so they read the new environment. Aura Free limits (about 200k nodes / 400k relationships) are smaller than the 343k-transaction / 642k-account PaySim slice, so large datasets need the local container or a paid tier. Sync from the UI/API or `python manage.py rebuild_neo4j <dataset_id>`; PostgreSQL remains the source of truth and the projection can always be rebuilt.
