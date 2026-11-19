@@ -1,3 +1,4 @@
 pyarrow>=18
 scikit-learn>=1.6
 scipy>=1.14
+xgboost>=2.1

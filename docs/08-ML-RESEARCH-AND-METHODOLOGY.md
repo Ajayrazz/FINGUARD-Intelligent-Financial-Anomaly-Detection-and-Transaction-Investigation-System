@@ -100,3 +100,42 @@ Validation PR-AUC (where the threshold was chosen): PaySim core 0.013 (base rate
 4. ULB test has 52 frauds: the CI is wide (0.62–0.84). Differences smaller than that between models will not be claimed.
 5. PaySim `core` precision at the frozen threshold is high (0.745) but recall tiny (0.073): the validation-chosen threshold, set on a 0.058% base rate with weak scores, transfers poorly — an instance of the drift described in doc 19.
 - **Limitations:** linear model; no tuning; one seed (the LR solver is deterministic, so seed variance is only in the bootstrap); no rolling-window drift analysis yet.
+
+## Algorithms 2–4 — Random Forest, XGBoost, Isolation Forest (executed 2026-11-19, seed 42)
+Reproduce: `python -m ml_engine.experiments.runner --dataset paysim --feature-set core|core+balance --model lr|rf|xgb|iforest` (ULB: `--dataset creditcard`). Same features, splits, frozen-threshold rule and metrics as Algorithm 1. Registered in the model registry (12 versions). Full detail (selection trials, hyper-parameters, versions) is in each `results.json`.
+
+| | Random Forest | XGBoost | Isolation Forest |
+|---|---|---|---|
+| Why used | Non-linear baseline, robust to scaling | Strong tabular learner, native imbalance handling | Unsupervised: scores rarity without labels (RQ3) |
+| Training data | All train positives + 400k sampled negatives of 4.46M (PaySim) / all train rows (ULB) — resampling on train only | Full train split | Full train features, **labels never used in fit** (tested) |
+| Hyper-parameters | 100 trees, `max_features=sqrt`, `balanced_subsample`; `min_samples_leaf` ∈ {1,5,20} chosen on validation PR-AUC | `hist`, lr 0.1, subsample/colsample 0.8; `max_depth` ∈ {4,6,8} × `scale_pos_weight` ∈ {1, √(neg/pos)}, early stopping (30) on validation aucpr, chosen on validation PR-AUC | 200 trees, `max_samples=1024`, `contamination=auto`; score = −`score_samples` |
+| Threshold | max F1 on validation, frozen for test (for Isolation Forest this is the only use of labels) | same | same |
+| Artifact | joblib (`RandomForestClassifier`) | joblib (`XGBClassifier`) | joblib (`IsolationForest`) |
+
+Test-split results (PR-AUC with bootstrap 95% CI; test base rates: PaySim 0.436%, ULB 0.122%):
+
+| Dataset / features | LR | Random Forest | XGBoost | Isolation Forest |
+|---|---|---|---|---|
+| PaySim `core` | 0.194 [0.182, 0.207] | 0.361 [0.349, 0.375] | **0.417** [0.404, 0.431] | 0.035 [0.033, 0.037] |
+| PaySim `core+balance` | 0.989 [0.987, 0.992] | **1.000** | **1.000** | 0.494 [0.476, 0.511] |
+| ULB | 0.729 [0.618, 0.842] | 0.764 [0.673, 0.862] | 0.761 [0.667, 0.860] | 0.056 [0.035, 0.089] |
+
+Other test metrics (recall at 1% false-positive rate; precision / recall at the frozen threshold):
+
+| Run | Recall @ FPR 1% | Precision / Recall at threshold |
+|---|---|---|
+| PaySim core — LR / RF / XGB / IF | 0.358 / 0.677 / 0.695 / 0.092 | 0.745/0.073 · 0.990/0.076 · 0.950/0.179 · 0.057/0.558 |
+| PaySim core+balance — LR / RF / XGB / IF | 0.999 / 1.000 / 1.000 / 0.534 | 0.988/0.992 · 1.000/0.993 · 1.000/0.995 · 0.830/0.467 |
+| ULB — LR / RF / XGB / IF | 0.808 / 0.827 / 0.827 / 0.577 | 0.970/0.615 · 0.830/0.750 · 0.765/0.750 · 0.080/0.558 |
+
+Measured inference (CPU in Docker; scoring only, feature computation excluded): single transaction — LR 0.1 ms, XGBoost 0.05 ms, Isolation Forest 4–5 ms, Random Forest 12 ms (thread start-up per call with `n_jobs=-1`; a tuned deployment would set `n_jobs=1`); batch — LR 3–8×10⁶ rows/s, XGBoost 1–9×10⁷, RF 1–2×10⁶, Isolation Forest 1.5–1.8×10⁵.
+
+**What the evidence supports**
+1. **Without balance fields on PaySim the ranking is XGBoost > Random Forest > LR ≫ Isolation Forest**; the bootstrap intervals do not overlap, so this ordering holds on this test split (it reflects test-row sampling only, one seed, no training-variance estimate). XGBoost's absolute level (PR-AUC 0.42, recall 0.18 at the frozen threshold) is still modest.
+2. **With balance fields the supervised tree models separate PaySim perfectly (PR-AUC 1.000 on validation and test).** This confirms that the balance fields encode the label through the simulator's rules; the result says nothing about real-world skill and cannot discriminate between algorithms. The `core` rows are the informative comparison.
+3. **ULB: LR, RF and XGBoost are statistically indistinguishable** (intervals overlap heavily, 52 test frauds). No ranking is claimed. Isolation Forest is far lower (0.056) although its ROC-AUC is 0.94: rare ≠ fraudulent in PCA space.
+4. **Isolation Forest (unsupervised):** weak on `core` (0.035, barely 8× the base rate) but 0.494 with balance features, i.e. it finds the drained-account anomaly without labels. This is a first, partial answer to RQ3 (unlabeled detection helps only when the features expose the anomaly); the overlap analysis with supervised alerts is still to do.
+5. **Hyper-parameter sensitivity is low**: XGBoost's validation PR-AUC on PaySim `core` spans only 0.177–0.184 across all six grid points; Random Forest 0.040–0.105 (leaf size matters). Selection on PaySim validation is noisy because validation has just 564 frauds at a 0.058% base rate.
+6. Validation vs test PR-AUC differ strongly on PaySim `core` (XGBoost 0.184 vs 0.417) because of the base-rate shift documented in doc 19; thresholds tuned on validation transfer poorly (high precision, low recall).
+
+**Limitations:** one seed and one chronological split (no seed variance, no rolling-window drift study); small searches; Random Forest uses 9% of train negatives; Isolation Forest thresholding uses validation labels; RQ1 (hybrid) not yet tested; LOF, One-Class SVM and the autoencoder are 5C.

@@ -40,3 +40,7 @@
 - The PaySim balance-feature result (PR-AUC 0.989) reflects simulator accounting rules, not generalisable detection skill; the `core` result (0.194) is the cautious figure (doc 08).
 - The registry's `code_commit` is the last committed hash at registration, which can precede uncommitted edits.
 - Baseline latency covers model scoring only (not feature computation or I/O) and was measured inside Docker on a laptop CPU.
+- PaySim `core+balance` is saturated (RF and XGBoost PR-AUC 1.000): it cannot compare algorithms and must not be quoted as real-world performance.
+- ULB test has 52 frauds; LR, RF and XGBoost are indistinguishable there.
+- Random Forest single-transaction latency (12 ms) reflects `n_jobs=-1` thread overhead, not model cost.
+- `xgboost` brings a ~200 MB unused GPU dependency (`nvidia-nccl-cu13`); the Docker image is correspondingly larger.

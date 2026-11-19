@@ -12,7 +12,7 @@ from .models import MLModel, ModelEvaluation, ModelVersion
 REQUIRED = ("run", "dataset", "algorithm", "artifact", "artifact_sha256", "metrics", "seed", "raw_sha256")
 
 
-def register_results(results: dict[str, Any], *, code_commit: str = "", supervised: bool = True) -> ModelVersion:
+def register_results(results: dict[str, Any], *, code_commit: str = "") -> ModelVersion:
     """Idempotently record one experiment. The version id embeds the artifact hash, so re-running identical
     training yields the same version (evaluations are refreshed); a changed artifact makes a new version."""
     missing = [k for k in REQUIRED if k not in results]
@@ -23,7 +23,7 @@ def register_results(results: dict[str, Any], *, code_commit: str = "", supervis
         model, _ = MLModel.objects.get_or_create(
             name=results["run"],
             defaults={
-                "task_type": MLModel.TaskType.SUPERVISED if supervised else MLModel.TaskType.UNSUPERVISED,
+                "task_type": results.get("task_type", MLModel.TaskType.SUPERVISED),
                 "algorithm": results["algorithm"],
             },
         )
@@ -33,9 +33,12 @@ def register_results(results: dict[str, Any], *, code_commit: str = "", supervis
             defaults={
                 "artifact_path": results["artifact"],
                 "artifact_sha256": results["artifact_sha256"],
-                "artifact_format": "joblib (sklearn Pipeline)",
-                "hyperparameters": results.get("hyperparameters", {}),
+                "artifact_format": results.get("artifact_format", "joblib (sklearn Pipeline)"),
                 "feature_schema": {"feature_set": results.get("feature_set"), "features": results.get("features", [])},
+                "hyperparameters": {
+                    **results.get("hyperparameters", {}),
+                    "_model_selection": results.get("model_selection", {}),
+                },
                 "training_data_sha256": results["raw_sha256"],
                 "split_strategy": results.get("split", {}),
                 "random_seed": results["seed"],
