@@ -150,6 +150,12 @@ function overviewFetch(syncBody: SyncStatus) {
 }
 
 describe("GraphOverviewPage", () => {
+  // these tests exercise the accessible Table view; the Cards view is the default for users
+  beforeEach(() => {
+    localStorage.setItem("fg-view-graph-snaps", "table");
+    localStorage.setItem("fg-view-graph-findings", "table");
+  });
+
   it("lists snapshots and findings with links to account networks, and shows the sync state", async () => {
     renderAt(
       "/graph",

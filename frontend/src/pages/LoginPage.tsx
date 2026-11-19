@@ -30,7 +30,8 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  const from = (location.state as { from?: string } | null)?.from ?? "/dashboard";
+  const from =
+    (location.state as { from?: string } | null)?.from ?? "/dashboard";
   if (status === "authenticated") return <Navigate to={from} replace />;
 
   const onSubmit = async (values: FormValues) => {

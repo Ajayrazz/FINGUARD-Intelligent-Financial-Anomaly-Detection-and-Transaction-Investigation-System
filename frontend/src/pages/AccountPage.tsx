@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import type { AccountDetail, Paginated, TransactionRow } from "../api/types";
-import { TransactionTable } from "../components/transactions/TransactionTable";
+import { TransactionList } from "../components/transactions/TransactionTable";
 import { Button } from "../components/ui/Button";
 import { EmptyState, ErrorState, LoadingState } from "../components/ui/states";
 import { formatAmount, formatDateTime } from "../lib/format";
@@ -132,7 +132,7 @@ export default function AccountPage() {
           )}
           {txs.data && txs.data.results.length > 0 && (
             <>
-              <TransactionTable rows={txs.data.results} />
+              <TransactionList rows={txs.data.results} viewKey="account-tx" />
               <div className="mt-3 flex items-center gap-3 text-sm">
                 <Button
                   variant="secondary"

@@ -110,6 +110,11 @@ function renderAt(
 }
 
 describe("ModelPerformancePage", () => {
+  // these tests exercise the accessible Table view; the Cards view is the default for users
+  beforeEach(() => {
+    localStorage.setItem("fg-view-models", "table");
+  });
+
   it("ranks by PR-AUC, shows intervals and warns about balance features", async () => {
     const fetchMock = vi.fn(async () =>
       ok([

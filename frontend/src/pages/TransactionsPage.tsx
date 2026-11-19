@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { api } from "../api/client";
 import type { Dataset, Paginated, TransactionRow } from "../api/types";
 import {
-  TransactionTable,
+  TransactionList,
   type SortState,
 } from "../components/transactions/TransactionTable";
 import { Button } from "../components/ui/Button";
@@ -244,7 +244,7 @@ export default function TransactionsPage() {
             )}
             {txs.data && txs.data.results.length > 0 && (
               <>
-                <TransactionTable
+                <TransactionList
                   rows={txs.data.results}
                   sort={sort}
                   onSort={onSort}

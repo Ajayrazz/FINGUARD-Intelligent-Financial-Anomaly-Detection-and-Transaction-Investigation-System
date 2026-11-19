@@ -1,3 +1,11 @@
+import {
+  Card3D,
+  CardGrid,
+  Chip,
+  Initials,
+  useViewMode,
+  ViewToggle,
+} from "../components/ui/cards";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,6 +37,7 @@ export default function CasesPage() {
   const [assignee, setAssignee] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [view, setView] = useViewMode("cases");
   const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -217,65 +226,141 @@ export default function CasesPage() {
       )}
       {list.data && list.data.results.length > 0 && (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-300 text-slate-600">
-                <tr>
-                  <th className="py-1">Case</th>
-                  <th>Title</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Assigned</th>
-                  <th className="text-right">Alerts</th>
-                  <th className="text-right">Transactions</th>
-                  <th>Opened</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="space-y-3">
+            <ViewToggle mode={view} onChange={setView} />
+            {view === "cards" ? (
+              <CardGrid min="20rem">
                 {list.data.results.map((c) => (
-                  <tr
+                  <Card3D
                     key={c.id}
-                    className="border-b border-slate-100 align-top"
+                    tone={
+                      c.priority === "critical"
+                        ? "red"
+                        : c.priority === "high"
+                          ? "amber"
+                          : c.priority === "medium"
+                            ? "violet"
+                            : "cyan"
+                    }
                   >
-                    <td className="py-1 font-mono">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <Link
-                        className="text-blue-700 hover:underline"
+                        className="font-mono text-blue-700 hover:underline"
                         to={`/cases/${c.id}`}
                       >
                         {c.case_ref}
                       </Link>
-                    </td>
-                    <td className="max-w-md">
+                      <div className="flex items-center gap-2">
+                        <PriorityBadge priority={c.priority} />
+                        <CaseStatusBadge status={c.status} />
+                      </div>
+                    </div>
+                    <h2 className="mt-3 text-sm font-semibold text-slate-800">
                       {c.title}
                       {c.auto_created && (
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 text-xs text-slate-600">
-                          auto
+                        <span className="ml-2">
+                          <Chip>auto</Chip>
                         </span>
                       )}
-                      {c.outcome && (
-                        <span className="ml-2 text-xs text-slate-600">
-                          ({OUTCOME_LABEL[c.outcome]})
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <PriorityBadge priority={c.priority} />
-                    </td>
-                    <td>
-                      <CaseStatusBadge status={c.status} />
-                    </td>
-                    <td>{c.assignee_email ?? "—"}</td>
-                    <td className="text-right tabular-nums">{c.alert_count}</td>
-                    <td className="text-right tabular-nums">
-                      {c.transaction_count}
-                    </td>
-                    <td className="whitespace-nowrap">
-                      {formatDateTime(c.opened_at)}
-                    </td>
-                  </tr>
+                    </h2>
+                    {c.outcome && (
+                      <p className="mt-1 text-xs text-slate-600">
+                        Outcome: {OUTCOME_LABEL[c.outcome]}
+                      </p>
+                    )}
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+                      <div className="rounded-lg bg-white/5 p-2">
+                        <p className="text-xl font-semibold tabular-nums">
+                          {c.alert_count}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          Alerts
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-white/5 p-2">
+                        <p className="text-xl font-semibold tabular-nums">
+                          {c.transaction_count}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                          Transactions
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3 text-xs text-slate-500">
+                      <span>
+                        {c.assignee_email
+                          ? `Assigned: ${c.assignee_email}`
+                          : "Unassigned"}
+                      </span>
+                      <span>{formatDateTime(c.opened_at)}</span>
+                    </div>
+                  </Card3D>
                 ))}
-              </tbody>
-            </table>
+              </CardGrid>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-300 text-slate-600">
+                    <tr>
+                      <th className="py-1">Case</th>
+                      <th>Title</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>Assigned</th>
+                      <th className="text-right">Alerts</th>
+                      <th className="text-right">Transactions</th>
+                      <th>Opened</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {list.data.results.map((c) => (
+                      <tr
+                        key={c.id}
+                        className="border-b border-slate-100 align-top"
+                      >
+                        <td className="py-1 font-mono">
+                          <Link
+                            className="text-blue-700 hover:underline"
+                            to={`/cases/${c.id}`}
+                          >
+                            {c.case_ref}
+                          </Link>
+                        </td>
+                        <td className="max-w-md">
+                          {c.title}
+                          {c.auto_created && (
+                            <span className="ml-2 rounded bg-slate-100 px-1.5 text-xs text-slate-600">
+                              auto
+                            </span>
+                          )}
+                          {c.outcome && (
+                            <span className="ml-2 text-xs text-slate-600">
+                              ({OUTCOME_LABEL[c.outcome]})
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <PriorityBadge priority={c.priority} />
+                        </td>
+                        <td>
+                          <CaseStatusBadge status={c.status} />
+                        </td>
+                        <td>{c.assignee_email ?? "—"}</td>
+                        <td className="text-right tabular-nums">
+                          {c.alert_count}
+                        </td>
+                        <td className="text-right tabular-nums">
+                          {c.transaction_count}
+                        </td>
+                        <td className="whitespace-nowrap">
+                          {formatDateTime(c.opened_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3 text-sm">
             <Button

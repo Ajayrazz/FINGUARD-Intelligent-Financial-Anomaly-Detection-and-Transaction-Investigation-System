@@ -1,3 +1,11 @@
+import {
+  Card3D,
+  CardGrid,
+  Chip,
+  Ring,
+  useViewMode,
+  ViewToggle,
+} from "../components/ui/cards";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -94,6 +102,8 @@ function SyncPanel({ datasetId }: { datasetId: number }) {
 }
 
 export default function GraphOverviewPage() {
+  const [view, setView] = useViewMode("graph-snaps");
+  const [findView, setFindView] = useViewMode("graph-findings");
   const { can } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
@@ -181,61 +191,136 @@ export default function GraphOverviewPage() {
           {snaps.data.results.length === 0 ? (
             <EmptyState title="No graph analyses yet" />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="mt-1 w-full text-left text-sm">
-                <thead className="border-b border-slate-300 text-slate-600">
-                  <tr>
-                    <th className="py-1">#</th>
-                    <th>Dataset</th>
-                    <th>Status</th>
-                    <th className="text-right">Accounts</th>
-                    <th className="text-right">Edges</th>
-                    <th className="text-right">Findings</th>
-                    <th>Built</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="space-y-3">
+              <ViewToggle mode={view} onChange={setView} />
+              {view === "cards" ? (
+                <CardGrid min="19rem">
                   {snaps.data.results.map((s) => (
-                    <tr key={s.id} className="border-b border-slate-100">
-                      <td className="py-1">{s.id}</td>
-                      <td>
+                    <Card3D
+                      key={s.id}
+                      tone={
+                        s.status === "failed"
+                          ? "red"
+                          : s.status === "succeeded"
+                            ? "cyan"
+                            : "indigo"
+                      }
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-mono text-slate-700">
+                          #{s.id}
+                        </span>
+                        <RunStatusBadge status={s.status} />
+                      </div>
+                      <h3 className="mt-3 text-sm font-semibold text-slate-800">
                         {s.dataset_name}
                         {s.is_mock_data && (
-                          <span className="ml-2 rounded bg-amber-100 px-1.5 text-xs text-amber-800">
-                            DEMO/MOCK
+                          <span className="ml-2">
+                            <Chip tone="amber">DEMO/MOCK</Chip>
                           </span>
                         )}
-                      </td>
-                      <td>
-                        <RunStatusBadge status={s.status} />
-                        {s.error_message && (
-                          <span className="ml-2 text-red-700">
-                            {s.error_message}
-                          </span>
-                        )}
-                      </td>
-                      <td className="text-right tabular-nums">
-                        {s.node_count.toLocaleString()}
-                      </td>
-                      <td className="text-right tabular-nums">
-                        {s.edge_count.toLocaleString()}
-                      </td>
-                      <td className="text-right tabular-nums">
-                        {s.finding_count.toLocaleString()}
-                        {Object.values(s.truncated).some(Boolean) && (
-                          <span title="a detector hit its limit; some findings are missing">
-                            {" "}
-                            ⚠
-                          </span>
-                        )}
-                      </td>
-                      <td className="whitespace-nowrap">
+                      </h3>
+                      {s.error_message && (
+                        <p className="mt-1 text-sm text-red-700">
+                          {s.error_message}
+                        </p>
+                      )}
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-lg bg-white/5 p-2">
+                          <p className="text-lg font-semibold tabular-nums">
+                            {s.node_count.toLocaleString()}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                            Accounts
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-white/5 p-2">
+                          <p className="text-lg font-semibold tabular-nums">
+                            {s.edge_count.toLocaleString()}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                            Edges
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-pink-500/10 p-2">
+                          <p className="text-lg font-semibold tabular-nums">
+                            {s.finding_count.toLocaleString()}
+                            {Object.values(s.truncated).some(Boolean) && (
+                              <span title="a detector hit its limit; some findings are missing">
+                                {" "}
+                                ⚠
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+                            Findings
+                          </p>
+                        </div>
+                      </div>
+                      <p className="mt-auto pt-3 text-xs text-slate-500">
                         {s.built_at ? formatDateTime(s.built_at) : "—"}
-                      </td>
-                    </tr>
+                      </p>
+                    </Card3D>
                   ))}
-                </tbody>
-              </table>
+                </CardGrid>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="mt-1 w-full text-left text-sm">
+                    <thead className="border-b border-slate-300 text-slate-600">
+                      <tr>
+                        <th className="py-1">#</th>
+                        <th>Dataset</th>
+                        <th>Status</th>
+                        <th className="text-right">Accounts</th>
+                        <th className="text-right">Edges</th>
+                        <th className="text-right">Findings</th>
+                        <th>Built</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {snaps.data.results.map((s) => (
+                        <tr key={s.id} className="border-b border-slate-100">
+                          <td className="py-1">{s.id}</td>
+                          <td>
+                            {s.dataset_name}
+                            {s.is_mock_data && (
+                              <span className="ml-2 rounded bg-amber-100 px-1.5 text-xs text-amber-800">
+                                DEMO/MOCK
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <RunStatusBadge status={s.status} />
+                            {s.error_message && (
+                              <span className="ml-2 text-red-700">
+                                {s.error_message}
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-right tabular-nums">
+                            {s.node_count.toLocaleString()}
+                          </td>
+                          <td className="text-right tabular-nums">
+                            {s.edge_count.toLocaleString()}
+                          </td>
+                          <td className="text-right tabular-nums">
+                            {s.finding_count.toLocaleString()}
+                            {Object.values(s.truncated).some(Boolean) && (
+                              <span title="a detector hit its limit; some findings are missing">
+                                {" "}
+                                ⚠
+                              </span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap">
+                            {s.built_at ? formatDateTime(s.built_at) : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -266,42 +351,51 @@ export default function GraphOverviewPage() {
             <EmptyState title="No findings of this type" />
           )}
           {findings.data && findings.data.results.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="mt-1 w-full text-left text-sm">
-                <thead className="border-b border-slate-300 text-slate-600">
-                  <tr>
-                    <th className="py-1">Pattern</th>
-                    <th className="text-right">Score</th>
-                    <th>Accounts</th>
-                    <th>Evidence</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="space-y-3">
+              <ViewToggle mode={findView} onChange={setFindView} />
+              {findView === "cards" ? (
+                <CardGrid min="19rem">
                   {findings.data.results.map((f) => (
-                    <tr
+                    <Card3D
                       key={f.id}
-                      className="border-b border-slate-100 align-top"
+                      tone={
+                        f.score >= 60 ? "red" : f.score >= 30 ? "amber" : "cyan"
+                      }
                     >
-                      <td className="py-1">
-                        {FINDING_LABEL[f.finding_type] ?? f.finding_type}
-                      </td>
-                      <td className="text-right tabular-nums">
-                        {f.score.toFixed(0)}
-                      </td>
-                      <td>
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="text-sm font-semibold text-slate-800">
+                          {FINDING_LABEL[f.finding_type] ?? f.finding_type}
+                        </h3>
+                        <Ring
+                          value={f.score}
+                          max={100}
+                          decimals={0}
+                          size={60}
+                          label="score"
+                          tone={
+                            f.score >= 60
+                              ? "red"
+                              : f.score >= 30
+                                ? "amber"
+                                : "cyan"
+                          }
+                        />
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                         {f.accounts.slice(0, 6).map((a) => (
                           <Link
                             key={a.id}
-                            className="mr-2 font-mono text-blue-700 hover:underline"
+                            className="rounded-lg bg-white/5 px-2 py-0.5 font-mono text-xs text-blue-700 hover:underline"
                             to={`/accounts/${a.id}/graph`}
                           >
                             {a.account_ref}
                           </Link>
                         ))}
-                        {f.account_ids.length > 6 &&
-                          `+${f.account_ids.length - 6}`}
-                      </td>
-                      <td className="text-slate-600">
+                        {f.account_ids.length > 6 && (
+                          <Chip>{`+${f.account_ids.length - 6}`}</Chip>
+                        )}
+                      </div>
+                      <p className="mt-3 text-xs text-slate-600">
                         {Object.entries(f.evidence)
                           .filter(([, v]) => typeof v === "number")
                           .slice(0, 3)
@@ -310,11 +404,62 @@ export default function GraphOverviewPage() {
                               `${k.replace(/_/g, " ")}: ${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
                           )
                           .join(" · ")}
-                      </td>
-                    </tr>
+                      </p>
+                    </Card3D>
                   ))}
-                </tbody>
-              </table>
+                </CardGrid>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="mt-1 w-full text-left text-sm">
+                    <thead className="border-b border-slate-300 text-slate-600">
+                      <tr>
+                        <th className="py-1">Pattern</th>
+                        <th className="text-right">Score</th>
+                        <th>Accounts</th>
+                        <th>Evidence</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {findings.data.results.map((f) => (
+                        <tr
+                          key={f.id}
+                          className="border-b border-slate-100 align-top"
+                        >
+                          <td className="py-1">
+                            {FINDING_LABEL[f.finding_type] ?? f.finding_type}
+                          </td>
+                          <td className="text-right tabular-nums">
+                            {f.score.toFixed(0)}
+                          </td>
+                          <td>
+                            {f.accounts.slice(0, 6).map((a) => (
+                              <Link
+                                key={a.id}
+                                className="mr-2 font-mono text-blue-700 hover:underline"
+                                to={`/accounts/${a.id}/graph`}
+                              >
+                                {a.account_ref}
+                              </Link>
+                            ))}
+                            {f.account_ids.length > 6 &&
+                              `+${f.account_ids.length - 6}`}
+                          </td>
+                          <td className="text-slate-600">
+                            {Object.entries(f.evidence)
+                              .filter(([, v]) => typeof v === "number")
+                              .slice(0, 3)
+                              .map(
+                                ([k, v]) =>
+                                  `${k.replace(/_/g, " ")}: ${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+                              )
+                              .join(" · ")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
           <p className="mt-2 text-xs text-slate-600">

@@ -1,3 +1,11 @@
+import {
+  Card3D,
+  CardGrid,
+  Chip,
+  Initials,
+  useViewMode,
+  ViewToggle,
+} from "../components/ui/cards";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -63,6 +71,7 @@ function UsersTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [view, setView] = useViewMode("users");
   const [creating, setCreating] = useState(false);
   const [toggling, setToggling] = useState<User | null>(null);
   const [resetting, setResetting] = useState<User | null>(null);
@@ -127,24 +136,24 @@ function UsersTab() {
         )}
         {users.data && users.data.results.length > 0 && (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-slate-300 text-slate-600">
-                  <tr>
-                    <th className="py-2">Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Last login</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="space-y-3">
+              <ViewToggle mode={view} onChange={setView} />
+              {view === "cards" ? (
+                <CardGrid min="20rem">
                   {users.data.results.map((u) => (
-                    <tr key={u.id} className="border-b border-slate-100">
-                      <td className="py-2">{u.full_name}</td>
-                      <td>{u.email}</td>
-                      <td>
+                    <Card3D key={u.id} tone={u.is_active ? "indigo" : "slate"}>
+                      <div className="flex items-center gap-3">
+                        <Initials text={u.email} />
+                        <div className="min-w-0">
+                          <h2 className="truncate text-sm font-semibold text-slate-800">
+                            {u.full_name}
+                          </h2>
+                          <p className="truncate text-xs text-slate-500">
+                            {u.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                         {can("users.update") &&
                         roles.data &&
                         u.id !== me?.id ? (
@@ -166,45 +175,118 @@ function UsersTab() {
                             ))}
                           </select>
                         ) : (
-                          u.role_label
+                          <Chip tone="violet">{u.role_label}</Chip>
                         )}
-                      </td>
-                      <td>
-                        <span
-                          className={
-                            u.is_active ? "text-risk-low" : "text-slate-500"
-                          }
-                        >
+                        <Chip tone={u.is_active ? "green" : "slate"}>
                           {u.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td>
+                        </Chip>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Last login:{" "}
                         {u.last_login
                           ? new Date(u.last_login).toLocaleString()
                           : "Never"}
-                      </td>
-                      <td className="space-x-2 text-right">
-                        {can("users.update") && u.id !== me?.id && (
-                          <>
-                            <Button
-                              variant="secondary"
-                              onClick={() => setResetting(u)}
-                            >
-                              Reset password
-                            </Button>
-                            <Button
-                              variant={u.is_active ? "danger" : "secondary"}
-                              onClick={() => setToggling(u)}
-                            >
-                              {u.is_active ? "Deactivate" : "Activate"}
-                            </Button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
+                      </p>
+                      {can("users.update") && u.id !== me?.id && (
+                        <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                          <Button
+                            variant="secondary"
+                            onClick={() => setResetting(u)}
+                          >
+                            Reset password
+                          </Button>
+                          <Button
+                            variant={u.is_active ? "danger" : "secondary"}
+                            onClick={() => setToggling(u)}
+                          >
+                            {u.is_active ? "Deactivate" : "Activate"}
+                          </Button>
+                        </div>
+                      )}
+                    </Card3D>
                   ))}
-                </tbody>
-              </table>
+                </CardGrid>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b border-slate-300 text-slate-600">
+                      <tr>
+                        <th className="py-2">Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Last login</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.data.results.map((u) => (
+                        <tr key={u.id} className="border-b border-slate-100">
+                          <td className="py-2">{u.full_name}</td>
+                          <td>{u.email}</td>
+                          <td>
+                            {can("users.update") &&
+                            roles.data &&
+                            u.id !== me?.id ? (
+                              <select
+                                aria-label={`Role for ${u.email}`}
+                                value={u.role}
+                                onChange={(e) =>
+                                  patch.mutate({
+                                    id: u.id,
+                                    body: { role: e.target.value },
+                                  })
+                                }
+                                className="rounded-md border border-slate-300 px-1 py-0.5"
+                              >
+                                {roles.data.map((r) => (
+                                  <option key={r.id} value={r.name}>
+                                    {r.label}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              u.role_label
+                            )}
+                          </td>
+                          <td>
+                            <span
+                              className={
+                                u.is_active ? "text-risk-low" : "text-slate-500"
+                              }
+                            >
+                              {u.is_active ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td>
+                            {u.last_login
+                              ? new Date(u.last_login).toLocaleString()
+                              : "Never"}
+                          </td>
+                          <td className="space-x-2 text-right">
+                            {can("users.update") && u.id !== me?.id && (
+                              <>
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => setResetting(u)}
+                                >
+                                  Reset password
+                                </Button>
+                                <Button
+                                  variant={u.is_active ? "danger" : "secondary"}
+                                  onClick={() => setToggling(u)}
+                                >
+                                  {u.is_active ? "Deactivate" : "Activate"}
+                                </Button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
             <div className="mt-3 flex items-center gap-3 text-sm">
               <Button

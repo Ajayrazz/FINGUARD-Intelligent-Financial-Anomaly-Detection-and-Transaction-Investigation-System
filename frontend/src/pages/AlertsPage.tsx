@@ -1,3 +1,11 @@
+import {
+  Card3D,
+  CardGrid,
+  Chip,
+  Initials,
+  useViewMode,
+  ViewToggle,
+} from "../components/ui/cards";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -405,6 +413,7 @@ export default function AlertsPage() {
     params.get("open") ? Number(params.get("open")) : null,
   );
   const [dataset, setDataset] = useState("");
+  const [view, setView] = useViewMode("alerts");
   const qs = `page=${page}${status === "open" ? "&open=true" : status ? `&status=${status}` : ""}${severity ? `&severity=${severity}` : ""}${type ? `&alert_type=${type}` : ""}${assignee ? `&assignee=${assignee}` : ""}`;
   const list = useQuery({
     queryKey: ["alerts", qs],
@@ -568,49 +577,97 @@ export default function AlertsPage() {
       )}
       {list.data && list.data.results.length > 0 && (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-300 text-slate-600">
-                <tr>
-                  <th className="py-1">#</th>
-                  <th>Severity</th>
-                  <th>Type</th>
-                  <th>Reason</th>
-                  <th>Status</th>
-                  <th>Assigned</th>
-                  <th>Created</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="space-y-3">
+            <ViewToggle mode={view} onChange={setView} />
+            {view === "cards" ? (
+              <CardGrid min="20rem">
                 {list.data.results.map((a) => (
-                  <tr
+                  <Card3D
                     key={a.id}
-                    className={`border-b border-slate-100 align-top ${selected === a.id ? "bg-slate-100" : ""}`}
+                    tone={
+                      a.severity === "critical"
+                        ? "red"
+                        : a.severity === "high"
+                          ? "amber"
+                          : a.severity === "medium"
+                            ? "violet"
+                            : "cyan"
+                    }
+                    selected={selected === a.id}
                   >
-                    <td className="py-1">
-                      <button
-                        className="text-blue-700 hover:underline"
-                        onClick={() => setSelected(a.id)}
-                      >
-                        {a.id}
-                      </button>
-                    </td>
-                    <td>
-                      <SeverityBadge severity={a.severity} />
-                    </td>
-                    <td>{a.type_label}</td>
-                    <td className="max-w-md">{a.reason}</td>
-                    <td>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="font-mono text-blue-700 hover:underline"
+                          onClick={() => setSelected(a.id)}
+                        >
+                          {a.id}
+                        </button>
+                        <SeverityBadge severity={a.severity} />
+                      </div>
                       <AlertStatusBadge status={a.status} />
-                    </td>
-                    <td>{a.assignee_email ?? "—"}</td>
-                    <td className="whitespace-nowrap">
-                      {formatDateTime(a.created_at)}
-                    </td>
-                  </tr>
+                    </div>
+                    <h2 className="mt-3 text-sm font-semibold text-slate-800">
+                      {a.type_label}
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-600">{a.reason}</p>
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3 text-xs text-slate-500">
+                      <span>
+                        {a.assignee_email
+                          ? `Assigned: ${a.assignee_email}`
+                          : "Unassigned"}
+                      </span>
+                      <span>{formatDateTime(a.created_at)}</span>
+                    </div>
+                  </Card3D>
                 ))}
-              </tbody>
-            </table>
+              </CardGrid>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-300 text-slate-600">
+                    <tr>
+                      <th className="py-1">#</th>
+                      <th>Severity</th>
+                      <th>Type</th>
+                      <th>Reason</th>
+                      <th>Status</th>
+                      <th>Assigned</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {list.data.results.map((a) => (
+                      <tr
+                        key={a.id}
+                        className={`border-b border-slate-100 align-top ${selected === a.id ? "bg-slate-100" : ""}`}
+                      >
+                        <td className="py-1">
+                          <button
+                            className="text-blue-700 hover:underline"
+                            onClick={() => setSelected(a.id)}
+                          >
+                            {a.id}
+                          </button>
+                        </td>
+                        <td>
+                          <SeverityBadge severity={a.severity} />
+                        </td>
+                        <td>{a.type_label}</td>
+                        <td className="max-w-md">{a.reason}</td>
+                        <td>
+                          <AlertStatusBadge status={a.status} />
+                        </td>
+                        <td>{a.assignee_email ?? "—"}</td>
+                        <td className="whitespace-nowrap">
+                          {formatDateTime(a.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3 text-sm">
             <Button

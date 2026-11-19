@@ -13,7 +13,7 @@ import { PermissionGate } from "../auth/guards";
 import { ExplanationPanel } from "../components/explain/ExplanationPanel";
 import { RiskPanel } from "../components/risk/RiskPanel";
 import { BehaviorPanel } from "../components/behavior/BehaviorPanel";
-import { TransactionTable } from "../components/transactions/TransactionTable";
+import { TransactionList } from "../components/transactions/TransactionTable";
 import { StatusBadge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Dialog } from "../components/ui/Dialog";
@@ -220,7 +220,7 @@ export default function TransactionDetailPage() {
             <EmptyState title="No other transactions between these accounts" />
           )}
           {related.data && related.data.length > 0 && (
-            <TransactionTable rows={related.data} />
+            <TransactionList rows={related.data} viewKey="related-tx" />
           )}
         </div>
       </div>
