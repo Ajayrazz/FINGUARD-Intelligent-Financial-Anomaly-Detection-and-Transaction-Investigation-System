@@ -1,16 +1,170 @@
 @import "tailwindcss";
 
+/*
+ * Dark "glass" theme.
+ * The pages are written with Tailwind's light-mode palette (slate/green/amber/red/blue). Instead of editing every
+ * class, the palette itself is redefined here for a dark UI: the slate scale is inverted (50 = darkest surface,
+ * 800 = brightest text), slate-900 becomes the indigo accent (it is only used for active / primary fills that carry
+ * white text), and the pastel status backgrounds become dark tints with light text. All text pairs stay >= 4.5:1.
+ */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  /* Risk colours are used for text on white: each is dark enough for WCAG AA (4.5:1). They are never the only cue. */
-  --color-risk-low: #15803d;
-  --color-risk-medium: #b45309;
-  --color-risk-high: #c2410c;
-  --color-risk-critical: #b91c1c;
+
+  --color-slate-50: #0d0e1d;
+  --color-slate-100: #14162c;
+  --color-slate-200: #1d2042;
+  --color-slate-300: #3b4180;
+  --color-slate-400: #6f76a8;
+  --color-slate-500: #a0a6cf;
+  --color-slate-600: #b8bde0;
+  --color-slate-700: #ced2ee;
+  --color-slate-800: #e4e7f7;
+  --color-slate-900: #4f46e5;
+
+  --color-green-100: #0d2f25;
+  --color-green-800: #86efac;
+  --color-amber-50: #2a210a;
+  --color-amber-100: #3d2e0a;
+  --color-amber-300: #b45309;
+  --color-amber-400: #d97706;
+  --color-amber-500: #f59e0b;
+  --color-amber-800: #fcd34d;
+  --color-amber-900: #fde68a;
+  --color-red-50: #33111b;
+  --color-red-100: #451524;
+  --color-red-200: #7f1d2d;
+  --color-red-600: #dc2626;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+  --color-orange-100: #3d1d0b;
+  --color-orange-900: #fdba74;
+  --color-blue-100: #1e2559;
+  --color-blue-700: #a5b4fc;
+  --color-blue-800: #c7d2fe;
+
+  /* Risk colours are text on dark surfaces. They are never the only cue (labels are always shown). */
+  --color-risk-low: #4ade80;
+  --color-risk-medium: #fbbf24;
+  --color-risk-high: #fb923c;
+  --color-risk-critical: #f87171;
+}
+
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes orbit { from { transform: rotateX(-10deg) rotateY(0deg); } to { transform: rotateX(-10deg) rotateY(360deg); } }
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 24px rgb(99 102 241 / 0.25); }
+  50% { box-shadow: 0 0 44px rgb(139 92 246 / 0.5); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-rise { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.animate-glow { animation: glow 4s ease-in-out infinite; }
+
+html {
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #05050b;
+  background-image:
+    radial-gradient(60rem 40rem at 15% -10%, rgb(79 70 229 / 0.22), transparent 60%),
+    radial-gradient(50rem 35rem at 100% 10%, rgb(124 58 237 / 0.16), transparent 60%);
+  background-attachment: fixed;
+  color: #e4e7f7;
+}
+
+/* Form controls: translucent dark fields with a visible (>= 3:1) boundary. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  background-color: rgb(255 255 255 / 0.05);
+  color: inherit;
+  border-color: #6870c4;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #8d93bd;
+}
+select option {
+  background-color: #14162c;
+  color: #e4e7f7;
+}
+:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+/* Glass surfaces */
+.glass {
+  background: rgb(14 15 34 / 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgb(129 140 248 / 0.2);
+  box-shadow: 0 10px 40px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+.gradient-text {
+  background: linear-gradient(90deg, #c7d2fe, #a78bfa 60%, #67e8f9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.btn-glow {
+  background-image: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 0 0 1px rgb(165 180 252 / 0.25), 0 6px 22px -6px rgb(99 102 241 / 0.7);
+}
+.btn-glow:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+/* 3D orbit ring (login hero) */
+.orbit-scene {
+  perspective: 1400px;
+}
+.orbit-ring {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: orbit 48s linear infinite;
+}
+.orbit-scene:hover .orbit-ring {
+  animation-play-state: paused;
+}
+.orbit-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 13rem;
+  margin: -4.5rem 0 0 -6.5rem;
+  backface-visibility: hidden;
 }
 
 /* Links inside running text must not depend on colour alone (WCAG 1.4.1); button-styled links keep their own look. */
 main a:not([class*="bg-"]) {
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* Skip link (keyboard users) */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: #4f46e5;
+  color: #fff;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

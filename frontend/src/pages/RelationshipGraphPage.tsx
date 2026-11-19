@@ -118,6 +118,7 @@ export default function RelationshipGraphPage() {
         background: riskTone(n),
         border: n.depth === 0 ? "3px solid #0f172a" : "1px solid #475569",
         borderRadius: 8,
+        color: "#0f172a",
         fontSize: 11,
         padding: 6,
       },
@@ -223,13 +224,14 @@ export default function RelationshipGraphPage() {
             )}
           </p>
           <div
-            className="h-[520px] rounded-md border border-slate-300"
+            className="h-[520px] overflow-hidden rounded-md border border-slate-300"
             aria-label="Network diagram (a table of the same connections follows)"
           >
             <ReactFlow
               nodes={nodes}
               edges={edges}
               fitView
+              colorMode="dark"
               nodesConnectable={false}
               onNodeClick={(_, n) => nav(`/accounts/${n.id}/graph`)}
               onEdgeClick={(_, e) =>
