@@ -70,3 +70,33 @@ Categories: 0–29 Low, 30–59 Medium, 60–79 High, 80–100 Critical (configu
 
 ## Data stage status
 Splits, leakage checks (register items 1, 4 groundwork, 7) and dataset findings: see doc 19. Item 3 now has measured motivation (98.1% of PaySim frauds leave the sender at balance 0).
+
+## Algorithm 1 — Logistic Regression baseline (executed 2026-11-19, seed 42)
+Reproduce: `python -m ml_engine.experiments.baseline --dataset paysim --feature-set core|core+balance`, `--dataset creditcard`;
+register with `python manage.py register_experiment <results.json>`. Artifacts + `results.json` in `datasets/artifacts/<run>/`.
+
+- **Why used:** interpretable, fast reference; every later model must beat it to justify its complexity.
+- **Features:** PaySim `core` = type one-hot, log amount, merchant-receiver flag, causal prior receiver/sender history (strictly earlier steps); `core+balance` adds balance-derived features (balances, accounting errors, drained flag, amount/balance ratio). `step`, `isFlaggedFraud`, ids are never features. ULB = `V1–V28` + log amount (`Time` excluded).
+- **Preprocessing:** `StandardScaler` inside a sklearn `Pipeline`, fitted on train only.
+- **Training:** `LogisticRegression(C=1, class_weight="balanced", max_iter=300)`; no hyper-parameter search yet (baseline). Imbalance handled by class weights on train only.
+- **Threshold:** maximises F1 on validation, frozen before test.
+- **Metrics:** PR-AUC (primary), ROC-AUC, recall at 0.1% / 1% false-positive rate, precision/recall/F1 at the frozen threshold, precision@k, bootstrap 95% CI (100 resamples, seed 42).
+- **Latency (CPU, in-container, measured):** single transaction ≈ 0.10 ms median; batch ≈ 8×10⁶ rows/s (PaySim features), ≈ 4×10⁷ (ULB). Model scoring only; feature computation and I/O excluded.
+
+Test-split results (chronological hold-out; train/validation in `results.json`):
+
+| Run | Test base rate | PR-AUC [95% CI] | ROC-AUC | Recall @ FPR 1% | At frozen threshold: P / R / F1 |
+|---|---|---|---|---|---|
+| PaySim, `core` (no balance fields) | 0.436% | 0.194 [0.182, 0.207] | 0.926 | 0.358 | 0.745 / 0.073 / 0.133 |
+| PaySim, `core+balance` | 0.436% | **0.989** [0.987, 0.992] | 1.000 | 0.999 | 0.988 / 0.992 / 0.990 |
+| ULB credit-card (de-duplicated) | 0.122% | 0.729 [0.618, 0.842] | 0.977 | 0.808 | 0.970 / 0.615 / 0.753 |
+
+Validation PR-AUC (where the threshold was chosen): PaySim core 0.013 (base rate 0.058%), core+balance 0.887, ULB 0.793.
+
+**Interpretation (and cautions):**
+1. The PaySim 0.989 is **not evidence of a strong detector**. It comes almost entirely from balance fields: 98.1% of frauds drain the sender to 0, and the simulator's accounting errors separate fraud almost perfectly. Without them the same model reaches PR-AUC 0.19 (≈ 45× the 0.44% base rate, but weak in absolute terms). Both numbers are reported; the honest operational claim is the `core` one, since real institutions' balance behaviour does not follow this simulator.
+2. PaySim `core` PR-AUC is 0.013 on validation and 0.194 on test only because the base rate differs 7.6× (doc 19); compare each against its base rate, not each other.
+3. Train PR-AUC (0.73) is below test (0.99) for `core+balance`: the cause was not investigated (a likely factor is the very different mix of legitimate volume and fraud per hour across periods, doc 19). It is not overfitting to test: nothing was tuned on test.
+4. ULB test has 52 frauds: the CI is wide (0.62–0.84). Differences smaller than that between models will not be claimed.
+5. PaySim `core` precision at the frozen threshold is high (0.745) but recall tiny (0.073): the validation-chosen threshold, set on a 0.058% base rate with weak scores, transfers poorly — an instance of the drift described in doc 19.
+- **Limitations:** linear model; no tuning; one seed (the LR solver is deterministic, so seed variance is only in the bootstrap); no rolling-window drift analysis yet.

@@ -109,3 +109,6 @@ disjointness; same-timestamp rows never straddle a boundary; `verify_split` dete
 - ULB features are PCA-anonymised: explanations can only name `V1…V28`.
 - Elliptic (graph experiments) is not downloaded yet; it is not needed until Phase 7B.
 - The split is a single chronological partition; rolling-window evaluation (RQ6) comes with the experiments.
+
+## Next stage (features and baseline) — see doc 08
+Causal features (`ml_engine/features/paysim.py`) use only the row and strictly earlier steps; a perturbation test proves that changing future rows leaves earlier features unchanged. Baseline results: doc 08, "Algorithm 1".

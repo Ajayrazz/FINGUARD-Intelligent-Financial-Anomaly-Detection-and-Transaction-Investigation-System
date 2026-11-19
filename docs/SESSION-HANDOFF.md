@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Date:** 2026-11-19 · **Current phase:** 4 (import pipeline) — implemented & checked, awaiting approval · **Phase 5A data stage done** (real PaySim/ULB prepared, doc 19) · **Next:** 5A features + LR baseline + evaluation harness
+**Date:** 2026-11-19 · **Current phase:** 4 (import pipeline) — implemented & checked, awaiting approval · **Phase 5A complete** (data stage, features, LR baseline, evaluation harness, registry; doc 08/19) — awaiting approval · **Next:** 5B (RF, XGBoost, Isolation Forest)
 
 ## Completed
 - **Phases 1–2** (approved): Docker stack, Django/DRF/Celery/Channels skeleton, JWT auth, default-deny RBAC, audit log, users/roles/audit UI.

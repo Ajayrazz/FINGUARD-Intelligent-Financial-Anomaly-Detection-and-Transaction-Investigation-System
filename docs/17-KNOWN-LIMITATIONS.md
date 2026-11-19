@@ -37,3 +37,6 @@
 - PaySim fraud rate differs sharply across the chronological splits (0.082% train, 0.058% validation, 0.436% test); thresholds tuned on validation will not transfer cleanly. Reported as data drift, not hidden.
 - ULB chronological validation/test contain only 55 / 52 frauds after de-duplication; metrics there carry wide uncertainty (bootstrap CIs required).
 - Elliptic is not downloaded yet (needed for Phase 7B only).
+- The PaySim balance-feature result (PR-AUC 0.989) reflects simulator accounting rules, not generalisable detection skill; the `core` result (0.194) is the cautious figure (doc 08).
+- The registry's `code_commit` is the last committed hash at registration, which can precede uncommitted edits.
+- Baseline latency covers model scoring only (not feature computation or I/O) and was measured inside Docker on a laptop CPU.
