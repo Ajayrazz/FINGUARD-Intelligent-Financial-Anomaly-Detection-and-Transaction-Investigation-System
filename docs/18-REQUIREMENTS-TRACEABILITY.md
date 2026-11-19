@@ -107,7 +107,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-M5-06 | Invoice date comparison | P1 | 8 | Ph3, Ph4 | Date proximity evidence | Tested | tests/test_duplicates_lib.py (days apart, billing-interval recognition) |
 | FR-M5-07 | OCR-based invoice data extraction | P1 | 8 | Ph3, Ph4 | Tesseract really executed; fields extracted with confidence | Tested | tests/test_invoices.py (real Tesseract on PNG/JPEG/PDF; 40/40 fields on the clean synthetic set; degradation table in doc 08); synthetic invoices only |
 | FR-M5-08 | Similar invoice image detection | P2 | 8 | Ph3, Ph4 | pHash similarity on synthetic set | Tested | tests/test_duplicates_lib.py, test_invoices.py (pHash Hamming distance as supporting evidence; synthetic set only) |
-| FR-M5-09 | Duplicate record alerts | P1 | 11 | Ph3, Ph4 | Alert on candidate above threshold | Planned | TBD |
+| FR-M5-09 | Duplicate record alerts | P1 | 11 | Ph3, Ph4 | Alert on candidate above threshold | Tested | tests/test_alerts.py (duplicate_record alerts for exact/strong candidates not dismissed by a reviewer) |
 | FR-M5-10 | Duplicate investigation reports | P1 | 8 | Ph3, Ph4 | PDF report generated | Tested | tests/test_invoices.py (PDF generated with records, evidence, review status); layout not visually verified |
 | FR-M5-11 | Exact matching | P0 | 8 | Ph3, Ph4 | Exact class assigned | Tested | tests/test_invoices.py, test_duplicate_transactions.py (exact class) |
 | FR-M5-12 | Fuzzy matching | P1 | 8 | Ph3, Ph4 | Strong/potential classes assigned | Tested | tests/test_invoices.py (strong/potential/legitimate classes; 10/10 expected pairs on the synthetic set) |
@@ -118,18 +118,18 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M6-01 | High-risk transaction notifications | P0 | 11 | Ph9 risk, Ph5-8 signals | High/Critical risk triggers alert | Planned | TBD |
-| FR-M6-02 | Multiple transaction alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Burst rule triggers once per bucket | Planned | TBD |
-| FR-M6-03 | Unusual account activity alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Behavior deviation trigger | Planned | TBD |
-| FR-M6-04 | Suspicious beneficiary notifications | P1 | 11 | Ph9 risk, Ph5-8 signals | Beneficiary risk trigger | Planned | TBD |
-| FR-M6-05 | Repeated transaction failure alerts where data available | P2 | 11 | Ph9 risk, Ph5-8 signals | Only when status data present | Planned | TBD |
-| FR-M6-06 | High-value transfer alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Configurable threshold trigger | Planned | TBD |
-| FR-M6-07 | Rapid fund movement notifications | P1 | 11 | Ph9 risk, Ph5-8 signals | Graph chain trigger | Planned | TBD |
-| FR-M6-08 | Account behavior change alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Profile shift trigger | Planned | TBD |
-| FR-M6-09 | Email notifications | P1 | 11 | Ph9 risk, Ph5-8 signals | Celery email sent (dev: console; SMTP tested) | Planned | TBD |
-| FR-M6-10 | Alert history management | P0 | 11 | Ph9 risk, Ph5-8 signals | Immutable AlertEvent history | Planned | TBD |
-| FR-M6-11 | Alert filtering | P0 | 11 | Ph9 risk, Ph5-8 signals | Filter API/UI | Planned | TBD |
-| FR-M6-12 | Alert prioritization | P0 | 11 | Ph9 risk, Ph5-8 signals | Severity/risk ordering | Planned | TBD |
+| FR-M6-01 | High-risk transaction notifications | P0 | 11 | Ph9 risk, Ph5-8 signals | High/Critical risk triggers alert | Tested | tests/test_alerts.py (high_risk alerts from the latest risk run, severity from category) |
+| FR-M6-02 | Multiple transaction alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Burst rule triggers once per bucket | Tested | tests/test_alerts.py::test_a_burst_is_one_alert_per_bucket_* (once per bucket; severity rises in place) |
+| FR-M6-03 | Unusual account activity alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Behavior deviation trigger | Tested | tests/test_alerts.py (unusual_activity from behavioural deviation) |
+| FR-M6-04 | Suspicious beneficiary notifications | P1 | 11 | Ph9 risk, Ph5-8 signals | Beneficiary risk trigger | Tested | tests/test_alerts.py::test_rapid_fund_movement_and_suspicious_beneficiary_* (shared-beneficiary / fan-in findings) |
+| FR-M6-05 | Repeated transaction failure alerts where data available | P2 | 11 | Ph9 risk, Ph5-8 signals | Only when status data present | Tested | tests/test_alerts.py::test_high_value_and_failed_transaction_rules (evaluated only when failed-status data exists) |
+| FR-M6-06 | High-value transfer alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Configurable threshold trigger | Tested | tests/test_alerts.py (configurable threshold; severity by multiple) |
+| FR-M6-07 | Rapid fund movement notifications | P1 | 11 | Ph9 risk, Ph5-8 signals | Graph chain trigger | Tested | tests/test_alerts.py (graph chain findings) |
+| FR-M6-08 | Account behavior change alerts | P1 | 11 | Ph9 risk, Ph5-8 signals | Profile shift trigger | Tested | tests/test_alerts.py (spend-jump behaviour change; a sudden weekly spend shift, not a full profile comparison) |
+| FR-M6-09 | Email notifications | P1 | 11 | Ph9 risk, Ph5-8 signals | Celery email sent (dev: console; SMTP tested) | Tested | tests/test_alerts.py (console/locmem backend, a real SMTP wire test against a local test server, failure logged); no live external SMTP service tried |
+| FR-M6-10 | Alert history management | P0 | 11 | Ph9 risk, Ph5-8 signals | Immutable AlertEvent history | Tested | tests/test_alerts.py (AlertEvent append-only trigger; lifecycle events; NotificationLog) |
+| FR-M6-11 | Alert filtering | P0 | 11 | Ph9 risk, Ph5-8 signals | Filter API/UI | Tested | tests/test_alerts.py (status/severity/type/assignee/category/date filters); pages/alerts.test.tsx |
+| FR-M6-12 | Alert prioritization | P0 | 11 | Ph9 risk, Ph5-8 signals | Severity/risk ordering | Tested | tests/test_alerts.py (open before closed, then severity, risk score, newest; per-rule cap) |
 | FR-M6-13 | Alert assignment | P0 | 11 | Ph9 risk, Ph5-8 signals | Assign with permission check | Planned | TBD |
 | FR-M6-14 | Alert acknowledgment | P0 | 11 | Ph9 risk, Ph5-8 signals | Ack recorded with user/time | Planned | TBD |
 | FR-M6-15 | Alert escalation | P1 | 11 | Ph9 risk, Ph5-8 signals | Escalation with reason | Planned | TBD |
@@ -235,7 +235,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | FR-UI-06 | Relationship Graph page | P0 | 7 | per feature phase; completion Ph13 | Real graph | Implemented | pages/graph.test.tsx (component tests; not browser-tested) |
 | FR-UI-07 | Risk Analysis page | P0 | 9 | per feature phase; completion Ph13 | Real assessments | Implemented | pages/risk.test.tsx (component tests; not browser-tested) |
 | FR-UI-08 | Duplicate Detection page | P1 | 8 | per feature phase; completion Ph13 | Review workflow | Implemented | pages/duplicates.test.tsx (component tests; not browser-tested) |
-| FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Planned | TBD |
+| FR-UI-09 | Alerts page | P0 | 11 | per feature phase; completion Ph13 | Queue + realtime | Implemented | pages/alerts.test.tsx (queue, filters, lifecycle actions, live toast; component tests only, not browser-tested) |
 | FR-UI-10 | Investigations page | P0 | 12 | per feature phase; completion Ph13 | Workspace | Planned | TBD |
 | FR-UI-11 | Reports page | P1 | 10 | per feature phase; completion Ph13 | Generate/download | Planned | TBD |
 | FR-UI-12 | Model Performance page | P0 | 5 | per feature phase; completion Ph13 | Compare versions | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |

@@ -50,6 +50,14 @@ PERMISSIONS: dict[str, str] = {
     "risk.configure": "Create and activate risk configurations (weights, thresholds, missing-signal policy)",
     "explain.read": "View explanations and download explanation reports",
     "explain.generate": "Generate explanations (SHAP, LIME, summaries, feature importance)",
+    "alerts.read": "View alerts, their history and notifications",
+    "alerts.summary": "View alert counts (no records)",
+    "alerts.run": "Evaluate alert rules over a dataset",
+    "alerts.acknowledge": "Acknowledge alerts",
+    "alerts.assign": "Assign alerts to users",
+    "alerts.escalate": "Escalate alerts with a reason",
+    "alerts.close": "Close alerts with an outcome",
+    "alerts.configure": "Create and activate alert policies (rules, thresholds, email)",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -78,6 +86,13 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "risk.run",
         "explain.read",
         "explain.generate",
+        "alerts.read",
+        "alerts.summary",
+        "alerts.run",
+        "alerts.acknowledge",
+        "alerts.assign",
+        "alerts.escalate",
+        "alerts.close",
     },
     FRAUD_INVESTIGATOR: {
         "datasets.read",
@@ -93,6 +108,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "risk.read",
         "explain.read",
         "explain.generate",
+        "alerts.read",
+        "alerts.summary",
+        "alerts.acknowledge",
+        "alerts.assign",
+        "alerts.escalate",
+        "alerts.close",
     },
     AUDITOR: {
         "users.read",
@@ -109,6 +130,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "duplicates.read",
         "risk.read",
         "explain.read",
+        "alerts.read",
+        "alerts.summary",
     },
-    MANAGEMENT: set(),
+    MANAGEMENT: {"alerts.summary"},
 }

@@ -175,6 +175,14 @@ def _endpoints(
         ("get", f"/api/v1/model-versions/{mv_pk}/importance/", None, "explain.read"),
         ("post", f"/api/v1/transactions/{tx_pk}/explanations/", {"methods": ["summary"]}, "explain.generate"),
         ("post", f"/api/v1/model-versions/{mv_pk}/importance/", {}, "explain.generate"),
+        ("get", "/api/v1/alerts/", None, "alerts.read"),
+        ("get", "/api/v1/alerts/summary/", None, "alerts.summary"),
+        ("get", "/api/v1/alerts/assignees/", None, "alerts.assign"),
+        ("get", "/api/v1/alerts/runs/", None, "alerts.read"),
+        ("get", "/api/v1/alerts/policy/", None, "alerts.read"),
+        ("get", f"/api/v1/transactions/{tx_pk}/alerts/", None, "alerts.read"),
+        ("post", "/api/v1/alerts/evaluate/", {"dataset": ds_pk}, "alerts.run"),
+        ("post", "/api/v1/alerts/policy/", {"config": {}}, "alerts.configure"),
     ]
 
 

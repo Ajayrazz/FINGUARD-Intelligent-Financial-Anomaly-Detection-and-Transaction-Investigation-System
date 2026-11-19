@@ -561,3 +561,71 @@ export interface ExplanationJob {
   result: { created: string[]; skipped: Record<string, string> }
   error_message: string
 }
+
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical'
+export type AlertStatus = 'new' | 'acknowledged' | 'escalated' | 'closed'
+
+export interface AlertRow {
+  id: number
+  alert_type: string
+  type_label: string
+  severity: AlertSeverity
+  status: AlertStatus
+  dataset: number | null
+  dataset_name: string | null
+  transaction: number | null
+  transaction_external_id: string | null
+  account: number | null
+  account_ref: string | null
+  assessment: number | null
+  risk_score: number | null
+  reason: string
+  assignee: number | null
+  assignee_email: string | null
+  acknowledged_at: string | null
+  escalated_at: string | null
+  closed_at: string | null
+  outcome: string
+  created_at: string
+}
+
+export interface AlertDetail extends AlertRow {
+  evidence_snapshot: Record<string, unknown>
+  escalation_reason: string
+  close_notes: string
+  policy_version: number
+  dedup_key: string
+}
+
+export interface AlertEventRow {
+  id: number
+  event_type: string
+  actor_email: string | null
+  payload: Record<string, unknown>
+  created_at: string
+}
+
+export interface AlertSummary {
+  open_by_severity: Record<AlertSeverity, number>
+  by_status: Partial<Record<AlertStatus, number>>
+  unassigned_open: number
+}
+
+export interface AlertPolicy {
+  id: number
+  version: number
+  config: Record<string, unknown>
+  is_active: boolean
+  notes: string
+  created_by_email: string | null
+  created_at: string
+}
+
+export interface NotificationRow {
+  id: number
+  channel: string
+  recipient: string
+  status: string
+  error: string
+  sent_at: string
+}

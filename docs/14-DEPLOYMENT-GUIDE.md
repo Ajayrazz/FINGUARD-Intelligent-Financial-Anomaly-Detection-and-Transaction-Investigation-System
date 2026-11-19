@@ -26,3 +26,6 @@ The backend image installs the `tesseract-ocr` system package (English language 
 
 ## SHAP and LIME (Phase 10)
 `shap` (with `numba`/`llvmlite`) and `lime` (with `scikit-image`, `matplotlib`) are added to `requirements/ml.txt`; they make the backend image noticeably larger. Explanation jobs rebuild the dataset's features in the worker (about 3 s for 343k transactions) and load the model artifact from `ML_ARTIFACTS_DIR` after checking its SHA-256.
+
+## Email and realtime (Phase 11)
+Alert email uses Django's mail backend: development prints to the console; for SMTP set `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS=1`, `DEFAULT_FROM_EMAIL` and `FRONTEND_BASE_URL` (used in the link) in `.env`, then recreate the backend and worker. Recipients and the minimum severity are in the alert policy. A risk run that finishes starts an alert evaluation automatically when the active policy has `auto_evaluate` on (Celery worker required). Realtime pushes use the existing Redis channel layer.

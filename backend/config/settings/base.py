@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.duplicates",
     "apps.risk_engine",
     "apps.explain",
+    "apps.alerts",
 ]
 
 MIDDLEWARE = [
@@ -126,6 +127,15 @@ else:
     NEO4J_USER = env("NEO4J_USER", "neo4j")
     NEO4J_PASSWORD = env("NEO4J_PASSWORD", "")
     NEO4J_DATABASE = None
+# Email (alert notifications). Development prints to the console; set EMAIL_BACKEND and EMAIL_* for SMTP.
+EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(env("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", "0") == "1"
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "FinGuard <noreply@finguard.local>")
+FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", "http://localhost:5173")
 RISK_MAX_ROWS = int(env("RISK_MAX_ROWS", "2000000"))
 INVOICE_MAX_BYTES = int(env("INVOICE_MAX_BYTES", str(10 * 1024**2)))
 DUPLICATE_MAX_ROWS = int(env("DUPLICATE_MAX_ROWS", "2000000"))

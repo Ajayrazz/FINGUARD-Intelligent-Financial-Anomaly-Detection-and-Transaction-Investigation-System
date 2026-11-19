@@ -108,11 +108,12 @@ The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-
 | 8 | Duplicate detection: repeated payments, invoice upload with Tesseract OCR, fuzzy/image matching, human review workflow, PDF report | ✅ Implemented and tested |
 | 9 | Risk scoring: six signals combined with versioned weights/thresholds, missing-signal policies and coverage, breakdown, calibration experiment | ✅ Implemented and tested |
 | 10 | Explainable AI: SHAP, LIME, global importance, deterministic narratives and summaries, version-bound/staleness-checked explanations, PDF report, Explanation panel | ✅ Implemented and tested |
-| 11–16 | Alerts, cases, analytics, deployment | 📋 Planned |
+| 11 | Alerts: nine rule types from stored results, deduplication, lifecycle (acknowledge/assign/escalate/close), prioritised queue, email, live push, Alerts page | ✅ Implemented and tested |
+| 12–16 | Cases, analytics, deployment | 📋 Planned |
 
 **Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; real PaySim rows can be imported through the normal import page (a 343k-row slice was imported and scored as a check).
 **Also works:** account behavior profiles and per-transaction behavioral deviation (validated on a synthetic scenario; not applicable to PaySim, where every transaction is cold start), and scoring a dataset's transactions with a registered model (Anomaly Detection page) and comparing registered models' offline results (Model Performance page). Research results on the real PaySim and ULB data are in [docs/08](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) (PaySim balance fields saturate the problem; the cautious figure is the `core` feature set).
-**Verified so far:** 301 backend tests and 62 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
+**Verified so far:** 321 backend tests and 67 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
 
 Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
 
@@ -161,6 +162,7 @@ backend/
   apps/model_registry/ Registered models, versions, offline evaluations (read-only API)
   apps/graph_engine/ Graph snapshots, findings, Neo4j sync, neighborhood APIs
   graph_engine_lib/ Pure-Python graph detectors (cycles, chains, fan-in/out, shared beneficiaries, communities)
+  apps/alerts/      Alert rules, deduplication, lifecycle, notifications (email + WebSocket)
   apps/explain/     Explanations (SHAP/LIME/narratives) bound to model + prediction versions, PDF report
   apps/risk_engine/ Versioned risk configs, append-only assessments, scoring runs, calibration command
   risk_engine_lib/  Pure-Python component normalisation, missing-signal policies, categories

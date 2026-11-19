@@ -19,6 +19,12 @@ def _consume_ticket(ticket: str) -> int | None:
     return user_id if User.objects.filter(pk=user_id, is_active=True).exists() else None
 
 
+@database_sync_to_async
+def _can_read_alerts(user_id: int) -> bool:
+    user = User.objects.select_related("role").get(pk=user_id)
+    return "alerts.read" in user.permission_codenames
+
+
 class EventsConsumer(AsyncJsonWebsocketConsumer):
     """Server -> client events for one authenticated user (import progress now; alerts/cases later).
 
@@ -26,6 +32,7 @@ class EventsConsumer(AsyncJsonWebsocketConsumer):
     """
 
     group: str | None = None
+    alerts_group: str | None = None
 
     async def connect(self):
         ticket = parse_qs(self.scope.get("query_string", b"").decode()).get("ticket", [""])[0]
@@ -35,11 +42,16 @@ class EventsConsumer(AsyncJsonWebsocketConsumer):
             return
         self.group = f"user.{user_id}"
         await self.channel_layer.group_add(self.group, self.channel_name)
+        if await _can_read_alerts(user_id):  # alert pushes go to everyone who may read alerts, and only to them
+            self.alerts_group = "alerts"
+            await self.channel_layer.group_add(self.alerts_group, self.channel_name)
         await self.accept()
 
     async def disconnect(self, code):
         if self.group:
             await self.channel_layer.group_discard(self.group, self.channel_name)
+        if self.alerts_group:
+            await self.channel_layer.group_discard(self.alerts_group, self.channel_name)
 
     async def push_event(self, event):
         await self.send_json(event["payload"])

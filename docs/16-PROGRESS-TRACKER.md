@@ -15,7 +15,7 @@ Last updated: 2026-11-19 · Current phase: **4 — Dataset import & processing p
 | 8 | Duplicates, OCR | **Implemented and checked — awaiting approval for Phase 9** | Backend 258 tests (Tesseract really executed), frontend 51 pass; 40/40 OCR fields and 10/10 pair classes on the clean synthetic set, 50–68% under heavy rotation/noise; real PaySim slice has no repeats; UI not browser-tested |
 | 9 | Risk scoring engine | **Implemented and checked — awaiting approval for Phase 10; F/H definitions need your confirmation (D-067)** | Backend 281 tests, frontend 56 pass; 64 availability combinations x 3 policies tested; real slice scored in 44 s; RQ5 calibration: combined score no better than model score on this data; UI not browser-tested |
 | 10 | Explainable AI | **Implemented and checked — awaiting approval for Phase 11** | Backend 301 tests, frontend 62 pass; SHAP exact/faithful, LIME unstable (measured on real PaySim); version binding + staleness tested; usability review not done; UI not browser-tested |
-| 11 | Alerts | Not Started | |
+| 11 | Alerts & notifications | **Implemented and checked — awaiting approval for Phase 12** | Backend 321 tests (real SMTP wire test, WebSocket push), frontend 67 pass; dedup acceptance cases tested; real slice exposed an alert flood (8,225) → per-rule cap; thresholds uncalibrated; UI not browser-tested |
 | 12 | Case management | Not Started | |
 | 13 | Frontend completion | Not Started | |
 | 14 | Analytics & reporting | Not Started | |
