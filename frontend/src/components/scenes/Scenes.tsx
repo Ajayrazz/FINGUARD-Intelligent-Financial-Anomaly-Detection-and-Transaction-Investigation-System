@@ -285,3 +285,29 @@ export function LedgerScene() {
     </div>
   );
 }
+
+export function GyroScene() {
+  const ring = "absolute inset-0 rounded-full border-2";
+  return (
+    <div className="scene-3d flex h-full items-center justify-center">
+      <div
+        className="relative h-36 w-36"
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        <span
+          className={`${ring} border-indigo-300/70`}
+          style={{ animation: "gyro-a 9s linear infinite" }}
+        />
+        <span
+          className={`${ring} border-cyan-300/70`}
+          style={{ animation: "gyro-b 7s linear infinite" }}
+        />
+        <span
+          className={`${ring} border-pink-300/70`}
+          style={{ animation: "gyro-c 11s linear infinite" }}
+        />
+        <span className="absolute inset-0 m-auto h-5 w-5 rounded-full bg-violet-300 shadow-[0_0_24px_#a78bfa] animate-glow" />
+      </div>
+    </div>
+  );
+}

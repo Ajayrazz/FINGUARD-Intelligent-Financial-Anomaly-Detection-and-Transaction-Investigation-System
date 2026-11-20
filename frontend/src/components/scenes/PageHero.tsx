@@ -6,6 +6,7 @@ import {
   FlowScene,
   GaugeScene,
   GraphMiniScene,
+  GyroScene,
   LayersScene,
   LedgerScene,
   MergeScene,
@@ -24,6 +25,7 @@ const SCENES = {
   cube: CubeScene,
   bars: BarsScene,
   people: PeopleScene,
+  gyro: GyroScene,
   ledger: LedgerScene,
 } as const;
 

@@ -2,8 +2,6 @@ import { PageHero } from "../components/scenes/PageHero";
 import {
   Card3D,
   CardGrid,
-  Chip,
-  Initials,
   useViewMode,
   ViewToggle,
 } from "../components/ui/cards";

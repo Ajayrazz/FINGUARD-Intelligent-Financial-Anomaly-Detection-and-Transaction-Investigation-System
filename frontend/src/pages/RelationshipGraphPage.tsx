@@ -231,7 +231,6 @@ export default function RelationshipGraphPage() {
               nodes={nodes}
               edges={edges}
               fitView
-              colorMode="dark"
               nodesConnectable={false}
               onNodeClick={(_, n) => nav(`/accounts/${n.id}/graph`)}
               onEdgeClick={(_, e) =>

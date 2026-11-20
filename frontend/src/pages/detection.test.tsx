@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DetectionRun, Me, ModelVersionRow } from "../api/types";
 import { AuthContext, type AuthValue } from "../auth/AuthContext";
 import { ToastProvider } from "../components/ui/Toast";
