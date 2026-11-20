@@ -264,7 +264,7 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 | PLAT-04 | JWT auth, bcrypt-compatible hashing, rate limiting, session expiry | P0 | 2 | Ph1 | Security tests | Tested | tests/test_auth.py (login, lockout, throttle, rotation, blacklist, bcrypt) |
 | PLAT-05 | Secure file upload validation and evidence storage | P0 | 4 | Ph1 | Upload abuse tests | In Progress | uploads validated (tests/test_imports.py); evidence storage still Phase 12 |
 | PLAT-06 | Sensitive-information masking | P1 | 2 | Ph1 | Masked for unauthorised roles | Planned | TBD |
-| PLAT-07 | Data retention/deletion policy and backup/recovery plan | P1 | 16 | Ph1 | Restore drill | Planned | TBD |
+| PLAT-07 | Data retention/deletion policy and backup/recovery plan | P1 | 16 | Ph1 | Restore drill | Partly implemented: backup/restore scripts and a passing restore drill (docs/14 §9); retention schedule and automatic deletion are not implemented | scripts/backup.sh, scripts/restore.sh (drilled manually) |
 | PLAT-08 | Dev/prod configuration separation, no hardcoded secrets | P0 | 1 | Ph1 | Settings test; secrets scan | Planned | TBD |
 | PLAT-09 | PostgreSQL <-> Neo4j consistency strategy | P0 | 7 | Ph1 | Rebuild-equivalence test | Planned | TBD |
 | PLAT-10 | Reproducible model training with persisted artifacts/metadata | P0 | 5 | Ph1 | Re-run equals metrics | Tested | tests/test_ml_features_eval.py (same seed => identical scores); artifact hashes in registry |

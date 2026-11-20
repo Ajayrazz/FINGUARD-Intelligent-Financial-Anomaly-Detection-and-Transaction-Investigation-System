@@ -110,11 +110,14 @@ The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-
 | 10 | Explainable AI: SHAP, LIME, global importance, deterministic narratives and summaries, version-bound/staleness-checked explanations, PDF report, Explanation panel | ✅ Implemented and tested |
 | 11 | Alerts: nine rule types from stored results, deduplication, lifecycle (acknowledge/assign/escalate/close), prioritised queue, email, live push, Alerts page | ✅ Implemented and tested |
 | 12 | Case management: cases from alerts (automatic for critical), validated state machine, notes with versions, hashed evidence, immutable history, closure report, Investigations pages | ✅ Implemented and tested |
-| 13–16 | Frontend completion and analytics, testing/hardening, deployment | 📋 Planned |
+| 13 | Frontend completion: dark glass UI, public landing page, 3D/animated charts, top-bar navigation, accessibility and responsive fixes, browser E2E (Playwright) | ✅ Implemented and tested |
+| 14 | Analytics & reporting: daily rollup, metrics API, CSV/PDF exports (injection-safe), Analytics page | ✅ Implemented and tested |
+| 15 | Integration, security and performance testing: OWASP-mapped tests, N+1 guards, benchmarks, fixes ([doc 20](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md)) | ✅ Implemented and tested |
+| 16 | Deployment (production Compose + Caddy HTTPS, backup/restore scripts), user guide, demo script, final experiment report | ✅ Rehearsed locally; not deployed to a cloud ([doc 14](docs/14-DEPLOYMENT-GUIDE.md)) |
 
 **Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; real PaySim rows can be imported through the normal import page (a 343k-row slice was imported and scored as a check).
 **Also works:** account behavior profiles and per-transaction behavioral deviation (validated on a synthetic scenario; not applicable to PaySim, where every transaction is cold start), and scoring a dataset's transactions with a registered model (Anomaly Detection page) and comparing registered models' offline results (Model Performance page). Research results on the real PaySim and ULB data are in [docs/08](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) (PaySim balance fields saturate the problem; the cautious figure is the `core` feature set).
-**Verified so far:** 341 backend tests and 76 frontend tests pass; ruff, mypy, `tsc` and the production build are clean. The UI pages have not yet been exercised in a browser (browser E2E tests are planned).
+**Verified so far:** 374 backend tests (88 % coverage), 78 frontend tests and 27 Playwright browser tests pass; ruff, mypy, `tsc -b` and the production build are clean (details and the requirements scorecard: [doc 20](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md)). Research questions RQ1, RQ2 and RQ6 were **not** executed; see [doc 23](docs/23-FINAL-EXPERIMENT-REPORT.md).
 
 Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
 
@@ -142,6 +145,15 @@ Then open:
 
 > The backend (Daphne) does not auto-reload: run `docker compose restart backend worker` after changing backend code.
 
+### Deploy (production)
+
+```bash
+cp .env.prod.example .env.prod      # fill every secret (the app refuses placeholders)
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build   # Caddy serves the SPA with HTTPS
+scripts/backup.sh                   # database + uploaded files;  scripts/restore.sh restores
+```
+Full guide, hosting options, backup/restore drill and rollback: [docs/14-DEPLOYMENT-GUIDE.md](docs/14-DEPLOYMENT-GUIDE.md). Using the app: [docs/21-USER-GUIDE.md](docs/21-USER-GUIDE.md); demo walkthrough: [docs/22-DEMO-SCRIPT.md](docs/22-DEMO-SCRIPT.md).
+
 ### Run the checks
 
 ```bash
@@ -149,6 +161,7 @@ docker compose exec backend ruff check .
 docker compose exec backend mypy .
 docker compose exec backend pytest -q
 docker compose exec frontend sh -c "npx tsc -b && npm run lint && npm test"
+# browser tests: see e2e/README.md
 ```
 
 ## Repository layout
@@ -199,7 +212,7 @@ JWT with short-lived in-memory access tokens and rotating httpOnly refresh cooki
 
 ## Documentation index
 
-[00 Overview](docs/00-PROJECT-OVERVIEW.md) · [01 Product requirements](docs/01-PRODUCT-REQUIREMENTS.md) · [02 Functional](docs/02-FUNCTIONAL-REQUIREMENTS.md) · [03 Non-functional](docs/03-NON-FUNCTIONAL-REQUIREMENTS.md) · [04 Stack](docs/04-TECHNOLOGY-STACK.md) · [05 Architecture](docs/05-SYSTEM-ARCHITECTURE.md) · [06 Database](docs/06-DATABASE-DESIGN.md) · [07 API](docs/07-API-SPECIFICATION.md) · [08 ML & research](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) · [09 Datasets](docs/09-DATASET-STRATEGY.md) · [10 Security & RBAC](docs/10-SECURITY-AND-RBAC.md) · [11 UI/UX](docs/11-UI-UX-PLAN.md) · [12 Roadmap](docs/12-IMPLEMENTATION-ROADMAP.md) · [13 Testing](docs/13-TESTING-STRATEGY.md) · [14 Deployment](docs/14-DEPLOYMENT-GUIDE.md) · [15 Decisions](docs/15-DECISION-LOG.md) · [16 Progress](docs/16-PROGRESS-TRACKER.md) · [17 Limitations](docs/17-KNOWN-LIMITATIONS.md) · [18 Traceability](docs/18-REQUIREMENTS-TRACEABILITY.md) · [19 Dataset profile](docs/19-DATASET-PROFILE-AND-PREPROCESSING.md) · [Session handoff](docs/SESSION-HANDOFF.md)
+[00 Overview](docs/00-PROJECT-OVERVIEW.md) · [01 Product requirements](docs/01-PRODUCT-REQUIREMENTS.md) · [02 Functional](docs/02-FUNCTIONAL-REQUIREMENTS.md) · [03 Non-functional](docs/03-NON-FUNCTIONAL-REQUIREMENTS.md) · [04 Stack](docs/04-TECHNOLOGY-STACK.md) · [05 Architecture](docs/05-SYSTEM-ARCHITECTURE.md) · [06 Database](docs/06-DATABASE-DESIGN.md) · [07 API](docs/07-API-SPECIFICATION.md) · [08 ML & research](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) · [09 Datasets](docs/09-DATASET-STRATEGY.md) · [10 Security & RBAC](docs/10-SECURITY-AND-RBAC.md) · [11 UI/UX](docs/11-UI-UX-PLAN.md) · [12 Roadmap](docs/12-IMPLEMENTATION-ROADMAP.md) · [13 Testing](docs/13-TESTING-STRATEGY.md) · [14 Deployment](docs/14-DEPLOYMENT-GUIDE.md) · [15 Decisions](docs/15-DECISION-LOG.md) · [16 Progress](docs/16-PROGRESS-TRACKER.md) · [17 Limitations](docs/17-KNOWN-LIMITATIONS.md) · [18 Traceability](docs/18-REQUIREMENTS-TRACEABILITY.md) · [19 Dataset profile](docs/19-DATASET-PROFILE-AND-PREPROCESSING.md) · [20 Phase 15 report](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md) · [21 User guide](docs/21-USER-GUIDE.md) · [22 Demo script](docs/22-DEMO-SCRIPT.md) · [23 Final experiment report](docs/23-FINAL-EXPERIMENT-REPORT.md) · [Session handoff](docs/SESSION-HANDOFF.md)
 
 ## Limitations
 

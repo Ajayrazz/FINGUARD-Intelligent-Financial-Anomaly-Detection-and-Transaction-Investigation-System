@@ -73,6 +73,25 @@ echarts.registerTheme("finguard", {
   legend: { textStyle: { color: "#b8bde0" } },
 });
 
+/**
+ * echarts-gl's supersampling and post effects build shaders with `new Function`, which a strict Content-Security-Policy
+ * (script-src 'self', no unsafe-eval; see docker/caddy/Caddyfile) rightly blocks. Turning them off keeps every 3D chart
+ * working without weakening the policy; the only loss is the extra anti-aliasing on a still chart.
+ */
+function withoutEval(option: object): object {
+  const o = option as Record<string, unknown>;
+  if (!o.grid3D) return option;
+  const fix = (g: unknown) => ({
+    ...(g as object),
+    temporalSuperSampling: { enable: false },
+    postEffect: { enable: false },
+  });
+  return {
+    ...o,
+    grid3D: Array.isArray(o.grid3D) ? o.grid3D.map(fix) : fix(o.grid3D),
+  };
+}
+
 export default function EChartImpl({
   option,
   height,
@@ -101,9 +120,10 @@ export default function EChartImpl({
   useEffect(() => {
     const reduce =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const safe = withoutEval(option);
     const o = reduce
-      ? { ...(option as Record<string, unknown>), animation: false }
-      : option;
+      ? { ...(safe as Record<string, unknown>), animation: false }
+      : safe;
     chart.current?.setOption(o as echarts.EChartsCoreOption, true);
   }, [option]);
 

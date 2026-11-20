@@ -1,0 +1,3 @@
+# Production image: runtime + ML inference/explanation dependencies, no test or lint tools
+-r base.txt
+-r ml.txt

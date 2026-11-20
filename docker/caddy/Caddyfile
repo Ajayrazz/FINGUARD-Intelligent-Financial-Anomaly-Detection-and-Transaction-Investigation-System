@@ -1,0 +1,32 @@
+# SITE_ADDRESS: a public domain name gets a real Let's Encrypt certificate automatically (ports 80 and 443 must be
+# reachable); "localhost" uses Caddy's internal CA for local rehearsal. See docs/14.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Scripts only from this origin; inline styles are needed by the React UI (style attributes); charts use blob workers.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' wss:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		-Server
+	}
+
+	@backend path /api/* /ws/* /admin/*
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	handle_path /static/* {
+		root * /srv/backend-static
+		file_server
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

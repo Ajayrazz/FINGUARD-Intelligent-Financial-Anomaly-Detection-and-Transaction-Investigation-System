@@ -215,13 +215,29 @@ def test_explanation_report_escapes_transaction_text(make_dataset, make_tx, monk
 
 
 # ------------------------------------------------------------- A05: configuration
-def test_production_settings_are_hardened_and_debug_is_off_everywhere():
+def _load_production(monkeypatch, secret):  # noqa: ANN001, ANN202
     import importlib
+    import sys
 
-    prod = importlib.import_module("config.settings.production")
+    monkeypatch.setenv("DJANGO_SECRET_KEY", secret)
+    for name in ("config.settings.production", "config.settings.base"):
+        sys.modules.pop(name, None)
+    return importlib.import_module("config.settings.production")
+
+
+def test_production_settings_are_hardened_and_debug_is_off_everywhere(monkeypatch):
+    prod = _load_production(monkeypatch, "x" * 48)
     assert prod.DEBUG is False and prod.SECURE_SSL_REDIRECT and prod.SESSION_COOKIE_SECURE and prod.CSRF_COOKIE_SECURE
-    assert prod.SECURE_HSTS_SECONDS >= 31536000 and prod.SECURE_CONTENT_TYPE_NOSNIFF
+    assert prod.SECURE_HSTS_SECONDS >= 31536000 and prod.SECURE_CONTENT_TYPE_NOSNIFF and prod.X_FRAME_OPTIONS == "DENY"
     assert dj_settings.DEBUG is False
+
+
+@pytest.mark.parametrize("secret", ["change-me", "short", "ci-only-not-secret-but-long-enough-padding-0000", "changeme" + "0" * 40])
+def test_production_refuses_placeholder_or_short_secret_keys(monkeypatch, secret):
+    from django.core.exceptions import ImproperlyConfigured
+
+    with pytest.raises(ImproperlyConfigured):
+        _load_production(monkeypatch, secret)
 
 
 def test_error_responses_do_not_leak_internals(make_user, api_as):

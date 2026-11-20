@@ -1,0 +1,86 @@
+# Production stack. Usage (see docs/14):
+#   cp .env.prod.example .env.prod   # fill in every secret
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Only the `web` container publishes ports. Neo4j is optional: add `--profile graph`.
+name: finguard-prod
+
+x-backend: &backend
+  build: {context: ., dockerfile: docker/backend/Dockerfile.prod}
+  env_file: .env.prod
+  restart: unless-stopped
+  volumes:
+    - media:/app/media
+    - ./datasets:/datasets          # model artifacts (datasets/artifacts) and the raw datasets; see docs/14
+  depends_on:
+    db: {condition: service_healthy}
+    redis: {condition: service_healthy}
+
+services:
+  db:
+    image: postgres:16
+    command: postgres -c max_connections=250
+    env_file: .env.prod
+    restart: unless-stopped
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  neo4j:
+    profiles: ["graph"]
+    image: neo4j:5-community
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?set NEO4J_PASSWORD in .env.prod}
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1g
+      NEO4J_server_memory_pagecache_size: 512m
+    volumes: [neo4jdata:/data]
+  backend:
+    <<: *backend
+    # Migrations run on every start (idempotent); roles and default configurations are seeded by the migrations.
+    command: sh -c "python manage.py migrate --noinput && cp -r /app/staticfiles/. /static-out/ && daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+    volumes:
+      - media:/app/media
+      - ./datasets:/datasets
+      - staticfiles:/static-out
+  worker:
+    <<: *backend
+    command: celery -A config worker -l info --concurrency=4
+  beat:
+    <<: *backend
+    command: celery -A config beat -l info --schedule /tmp/celerybeat-schedule
+  web:
+    build: {context: ., dockerfile: docker/caddy/Dockerfile}
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - staticfiles:/srv/backend-static:ro
+    depends_on:
+      backend: {condition: service_healthy}
+
+volumes:
+  pgdata:
+  redisdata:
+  neo4jdata:
+  media:
+  staticfiles:
+  caddy_data:
+  caddy_config:
