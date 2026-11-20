@@ -64,7 +64,7 @@ export function CardGrid({
 }) {
   return (
     <div
-      className="grid gap-4"
+      className="stagger grid gap-4"
       style={{
         gridTemplateColumns: `repeat(auto-fill, minmax(min(${min}, 100%), 1fr))`,
       }}

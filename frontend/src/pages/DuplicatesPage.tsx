@@ -1,6 +1,16 @@
+import { EChart } from "../components/charts/EChart";
+import { DocTile, FlowLine } from "../components/ui/visuals";
+import {
+  Card3D,
+  CardGrid,
+  Chip,
+  Ring,
+  useViewMode,
+  ViewToggle,
+} from "../components/ui/cards";
 import { PageHero } from "../components/scenes/PageHero";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api, ApiError, downloadFile } from "../api/client";
 import type {
   DuplicateCandidate,
@@ -193,7 +203,24 @@ function CandidatePanel({
   );
 }
 
+const AX3D = {
+  axisLabel: { textStyle: { color: "#b8bde0" } },
+  axisLine: { lineStyle: { color: "#4b5195" } },
+  splitLine: { lineStyle: { color: "rgba(129,140,248,0.18)" } },
+  axisPointer: { show: false },
+};
+const VIEW3D = {
+  autoRotate: true,
+  autoRotateSpeed: 6,
+  distance: 200,
+  alpha: 24,
+  beta: 30,
+  zoomSensitivity: 0,
+  panSensitivity: 0,
+};
+
 function CandidatesTab() {
+  const [view, setView] = useViewMode("dup-cands");
   const qc = useQueryClient();
   const [kind, setKind] = useState("");
   const [cls, setCls] = useState("");
@@ -209,6 +236,58 @@ function CandidatesTab() {
         signal,
       ),
   });
+  const chart3d = useMemo(() => {
+    const classes = Object.keys(CLASS_LABEL) as MatchClass[];
+    const statuses = Object.keys(STATUS_LABEL) as ReviewStatus[];
+    const count = new Map<string, number>();
+    (q.data?.results ?? []).forEach((c) => {
+      const k = `${c.match_class}|${c.review_status}`;
+      count.set(k, (count.get(k) ?? 0) + 1);
+    });
+    const data = classes.flatMap((c) =>
+      statuses.map((st) => [
+        CLASS_LABEL[c],
+        STATUS_LABEL[st],
+        count.get(`${c}|${st}`) ?? 0,
+      ]),
+    );
+    return {
+      tooltip: {},
+      visualMap: {
+        show: false,
+        max: Math.max(1, ...data.map((d) => d[2] as number)),
+        dimension: 2,
+        inRange: { color: ["#4f46e5", "#a78bfa", "#fbbf24", "#f472b6"] },
+      },
+      xAxis3D: {
+        type: "category",
+        data: classes.map((c) => CLASS_LABEL[c]),
+        ...AX3D,
+      },
+      yAxis3D: {
+        type: "category",
+        data: statuses.map((st) => STATUS_LABEL[st]),
+        ...AX3D,
+      },
+      zAxis3D: { type: "value", minInterval: 1, ...AX3D },
+      grid3D: {
+        boxWidth: 130,
+        boxDepth: 60,
+        environment: "none",
+        light: { main: { intensity: 1.3 }, ambient: { intensity: 0.5 } },
+        viewControl: VIEW3D,
+      },
+      series: [
+        {
+          type: "bar3D",
+          data,
+          shading: "lambert",
+          bevelSize: 0.25,
+          barSize: 14,
+        },
+      ],
+    };
+  }, [q.data]);
   const sel =
     (set: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => {
       set(e.target.value);
@@ -260,6 +339,21 @@ function CandidatesTab() {
           </select>
         </label>
       </div>
+      {q.data && q.data.results.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-indigo-400/20 bg-white/[0.03] p-3">
+          <h2 className="text-base font-semibold">
+            Candidates by class and review state
+          </h2>
+          <p className="text-xs text-slate-500">
+            3D view of this page · drag to rotate
+          </p>
+          <EChart
+            option={chart3d}
+            height={300}
+            label="3D bar chart counting duplicate candidates by match class and review status"
+          />
+        </div>
+      )}
       <div className="mt-3">
         {q.isPending && <LoadingState />}
         {q.isError && (
@@ -276,45 +370,119 @@ function CandidatesTab() {
         )}
         {q.data && q.data.results.length > 0 && (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-slate-300 text-slate-600">
-                  <tr>
-                    <th className="py-1">#</th>
-                    <th>Kind</th>
-                    <th>Class</th>
-                    <th className="text-right">Score</th>
-                    <th>Records</th>
-                    <th>Review</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="space-y-3">
+              <ViewToggle mode={view} onChange={setView} />
+              {view === "cards" ? (
+                <CardGrid min="21rem">
                   {q.data.results.map((c) => (
-                    <tr
+                    <Card3D
                       key={c.id}
-                      className={`border-b border-slate-100 ${selected === c.id ? "bg-slate-100" : ""}`}
+                      tone={
+                        c.match_class === "exact"
+                          ? "red"
+                          : c.match_class === "strong_similar"
+                            ? "amber"
+                            : c.match_class === "potential"
+                              ? "violet"
+                              : "green"
+                      }
+                      selected={selected === c.id}
                     >
-                      <td className="py-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <button
-                          className="text-blue-700 hover:underline"
+                          className="font-mono text-blue-700 hover:underline"
                           onClick={() => setSelected(c.id)}
                         >
                           {c.id}
                         </button>
-                      </td>
-                      <td className="capitalize">{c.kind}</td>
-                      <td>{CLASS_LABEL[c.match_class]}</td>
-                      <td className="text-right tabular-nums">
-                        {c.similarity_score.toFixed(1)}
-                      </td>
-                      <td>
-                        #{c.record_a_id} ~ #{c.record_b_id}
-                      </td>
-                      <td>{STATUS_LABEL[c.review_status]}</td>
-                    </tr>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Chip tone="indigo">
+                            <span className="capitalize">{c.kind}</span>
+                          </Chip>
+                          <Chip
+                            tone={
+                              c.review_status === "pending"
+                                ? "amber"
+                                : c.review_status === "confirmed_duplicate"
+                                  ? "red"
+                                  : "green"
+                            }
+                          >
+                            {STATUS_LABEL[c.review_status]}
+                          </Chip>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center gap-2">
+                        <DocTile label={`#${c.record_a_id}`} tone="indigo" />
+                        <FlowLine />
+                        <Ring
+                          value={c.similarity_score}
+                          max={100}
+                          decimals={1}
+                          size={68}
+                          tone={
+                            c.similarity_score >= 95
+                              ? "red"
+                              : c.similarity_score >= 85
+                                ? "amber"
+                                : "violet"
+                          }
+                        />
+                        <FlowLine />
+                        <DocTile
+                          label={`#${c.record_b_id}`}
+                          tone="amber"
+                          delay={0.8}
+                        />
+                      </div>
+                      <p className="mt-3 text-sm font-medium text-slate-800">
+                        {CLASS_LABEL[c.match_class]}
+                      </p>
+                    </Card3D>
                   ))}
-                </tbody>
-              </table>
+                </CardGrid>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b border-slate-300 text-slate-600">
+                      <tr>
+                        <th className="py-1">#</th>
+                        <th>Kind</th>
+                        <th>Class</th>
+                        <th className="text-right">Score</th>
+                        <th>Records</th>
+                        <th>Review</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {q.data.results.map((c) => (
+                        <tr
+                          key={c.id}
+                          className={`border-b border-slate-100 ${selected === c.id ? "bg-slate-100" : ""}`}
+                        >
+                          <td className="py-1">
+                            <button
+                              className="text-blue-700 hover:underline"
+                              onClick={() => setSelected(c.id)}
+                            >
+                              {c.id}
+                            </button>
+                          </td>
+                          <td className="capitalize">{c.kind}</td>
+                          <td>{CLASS_LABEL[c.match_class]}</td>
+                          <td className="text-right tabular-nums">
+                            {c.similarity_score.toFixed(1)}
+                          </td>
+                          <td>
+                            #{c.record_a_id} ~ #{c.record_b_id}
+                          </td>
+                          <td>{STATUS_LABEL[c.review_status]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
             <div className="mt-3 flex items-center gap-3 text-sm">
               <Button
@@ -476,6 +644,7 @@ function InvoicePanel({
 }
 
 function InvoicesTab() {
+  const [view, setView] = useViewMode("dup-invoices");
   const { can } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
@@ -539,49 +708,118 @@ function InvoicesTab() {
           />
         )}
         {q.data && q.data.results.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-300 text-slate-600">
-                <tr>
-                  <th className="py-1">#</th>
-                  <th>File</th>
-                  <th>Vendor</th>
-                  <th>Number</th>
-                  <th className="text-right">Amount</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th className="text-right">OCR</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="space-y-3">
+            <ViewToggle mode={view} onChange={setView} />
+            {view === "cards" ? (
+              <CardGrid min="19rem">
                 {q.data.results.map((i) => (
-                  <tr
+                  <Card3D
                     key={i.id}
-                    className={`border-b border-slate-100 ${selected === i.id ? "bg-slate-100" : ""}`}
+                    tone={
+                      i.status === "failed"
+                        ? "red"
+                        : i.verified_at
+                          ? "green"
+                          : "amber"
+                    }
+                    selected={selected === i.id}
                   >
-                    <td className="py-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <button
-                        className="text-blue-700 hover:underline"
+                        className="font-mono text-blue-700 hover:underline"
                         onClick={() => setSelected(i.id)}
                       >
                         {i.id}
                       </button>
-                    </td>
-                    <td>{i.original_name}</td>
-                    <td>{i.vendor_name || "—"}</td>
-                    <td>{i.invoice_number || "—"}</td>
-                    <td className="text-right tabular-nums">
-                      {i.amount ?? "—"}
-                    </td>
-                    <td>{i.invoice_date ?? "—"}</td>
-                    <td className="capitalize">{i.status.replace("_", " ")}</td>
-                    <td className="text-right tabular-nums">
-                      {i.ocr_confidence !== null ? `${i.ocr_confidence}%` : "—"}
-                    </td>
-                  </tr>
+                      <Chip tone="indigo">
+                        <span className="capitalize">
+                          {i.status.replace("_", " ")}
+                        </span>
+                      </Chip>
+                    </div>
+                    <div className="mt-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="break-all text-sm font-semibold text-slate-800">
+                          {i.vendor_name || "Unknown vendor"}
+                        </h3>
+                        <p className="break-all text-xs text-slate-500">
+                          {i.original_name}
+                        </p>
+                        <p className="mt-2 text-xs text-slate-600">
+                          No. {i.invoice_number || "—"} ·{" "}
+                          {i.invoice_date ?? "—"}
+                        </p>
+                      </div>
+                      {i.ocr_confidence !== null && (
+                        <Ring
+                          value={i.ocr_confidence}
+                          max={100}
+                          decimals={0}
+                          size={64}
+                          label="OCR %"
+                          tone={i.ocr_confidence >= 85 ? "green" : "amber"}
+                        />
+                      )}
+                    </div>
+                    <p className="mt-auto pt-3 text-xl font-semibold tabular-nums">
+                      <span className="gradient-text">{i.amount ?? "—"}</span>{" "}
+                      <span className="text-xs text-slate-500">
+                        {i.currency}
+                      </span>
+                    </p>
+                  </Card3D>
                 ))}
-              </tbody>
-            </table>
+              </CardGrid>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-300 text-slate-600">
+                    <tr>
+                      <th className="py-1">#</th>
+                      <th>File</th>
+                      <th>Vendor</th>
+                      <th>Number</th>
+                      <th className="text-right">Amount</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th className="text-right">OCR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {q.data.results.map((i) => (
+                      <tr
+                        key={i.id}
+                        className={`border-b border-slate-100 ${selected === i.id ? "bg-slate-100" : ""}`}
+                      >
+                        <td className="py-1">
+                          <button
+                            className="text-blue-700 hover:underline"
+                            onClick={() => setSelected(i.id)}
+                          >
+                            {i.id}
+                          </button>
+                        </td>
+                        <td>{i.original_name}</td>
+                        <td>{i.vendor_name || "—"}</td>
+                        <td>{i.invoice_number || "—"}</td>
+                        <td className="text-right tabular-nums">
+                          {i.amount ?? "—"}
+                        </td>
+                        <td>{i.invoice_date ?? "—"}</td>
+                        <td className="capitalize">
+                          {i.status.replace("_", " ")}
+                        </td>
+                        <td className="text-right tabular-nums">
+                          {i.ocr_confidence !== null
+                            ? `${i.ocr_confidence}%`
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </div>

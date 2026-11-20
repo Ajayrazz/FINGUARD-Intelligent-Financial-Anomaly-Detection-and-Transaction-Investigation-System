@@ -6,6 +6,8 @@ interface Paged<T> { results: T[] }
 
 async function scan(page: Page, label: string) {
   await page.waitForLoadState('networkidle')
+  // entrance animations change opacity/position; scan the settled page (endless decorative loops are ignored)
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))))
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
   return r.violations.map((v) => ({ page: label, id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, sample: v.nodes[0]?.target.join(' ') ?? '' }))
 }

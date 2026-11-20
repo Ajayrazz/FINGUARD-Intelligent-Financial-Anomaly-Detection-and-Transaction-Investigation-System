@@ -1,6 +1,15 @@
+import { EChart } from "../components/charts/EChart";
+import { MiniBars, StackBar, ThresholdBar } from "../components/ui/visuals";
+import {
+  Card3D,
+  CardGrid,
+  Ring,
+  useViewMode,
+  ViewToggle,
+} from "../components/ui/cards";
 import { PageHero } from "../components/scenes/PageHero";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type {
@@ -57,13 +66,11 @@ function ConfigCard({
       toast("error", e instanceof ApiError ? e.message : "Could not activate"),
   });
   return (
-    <div
-      className={`rounded-md border p-3 text-sm ${cfg.is_active ? "border-slate-900" : "border-slate-200"}`}
-    >
+    <Card3D tone={cfg.is_active ? "pink" : "indigo"} selected={cfg.is_active}>
       <p className="font-semibold">
         Version {cfg.version}{" "}
         {cfg.is_active && (
-          <span className="rounded bg-slate-900 px-1.5 text-xs font-normal text-white">
+          <span className="animate-glow rounded bg-indigo-600 px-1.5 text-xs font-normal text-white">
             active
           </span>
         )}{" "}
@@ -71,12 +78,25 @@ function ConfigCard({
           · {cfg.source}
         </span>
       </p>
-      <p className="mt-1 text-slate-700">
+      <div className="mt-3">
+        <StackBar
+          parts={COMPONENT_ORDER.map((k) => ({
+            label: COMPONENT_LABEL[k].name,
+            value: cfg.weights[k],
+          }))}
+        />
+      </div>
+      <p className="mt-2 text-sm text-slate-700">
         {COMPONENT_ORDER.map(
           (k) => `${k} ${(cfg.weights[k] * 100).toFixed(0)}%`,
         ).join(" · ")}
       </p>
-      <p className="text-slate-700">
+      <ThresholdBar
+        medium={cfg.thresholds.medium}
+        high={cfg.thresholds.high}
+        critical={cfg.thresholds.critical}
+      />
+      <p className="mt-2 text-sm text-slate-700">
         Medium ≥ {cfg.thresholds.medium} · High ≥ {cfg.thresholds.high} ·
         Critical ≥ {cfg.thresholds.critical} · policy{" "}
         {cfg.missing_signal_policy} · min coverage{" "}
@@ -86,7 +106,7 @@ function ConfigCard({
       {cfg.notes && <p className="mt-1 text-xs text-slate-500">{cfg.notes}</p>}
       {canConfigure && !cfg.is_active && (
         <Button
-          className="mt-2"
+          className="mt-3 self-start"
           variant="secondary"
           disabled={activate.isPending}
           onClick={() => activate.mutate()}
@@ -94,7 +114,7 @@ function ConfigCard({
           Activate version {cfg.version}
         </Button>
       )}
-    </div>
+    </Card3D>
   );
 }
 
@@ -145,7 +165,7 @@ function NewConfigForm({
   });
   return (
     <form
-      className="mt-3 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm"
+      className="mt-4 space-y-3 rounded-2xl border border-indigo-400/30 bg-white/[0.04] p-4 text-sm"
       onSubmit={(e) => {
         e.preventDefault();
         create.mutate();
@@ -174,6 +194,15 @@ function NewConfigForm({
       >
         Weights sum to {sum.toFixed(2)} (must be 1.00)
       </p>
+      <div
+        aria-hidden="true"
+        className="h-2 overflow-hidden rounded-full bg-white/10"
+      >
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${Math.abs(sum - 1) < 1e-6 ? "bg-gradient-to-r from-emerald-400 to-cyan-400" : "bg-gradient-to-r from-pink-500 to-red-500"}`}
+          style={{ width: `${Math.min(100, Math.max(0, sum * 100))}%` }}
+        />
+      </div>
       <div className="flex flex-wrap gap-3">
         {(["medium", "high", "critical"] as const).map((k) => (
           <label key={k} className="capitalize">
@@ -220,6 +249,22 @@ function NewConfigForm({
   );
 }
 
+const AX3D = {
+  axisLabel: { textStyle: { color: "#b8bde0" } },
+  axisLine: { lineStyle: { color: "#4b5195" } },
+  splitLine: { lineStyle: { color: "rgba(129,140,248,0.18)" } },
+  axisPointer: { show: false },
+};
+const VIEW3D = {
+  autoRotate: true,
+  autoRotateSpeed: 6,
+  distance: 200,
+  alpha: 24,
+  beta: 30,
+  zoomSensitivity: 0,
+  panSensitivity: 0,
+};
+
 export default function RiskAnalysisPage() {
   const { can } = useAuth();
   const qc = useQueryClient();
@@ -227,6 +272,7 @@ export default function RiskAnalysisPage() {
   const [dataset, setDataset] = useState("");
   const [category, setCategory] = useState<"" | RiskCategory>("");
   const [selected, setSelected] = useState<number | null>(null);
+  const [view, setView] = useViewMode("risk-rows");
   const datasets = useQuery({
     queryKey: ["datasets"],
     queryFn: ({ signal }) => api.get<Dataset[]>("/datasets/", signal),
@@ -245,6 +291,25 @@ export default function RiskAnalysisPage() {
   });
   const latest = (runs.data?.results ?? []).find(
     (r) => String(r.dataset) === dataset && r.status === "succeeded",
+  );
+  const distChart = useMemo(
+    () => ({
+      tooltip: { trigger: "item" },
+      series: [
+        {
+          type: "pie",
+          roseType: "radius",
+          radius: ["15%", "75%"],
+          itemStyle: { borderRadius: 8 },
+          label: { color: "#b8bde0" },
+          data: CATEGORIES.map((c) => ({
+            name: CATEGORY_LABEL[c],
+            value: latest?.category_counts[c] ?? 0,
+          })).filter((d) => d.value > 0),
+        },
+      ],
+    }),
+    [latest],
   );
   const start = useMutation({
     mutationFn: () =>
@@ -265,6 +330,48 @@ export default function RiskAnalysisPage() {
         signal,
       ),
   });
+  const scatter3d = useMemo(
+    () => ({
+      tooltip: {},
+      visualMap: {
+        show: false,
+        min: 0,
+        max: 100,
+        dimension: 2,
+        inRange: { color: ["#34d399", "#fbbf24", "#f43f5e"] },
+      },
+      xAxis3D: {
+        type: "category",
+        data: CATEGORIES.filter((c) => c !== "unscored").map(
+          (c) => CATEGORY_LABEL[c],
+        ),
+        ...AX3D,
+      },
+      yAxis3D: { type: "value", name: "Coverage %", min: 0, max: 100, ...AX3D },
+      zAxis3D: { type: "value", name: "Score", min: 0, max: 100, ...AX3D },
+      grid3D: {
+        boxWidth: 120,
+        boxDepth: 70,
+        environment: "none",
+        viewControl: VIEW3D,
+      },
+      series: [
+        {
+          type: "scatter3D",
+          symbolSize: 14,
+          itemStyle: { opacity: 0.9 },
+          data: (rows.data?.results ?? [])
+            .filter((r) => r.overall_score !== null)
+            .map((r) => [
+              CATEGORY_LABEL[r.category],
+              Math.round(r.weight_coverage * 100),
+              r.overall_score,
+            ]),
+        },
+      ],
+    }),
+    [rows.data],
+  );
   const detail = useQuery({
     queryKey: ["risk-assessment", selected],
     enabled: selected !== null,
@@ -287,7 +394,7 @@ export default function RiskAnalysisPage() {
         findings.
       </p>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
+      <div className="animate-glow flex flex-wrap items-end gap-3 rounded-2xl border border-indigo-400/30 bg-white/[0.03] p-4">
         <label className="text-sm">
           <span className="block font-medium">Dataset</span>
           <select
@@ -326,7 +433,7 @@ export default function RiskAnalysisPage() {
         {configs.isPending && <LoadingState />}
         {configs.isError && <ErrorState message={configs.error.message} />}
         {configs.data && (
-          <div className="mt-1 grid gap-2 sm:grid-cols-2">
+          <div className="stagger mt-2 grid gap-4 md:grid-cols-2">
             {configs.data.slice(0, 4).map((c) => (
               <ConfigCard
                 key={c.id}
@@ -367,28 +474,35 @@ export default function RiskAnalysisPage() {
                 {latest.finished_at ? formatDateTime(latest.finished_at) : ""}
               </span>
             </h2>
-            <ul
-              className="mt-1 space-y-1 text-sm"
-              aria-label="Category distribution"
-            >
-              {CATEGORIES.map((c) => {
-                const n = latest.category_counts[c] ?? 0;
-                return (
-                  <li key={c} className="flex items-center gap-2">
-                    <span className="w-20">{CATEGORY_LABEL[c]}</span>
-                    <span
-                      className="h-3 rounded bg-slate-500"
-                      style={{
-                        width: `${Math.max((n / total) * 100, n > 0 ? 1 : 0)}%`,
-                        maxWidth: "60%",
-                      }}
-                      aria-hidden
-                    />
-                    <span className="tabular-nums">{n.toLocaleString()}</span>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="mt-2 grid items-center gap-4 lg:grid-cols-2">
+              <ul
+                className="space-y-2 text-sm"
+                aria-label="Category distribution"
+              >
+                {CATEGORIES.map((c) => {
+                  const n = latest.category_counts[c] ?? 0;
+                  return (
+                    <li key={c} className="flex items-center gap-2">
+                      <span className="w-20">{CATEGORY_LABEL[c]}</span>
+                      <span
+                        className="h-3 origin-left rounded bg-gradient-to-r from-indigo-500 to-pink-400 transition-all duration-700"
+                        style={{
+                          width: `${Math.max((n / total) * 100, n > 0 ? 1 : 0)}%`,
+                          maxWidth: "60%",
+                        }}
+                        aria-hidden
+                      />
+                      <span className="tabular-nums">{n.toLocaleString()}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <EChart
+                option={distChart}
+                height={220}
+                label="Rose chart of scored transactions by risk category"
+              />
+            </div>
             <p className="mt-1 text-xs text-slate-600">
               Signal coverage in this run:{" "}
               {Object.entries(latest.coverage_summary)
@@ -399,6 +513,20 @@ export default function RiskAnalysisPage() {
                 .join(" · ")}
             </p>
           </div>
+          {(rows.data?.results.length ?? 0) > 0 && (
+            <div className="rounded-2xl border border-indigo-400/20 bg-white/[0.03] p-3">
+              <h2 className="text-base font-semibold">Score landscape</h2>
+              <p className="text-xs text-slate-500">
+                Category, signal coverage and score for the shown transactions ·
+                drag to rotate
+              </p>
+              <EChart
+                option={scatter3d}
+                height={320}
+                label="3D scatter chart of risk score against signal coverage for each risk category"
+              />
+            </div>
+          )}
           <div>
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">Highest-scoring transactions</h2>
@@ -426,62 +554,140 @@ export default function RiskAnalysisPage() {
               <EmptyState title="Nothing in this category" />
             )}
             {rows.data && rows.data.results.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="mt-1 w-full text-left text-sm">
-                  <thead className="border-b border-slate-300 text-slate-600">
-                    <tr>
-                      <th className="py-1">Transaction</th>
-                      <th className="text-right">Score</th>
-                      <th>Category</th>
-                      <th className="text-right">Coverage</th>
-                      {COMPONENT_ORDER.map((k) => (
-                        <th
-                          key={k}
-                          className="text-right"
-                          title={COMPONENT_LABEL[k].name}
-                        >
-                          {k}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+              <div className="space-y-3">
+                <ViewToggle mode={view} onChange={setView} />
+                {view === "cards" ? (
+                  <CardGrid min="19rem">
                     {rows.data.results.map((r) => (
-                      <tr
+                      <Card3D
                         key={r.id}
-                        className={`border-b border-slate-100 ${selected === r.id ? "bg-slate-100" : ""}`}
+                        tone={
+                          r.category === "critical"
+                            ? "red"
+                            : r.category === "high"
+                              ? "amber"
+                              : r.category === "medium"
+                                ? "violet"
+                                : r.category === "low"
+                                  ? "green"
+                                  : "slate"
+                        }
+                        selected={selected === r.id}
                       >
-                        <td className="py-1">
-                          <button
-                            className="text-blue-700 hover:underline"
-                            onClick={() => setSelected(r.id)}
-                          >
-                            {r.external_id}
-                          </button>
-                        </td>
-                        <td className="text-right tabular-nums">
-                          {r.overall_score?.toFixed(1)}
-                        </td>
-                        <td>
-                          <RiskBadge category={r.category} />
-                          {r.capped && (
-                            <span title="held at High: low coverage"> *</span>
-                          )}
-                        </td>
-                        <td className="text-right tabular-nums">
-                          {(r.weight_coverage * 100).toFixed(0)}%
-                        </td>
-                        {COMPONENT_ORDER.map((k) => (
-                          <td key={k} className="text-right tabular-nums">
-                            {r.component_values[k] != null
-                              ? r.component_values[k]!.toFixed(0)
-                              : "–"}
-                          </td>
-                        ))}
-                      </tr>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <button
+                              className="break-all font-mono text-blue-700 hover:underline"
+                              onClick={() => setSelected(r.id)}
+                            >
+                              {r.external_id}
+                            </button>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <RiskBadge category={r.category} />
+                              {r.capped && (
+                                <span
+                                  title="held at High: low coverage"
+                                  className="text-xs text-slate-500"
+                                >
+                                  capped*
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-xs text-slate-500">
+                              Signal coverage{" "}
+                              {(r.weight_coverage * 100).toFixed(0)}%
+                            </p>
+                          </div>
+                          <Ring
+                            value={r.overall_score ?? 0}
+                            max={100}
+                            decimals={1}
+                            size={76}
+                            label="risk"
+                            tone={
+                              r.category === "critical"
+                                ? "red"
+                                : r.category === "high"
+                                  ? "amber"
+                                  : r.category === "medium"
+                                    ? "violet"
+                                    : "green"
+                            }
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <MiniBars
+                            items={COMPONENT_ORDER.map((k) => ({
+                              label: k,
+                              value: r.component_values[k] ?? null,
+                            }))}
+                          />
+                        </div>
+                      </Card3D>
                     ))}
-                  </tbody>
-                </table>
+                  </CardGrid>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="mt-1 w-full text-left text-sm">
+                      <thead className="border-b border-slate-300 text-slate-600">
+                        <tr>
+                          <th className="py-1">Transaction</th>
+                          <th className="text-right">Score</th>
+                          <th>Category</th>
+                          <th className="text-right">Coverage</th>
+                          {COMPONENT_ORDER.map((k) => (
+                            <th
+                              key={k}
+                              className="text-right"
+                              title={COMPONENT_LABEL[k].name}
+                            >
+                              {k}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.data.results.map((r) => (
+                          <tr
+                            key={r.id}
+                            className={`border-b border-slate-100 ${selected === r.id ? "bg-slate-100" : ""}`}
+                          >
+                            <td className="py-1">
+                              <button
+                                className="text-blue-700 hover:underline"
+                                onClick={() => setSelected(r.id)}
+                              >
+                                {r.external_id}
+                              </button>
+                            </td>
+                            <td className="text-right tabular-nums">
+                              {r.overall_score?.toFixed(1)}
+                            </td>
+                            <td>
+                              <RiskBadge category={r.category} />
+                              {r.capped && (
+                                <span title="held at High: low coverage">
+                                  {" "}
+                                  *
+                                </span>
+                              )}
+                            </td>
+                            <td className="text-right tabular-nums">
+                              {(r.weight_coverage * 100).toFixed(0)}%
+                            </td>
+                            {COMPONENT_ORDER.map((k) => (
+                              <td key={k} className="text-right tabular-nums">
+                                {r.component_values[k] != null
+                                  ? r.component_values[k]!.toFixed(0)
+                                  : "–"}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </div>

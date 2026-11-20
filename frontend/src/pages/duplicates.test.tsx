@@ -128,6 +128,11 @@ const handler = (
   });
 
 describe("DuplicatesPage", () => {
+  // the Table view is the accessible fallback these tests exercise
+  beforeEach(() => {
+    localStorage.setItem("fg-view-dup-cands", "table");
+    localStorage.setItem("fg-view-dup-invoices", "table");
+  });
   it("lists candidates with class and score, and shows differing fields in a side-by-side comparison", async () => {
     renderPage(["duplicates.read"], handler());
     expect(
