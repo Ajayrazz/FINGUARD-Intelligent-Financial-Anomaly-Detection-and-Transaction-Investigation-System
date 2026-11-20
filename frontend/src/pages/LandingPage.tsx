@@ -7,6 +7,7 @@ import { NetworkBackground } from "../components/fx/NetworkBackground";
 import { OrbitRing } from "../components/fx/OrbitRing";
 import { Tilt } from "../components/fx/Tilt";
 import { Icon } from "../components/landing/Icon";
+import { LandingFooter } from "../components/landing/LandingFooter";
 import { NetworkScene } from "../components/landing/NetworkScene";
 import { usePageTitle } from "../lib/usePageTitle";
 
@@ -414,16 +415,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="relative z-10 border-t border-indigo-400/15 px-4 py-8 text-center text-sm text-slate-500">
-        <p className="flex items-center justify-center gap-2">
-          <Logo size={18} /> FinGuard
-        </p>
-        <p className="mx-auto mt-2 max-w-2xl">
-          Built and evaluated on public and synthetic data only. Scores and
-          flags are automated indicators for prioritising review, not proof of
-          wrongdoing.
-        </p>
-      </footer>
+      <LandingFooter signedIn={signedIn} />
     </div>
   );
 }
