@@ -143,6 +143,10 @@ describe("ModelPerformancePage", () => {
 });
 
 describe("AnomalyDetectionPage", () => {
+  // these tests exercise the accessible Table view
+  beforeEach(() => {
+    localStorage.setItem("fg-view-detection-runs", "table");
+  });
   it("lists runs, flags mock data, and hides the start form without detection.run", async () => {
     const fetchMock = vi.fn(async () =>
       ok({ count: 1, next: null, previous: null, results: [run()] }),
