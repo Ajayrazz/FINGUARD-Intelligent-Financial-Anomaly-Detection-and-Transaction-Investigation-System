@@ -5,6 +5,7 @@ import { AlertToaster } from "../components/alerts/AlertToaster";
 import { Logo } from "../components/fx/Logo";
 import { NetworkBackground } from "../components/fx/NetworkBackground";
 import { Button } from "../components/ui/Button";
+import { AppFooter } from "./AppFooter";
 
 interface NavItem {
   to: string;
@@ -144,7 +145,7 @@ export default function AppLayout() {
   }, []);
 
   return (
-    <div className="relative min-h-screen font-sans text-slate-800">
+    <div className="relative flex min-h-screen flex-col font-sans text-slate-800">
       <a href="#content" className="skip-link">
         Skip to content
       </a>
@@ -261,13 +262,25 @@ export default function AppLayout() {
         id="content"
         tabIndex={-1}
         key={pathname}
-        className="animate-rise relative z-10 mx-auto w-[min(80rem,calc(100%-1rem))] pb-10 pt-6 outline-none"
+        className="animate-rise relative z-10 mx-auto w-[min(80rem,calc(100%-1rem))] flex-1 pb-10 pt-6 outline-none"
       >
         <AlertToaster />
         <div className="glass rounded-2xl p-3 md:p-6">
           <Outlet />
         </div>
       </main>
+      <AppFooter
+        groups={[
+          {
+            label: "Overview",
+            items: [{ to: "/dashboard", label: "Dashboard" }],
+          },
+          ...groups.map((g) => ({
+            label: g.label,
+            items: g.items.map(({ to, label }) => ({ to, label })),
+          })),
+        ]}
+      />
     </div>
   );
 }
