@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    command: postgres -c max_connections=250 # two backends + two Celery pools share this database
     env_file: .env
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
@@ -64,7 +65,7 @@ services:
   worker-e2e:
     <<: *backend
     profiles: ["e2e"]
-    command: celery -A config worker -l info
+    command: celery -A config worker -l info --concurrency=2
     environment: *e2e_env
     ports: []
   frontend-e2e:
