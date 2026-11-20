@@ -239,3 +239,5 @@ html { scroll-behavior: smooth; }
 @keyframes gyro-a { to { transform: rotateX(360deg); } }
 @keyframes gyro-b { to { transform: rotateY(360deg); } }
 @keyframes gyro-c { to { transform: rotateZ(360deg); } }
+
+@keyframes trend-draw { 0% { stroke-dashoffset: 400; } 60%, 100% { stroke-dashoffset: 0; } }

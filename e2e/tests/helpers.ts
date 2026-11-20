@@ -22,12 +22,14 @@ export async function login(page: Page, role: Role, startAt = '/login'): Promise
 /** Navigate inside the SPA through the sidebar (no full page load, so no extra token refresh). */
 export async function goto(page: Page, label: string): Promise<void> {
   const nav = page.getByRole('navigation', { name: 'Main' })
-  const link = nav.getByRole('link', { name: label, exact: true })
+  // menu links carry a one-line hint after the label, so match the start of the accessible name
+  const link = nav.getByRole('link', { name: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s|$)`) })
   if (!(await link.isVisible())) {
     // the page lives inside one of the grouped menus: open them until the link shows
     for (const group of await nav.getByRole('button', { expanded: false }).filter({ hasText: /▾/ }).all()) {
       await group.click()
-      if (await link.isVisible()) break
+      const shown = await link.waitFor({ state: 'visible', timeout: 800 }).then(() => true, () => false)
+      if (shown) break
       await page.keyboard.press('Escape')
     }
   }

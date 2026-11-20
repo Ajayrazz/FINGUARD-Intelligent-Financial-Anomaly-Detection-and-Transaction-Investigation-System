@@ -203,32 +203,32 @@ Source numbering follows the master prompt module lists, in order (e.g., FR-M1-0
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
-| FR-M10-01 | Total transaction volume | P0 | 14 | Ph3-Ph12 data | Equals SQL count | Planned | TBD |
-| FR-M10-02 | Total transaction value | P0 | 14 | Ph3-Ph12 data | Equals SQL sum | Planned | TBD |
-| FR-M10-03 | Suspicious transaction count | P0 | 14 | Ph3-Ph12 data | Reconciles with risk data | Planned | TBD |
-| FR-M10-04 | High-risk account statistics | P1 | 14 | Ph3-Ph12 data | Query-backed | Planned | TBD |
-| FR-M10-05 | Daily transaction trends | P0 | 14 | Ph3-Ph12 data | Rollup-backed chart | Planned | TBD |
-| FR-M10-06 | Weekly transaction analysis | P1 | 14 | Ph3-Ph12 data | Rollup-backed | Planned | TBD |
-| FR-M10-07 | Monthly transaction analysis | P1 | 14 | Ph3-Ph12 data | Rollup-backed | Planned | TBD |
-| FR-M10-08 | Fraud detection trends | P1 | 14 | Ph3-Ph12 data | Time series | Planned | TBD |
-| FR-M10-09 | Account risk distribution | P1 | 14 | Ph3-Ph12 data | Histogram | Planned | TBD |
-| FR-M10-10 | Transaction network visualization | P0 | 7 | Ph3-Ph12 data | Overview mini-graph from real data | Planned | TBD |
-| FR-M10-11 | Risk category distribution | P0 | 14 | Ph3-Ph12 data | Chart | Planned | TBD |
-| FR-M10-12 | Detection performance analytics | P1 | 14 | Ph3-Ph12 data | From ModelEvaluation | Planned | TBD |
-| FR-M10-13 | False-positive analysis | P1 | 14 | Ph3-Ph12 data | From case outcomes | Planned | TBD |
-| FR-M10-14 | Investigation resolution statistics | P1 | 14 | Ph3-Ph12 data | From cases | Planned | TBD |
-| FR-M10-15 | Exportable analytics reports | P1 | 14 | Ph3-Ph12 data | PDF/CSV, injection-safe | Planned | TBD |
-| FR-M10-16 | Model performance comparisons | P1 | 14 | Ph3-Ph12 data | Compare view | Planned | TBD |
-| FR-M10-17 | Historical trends | P1 | 14 | Ph3-Ph12 data | Long-range chart | Planned | TBD |
-| FR-M10-18 | Recent suspicious activity | P0 | 14 | Ph3-Ph12 data | Live list | Planned | TBD |
-| FR-M10-19 | Investigation status summaries | P0 | 14 | Ph3-Ph12 data | Counts by status | Planned | TBD |
+| FR-M10-01 | Total transaction volume | P0 | 14 | Ph3-Ph12 data | Equals SQL count | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-02 | Total transaction value | P0 | 14 | Ph3-Ph12 data | Equals SQL sum | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-03 | Suspicious transaction count | P0 | 14 | Ph3-Ph12 data | Reconciles with risk data | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-04 | High-risk account statistics | P1 | 14 | Ph3-Ph12 data | Query-backed | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-05 | Daily transaction trends | P0 | 14 | Ph3-Ph12 data | Rollup-backed chart | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-06 | Weekly transaction analysis | P1 | 14 | Ph3-Ph12 data | Rollup-backed | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-07 | Monthly transaction analysis | P1 | 14 | Ph3-Ph12 data | Rollup-backed | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-08 | Fraud detection trends | P1 | 14 | Ph3-Ph12 data | Time series | Implemented (flagged series) | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-09 | Account risk distribution | P1 | 14 | Ph3-Ph12 data | Histogram | Partial: category distribution + top accounts list, no histogram | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-10 | Transaction network visualization | P0 | 7 | Ph3-Ph12 data | Overview mini-graph from real data | Not built: dashboard mini-graph | n/a |
+| FR-M10-11 | Risk category distribution | P0 | 14 | Ph3-Ph12 data | Chart | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-12 | Detection performance analytics | P1 | 14 | Ph3-Ph12 data | From ModelEvaluation | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-13 | False-positive analysis | P1 | 14 | Ph3-Ph12 data | From case outcomes | Implemented (case/alert outcomes + labelled research view) | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-14 | Investigation resolution statistics | P1 | 14 | Ph3-Ph12 data | From cases | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-15 | Exportable analytics reports | P1 | 14 | Ph3-Ph12 data | PDF/CSV, injection-safe | Implemented (GET export, csv/pdf) | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-16 | Model performance comparisons | P1 | 14 | Ph3-Ph12 data | Compare view | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-17 | Historical trends | P1 | 14 | Ph3-Ph12 data | Long-range chart | Implemented (daily/weekly/monthly series) | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-18 | Recent suspicious activity | P0 | 14 | Ph3-Ph12 data | Live list | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
+| FR-M10-19 | Investigation status summaries | P0 | 14 | Ph3-Ph12 data | Counts by status | Implemented | tests/test_analytics.py; pages/analytics.test.tsx; e2e analytics.spec.ts |
 
 ## UI Pages
 
 | ID | Requirement | Prio | Phase | Dependencies | Acceptance criteria | Status | Tests |
 |---|---|---|---|---|---|---|---|
 | FR-UI-01 | Login page | P0 | 2 | per feature phase; completion Ph13 | Auth flow + states | Implemented | frontend auth.test.tsx (component tests only; no browser E2E yet) |
-| FR-UI-02 | Overview Dashboard page | P0 | 14 | per feature phase; completion Ph13 | Real KPIs; states | Planned | TBD |
+| FR-UI-02 | Overview Dashboard page | P0 | 14 | per feature phase; completion Ph13 | Real KPIs; states | Implemented | e2e a11y/responsive/journey specs; dashboard live |
 | FR-UI-03 | Transactions page | P0 | 3 | per feature phase; completion Ph13 | Table+import wizard; states | Implemented | pages/transactions.test.tsx (component tests; not browser-tested) |
 | FR-UI-04 | Anomaly Detection page | P0 | 5 | per feature phase; completion Ph13 | Real runs/scores | Implemented | pages/detection.test.tsx (component tests; not browser-tested) |
 | FR-UI-05 | Account Behavior page | P0 | 6 | per feature phase; completion Ph13 | Real profiles/trends | Implemented | pages/behavior.test.tsx (component tests; not browser-tested) |

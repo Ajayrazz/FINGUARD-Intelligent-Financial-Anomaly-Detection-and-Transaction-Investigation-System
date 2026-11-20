@@ -43,6 +43,10 @@ services:
     <<: *backend
     command: celery -A config worker -l info
     ports: []
+  beat:
+    <<: *backend
+    command: celery -A config beat -l info --schedule /tmp/celerybeat-schedule
+    ports: []
   frontend:
     build: {context: ., dockerfile: docker/frontend/Dockerfile}
     environment:

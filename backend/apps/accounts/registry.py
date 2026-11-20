@@ -70,6 +70,9 @@ PERMISSIONS: dict[str, str] = {
     "cases.comment": "Add comments to a case",
     "cases.note": "Add and edit investigation notes",
     "cases.evidence": "Upload and download case evidence",
+    "analytics.read": "View analytics dashboards and metrics",
+    "analytics.export": "Export analytics reports (CSV, PDF)",
+    "analytics.refresh": "Rebuild the analytics rollup tables",
 }
 
 # Defaults for non-super-admin roles (super admin always receives every permission).
@@ -109,6 +112,9 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "cases.summary",
         "cases.create",
         "cases.comment",
+        "analytics.read",
+        "analytics.export",
+        "analytics.refresh",
     },
     FRAUD_INVESTIGATOR: {
         "datasets.read",
@@ -142,6 +148,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "cases.comment",
         "cases.note",
         "cases.evidence",
+        "analytics.read",
+        "analytics.export",
     },
     AUDITOR: {
         "users.read",
@@ -162,6 +170,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "alerts.summary",
         "cases.read",
         "cases.summary",
+        "analytics.read",
+        "analytics.export",
     },
-    MANAGEMENT: {"alerts.summary", "cases.summary"},
+    MANAGEMENT: {"alerts.summary", "cases.summary", "analytics.read", "analytics.export"},
 }

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.explain",
     "apps.alerts",
     "apps.cases",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
@@ -208,6 +209,9 @@ CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 60 * 60
 CELERY_TIMEZONE = "UTC"
+CELERY_BEAT_SCHEDULE = {
+    "analytics-refresh-hourly": {"task": "analytics.refresh_all", "schedule": 3600.0},
+}
 
 LOGGING = {
     "version": 1,

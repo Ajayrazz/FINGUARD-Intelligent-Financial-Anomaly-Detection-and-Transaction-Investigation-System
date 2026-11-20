@@ -20,7 +20,7 @@ test('every page, as the Super Admin, has no WCAG 2.1 A/AA violations that axe c
   const cases = (await api<Paged<{ id: number }>>(page, '/cases/?page_size=1')).results[0]!
   const alerts = (await api<Paged<{ id: number }>>(page, '/alerts/?page_size=1')).results[0]!
   const routes: [string, string][] = [
-    ['login', '/login'], ['dashboard', '/dashboard'], ['transactions', '/transactions'], ['transaction detail', `/transactions/${tx.id}`], ['account', `/accounts/${account.id}`],
+    ['login', '/login'], ['dashboard', '/dashboard'], ['analytics', '/analytics'], ['transactions', '/transactions'], ['transaction detail', `/transactions/${tx.id}`], ['account', `/accounts/${account.id}`],
     ['account behaviour', `/accounts/${account.id}/behavior`], ['account network', `/accounts/${account.id}/graph`], ['imports', '/imports'], ['import wizard', '/imports/new'],
     ['detection', '/detection'], ['graph', '/graph'], ['duplicates', '/duplicates'], ['risk', '/risk'], ['alerts', `/alerts?open=${alerts.id}`], ['cases', '/cases'],
     ['case workspace', `/cases/${cases.id}`], ['models', '/models'], ['users', '/users'], ['audit', '/audit'],

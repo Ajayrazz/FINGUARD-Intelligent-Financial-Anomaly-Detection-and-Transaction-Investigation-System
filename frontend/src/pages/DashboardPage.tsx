@@ -5,6 +5,7 @@ import { api, type ReadinessResponse } from "../api/client";
 import type {
   AlertRow,
   AlertSummary,
+  AnalyticsOverview,
   AuditLogEntry,
   CaseRow,
   CaseSummary,
@@ -137,6 +138,12 @@ export default function DashboardPage() {
       ),
   });
 
+  const analytics = useQuery({
+    queryKey: ["analytics", "overview", ""],
+    enabled: can("analytics.read"),
+    queryFn: ({ signal }) =>
+      api.get<AnalyticsOverview>("/analytics/overview/?", signal),
+  });
   const live = { refetchInterval: 20000 } as const;
   const recentAlerts = useQuery({
     queryKey: ["dash-alerts"],
@@ -744,6 +751,25 @@ export default function DashboardPage() {
           </li>
         ))}
       </ol>
+
+      {can("analytics.read") && (
+        <section aria-labelledby="analytics-glance">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 id="analytics-glance" className="text-base font-semibold">
+              Analytics at a glance
+            </h2>
+            <Link to="/analytics" className="text-sm text-blue-700">
+              Open analytics →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatTile label="Transactions" value={analytics.data?.transactions ?? 0} tone="indigo" />
+            <StatTile label="Flagged" value={analytics.data?.flagged ?? 0} tone="pink" hint="latest detection run" />
+            <StatTile label="High risk" value={analytics.data?.high_risk_transactions ?? 0} tone="amber" hint="high + critical" />
+            <StatTile label="Open cases" value={analytics.data?.open_cases ?? 0} tone="violet" />
+          </div>
+        </section>
+      )}
 
       {hasAny && (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">

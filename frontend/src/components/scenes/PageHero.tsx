@@ -12,6 +12,7 @@ import {
   MergeScene,
   PeopleScene,
   RadarScene,
+  TrendScene,
 } from "./Scenes";
 
 const SCENES = {
@@ -26,6 +27,7 @@ const SCENES = {
   bars: BarsScene,
   people: PeopleScene,
   gyro: GyroScene,
+  trend: TrendScene,
   ledger: LedgerScene,
 } as const;
 

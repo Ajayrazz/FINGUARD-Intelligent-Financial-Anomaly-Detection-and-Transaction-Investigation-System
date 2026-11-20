@@ -311,3 +311,60 @@ export function GyroScene() {
     </div>
   );
 }
+
+export function TrendScene() {
+  return (
+    <div className="scene-3d flex h-full items-center justify-center">
+      <svg
+        viewBox="0 0 220 120"
+        className="h-40 w-72"
+        style={{ transform: "rotateX(18deg) rotateY(-14deg)" }}
+      >
+        <defs>
+          <linearGradient id="trend" x1="0" x2="1">
+            <stop offset="0" stopColor="#22d3ee" />
+            <stop offset="1" stopColor="#f472b6" />
+          </linearGradient>
+        </defs>
+        {[30, 60, 90].map((y) => (
+          <line
+            key={y}
+            x1="10"
+            x2="210"
+            y1={y}
+            y2={y}
+            stroke="rgb(129 140 248 / 0.25)"
+          />
+        ))}
+        <polyline
+          points="10,95 45,70 80,82 115,45 150,58 185,22 210,30"
+          fill="none"
+          stroke="url(#trend)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="flow-dash"
+          style={{
+            filter: "drop-shadow(0 0 6px #f472b6)",
+            strokeDasharray: "400",
+            animation: "trend-draw 4s ease-in-out infinite",
+          }}
+        />
+        {[
+          [45, 70],
+          [115, 45],
+          [185, 22],
+        ].map(([x, y]) => (
+          <circle
+            key={x}
+            cx={x}
+            cy={y}
+            r="5"
+            fill="#fff"
+            className="animate-glow"
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}

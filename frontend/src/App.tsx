@@ -8,6 +8,7 @@ import AppLayout from "./layout/AppLayout";
 import CaseDetailPage from "./pages/CaseDetailPage";
 import CasesPage from "./pages/CasesPage";
 import AlertsPage from "./pages/AlertsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import AccountBehaviorPage from "./pages/AccountBehaviorPage";
 import AccountPage from "./pages/AccountPage";
 import AnomalyDetectionPage from "./pages/AnomalyDetectionPage";
@@ -48,6 +49,11 @@ export default function App() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route path="dashboard" element={<DashboardPage />} />
+                  <Route
+                    element={<ProtectedRoute permission="analytics.read" />}
+                  >
+                    <Route path="analytics" element={<AnalyticsPage />} />
+                  </Route>
                   <Route
                     element={<ProtectedRoute permission="transactions.read" />}
                   >

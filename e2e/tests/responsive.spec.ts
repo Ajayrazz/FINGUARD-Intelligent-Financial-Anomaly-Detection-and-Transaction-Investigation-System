@@ -30,7 +30,7 @@ for (const width of [360, 768]) {
     const tx = (await api<Paged<{ id: number }>>(page, '/transactions/?page_size=1')).results[0]!
     const account = (await api<Paged<{ id: number }>>(page, '/accounts/?page_size=1')).results[0]!
     const cases = (await api<Paged<{ id: number }>>(page, '/cases/?page_size=1')).results[0]!
-    const routes = ['/dashboard', '/transactions', `/transactions/${tx.id}`, `/accounts/${account.id}`, `/accounts/${account.id}/behavior`, `/accounts/${account.id}/graph`, '/imports', '/imports/new',
+    const routes = ['/dashboard', '/analytics', '/transactions', `/transactions/${tx.id}`, `/accounts/${account.id}`, `/accounts/${account.id}/behavior`, `/accounts/${account.id}/graph`, '/imports', '/imports/new',
       '/detection', '/graph', '/duplicates', '/risk', '/alerts', '/cases', `/cases/${cases.id}`, '/models', '/users', '/audit']
     const bad: string[] = []
     for (const path of routes) {

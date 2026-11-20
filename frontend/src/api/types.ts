@@ -767,3 +767,92 @@ export interface CaseSummary {
   outcomes: Partial<Record<CaseOutcome, number>>;
   unassigned_open: number;
 }
+
+/* ---------------- analytics (Phase 14) ---------------- */
+export interface AnalyticsOverview {
+  transactions: number;
+  value: string;
+  flagged: number;
+  high_risk_transactions: number;
+  open_alerts: number;
+  open_cases: number;
+  datasets: number;
+  refreshed_at: string | null;
+}
+export interface VolumePoint {
+  period: string;
+  transactions: number;
+  value: string;
+  flagged: number;
+}
+export interface RiskDistribution {
+  counts: Record<string, number>;
+  total: number;
+  runs: number[];
+}
+export interface HighRiskAccount {
+  account: number;
+  account_ref: string;
+  dataset: number;
+  max_score: number;
+  assessments: number;
+  high_or_critical: number;
+}
+export interface SuspiciousTx {
+  transaction: number;
+  external_id: string;
+  account_ref: string;
+  amount: string;
+  occurred_at: string;
+  score: number;
+  category: string;
+}
+export interface InvestigationsSummary {
+  total: number;
+  by_status: Record<string, number>;
+  by_priority: Record<string, number>;
+  by_outcome: Record<string, number>;
+  resolved: number;
+  resolution_hours: {
+    mean: number | null;
+    median: number | null;
+    max: number | null;
+  };
+}
+export interface FalsePositives {
+  investigated: {
+    alerts: {
+      false_positive: number;
+      true_positive: number;
+      rate: number | null;
+    };
+    cases: {
+      false_positive: number;
+      confirmed_suspicious: number;
+      rate: number | null;
+    };
+  };
+  labelled: {
+    runs: number[];
+    tp: number;
+    fp: number;
+    fn: number;
+    tn: number;
+    precision: number | null;
+    recall: number | null;
+    false_positive_rate: number | null;
+  };
+}
+export interface DetectionPerf {
+  id: number;
+  model: string;
+  algorithm: string;
+  dataset: string;
+  pr_auc: number | null;
+  roc_auc: number | null;
+  recall_at_fpr_1pct: number | null;
+  base_rate: number | null;
+  latency_ms_median: number | null;
+  latency_ms_p95: number | null;
+  throughput_rows_per_s: number | null;
+}

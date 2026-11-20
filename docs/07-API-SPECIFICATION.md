@@ -108,7 +108,9 @@ Base: `/api/v1/`. Docs: `/api/schema/`, `/api/docs/` (drf-spectacular). JSON onl
 | GET | `/cases/{id}/timeline/` · `/graph/` · `/report/` (PDF) | | cases.read |
 
 ### Analytics
-`GET /analytics/overview/` · `/volume/?granularity=` · `/value/` · `/suspicious/` · `/risk-distribution/` · `/accounts/high-risk/` · `/fraud-trends/` · `/detection-performance/` · `/false-positives/` · `/investigations/summary/` · `/recent-suspicious/` — filters: dataset, date range. Export: `POST /reports/` with analytics type.
+All under `/analytics/`, filters `dataset`, `from`, `to` (YYYY-MM-DD) unless noted; `analytics.read`.
+`GET datasets/` (id and name only) · `overview/` (transactions, value, flagged, high-risk, open alerts/cases, `refreshed_at`) · `volume/?granularity=day|week|month` (transactions, value, flagged per period) · `risk-distribution/` (latest succeeded risk run per dataset) · `accounts/high-risk/` · `recent-suspicious/` · `investigations/summary/` (by status/priority/outcome, resolution hours mean/median/max) · `false-positives/` (investigator decisions + labelled research view) · `detection-performance/` (test-split PR-AUC/ROC-AUC/recall@1%FPR, measured latency/throughput; no filters).
+`GET export/?report=volume|risk-distribution|high-risk-accounts|false-positives|investigations|recent-suspicious&file=csv|pdf` (`analytics.export`, audited `analytics.exported`). `POST refresh/[?dataset=]` rebuilds the daily rollup (`analytics.refresh`, audited). Invalid dataset, date, granularity, report or file → 400 `validation_error`. Fraud trends are the `flagged` series of `volume/`.
 
 ### Audit, jobs, system
 `GET /audit/logs/` (filters actor/action/resource/date; auditor+admin) · `GET /jobs/{type}/{id}/` · `GET /health/` (liveness) · `GET /health/ready/` (db, redis, neo4j) · `POST /ws/ticket/` (WS auth ticket)

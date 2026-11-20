@@ -1,6 +1,7 @@
 import {
   BarChart,
   FunnelChart,
+  GaugeChart,
   LineChart,
   PictorialBarChart,
   PieChart,
@@ -28,6 +29,7 @@ import { Grid3DComponent } from "echarts-gl/components";
 import { useEffect, useRef } from "react";
 
 echarts.use([
+  GaugeChart,
   FunnelChart,
   PictorialBarChart,
   TreemapChart,

@@ -174,6 +174,13 @@ export default function AppLayout() {
                   Dashboard
                 </NavLink>
               </li>
+              {can("analytics.read") && (
+                <li>
+                  <NavLink to="/analytics" className={linkCls}>
+                    Analytics
+                  </NavLink>
+                </li>
+              )}
               {groups.map((g) => (
                 <li key={g.label} className="relative">
                   <button
@@ -241,6 +248,11 @@ export default function AppLayout() {
               <NavLink to="/dashboard" className={linkCls}>
                 Dashboard
               </NavLink>
+              {can("analytics.read") && (
+                <NavLink to="/analytics" className={linkCls}>
+                  Analytics
+                </NavLink>
+              )}
               {groups.map((g) => (
                 <div key={g.label}>
                   <p className="px-3 text-xs uppercase tracking-widest text-slate-500">

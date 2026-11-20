@@ -3,18 +3,21 @@ import { login, type Role } from './helpers'
 
 // The sidebar a role sees: the browser-level check of the permission matrix (the API enforces it independently).
 const NAV: Record<Role, string[]> = {
-  'super-admin': ['Dashboard', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance', 'User Management', 'Audit Logs'],
-  'financial-analyst': ['Dashboard', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance'],
-  'fraud-investigator': ['Dashboard', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance'],
-  auditor: ['Dashboard', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance', 'User Management', 'Audit Logs'],
-  management: ['Dashboard'],
+  'super-admin': ['Dashboard', 'Analytics', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance', 'User Management', 'Audit Logs'],
+  'financial-analyst': ['Dashboard', 'Analytics', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance'],
+  'fraud-investigator': ['Dashboard', 'Analytics', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance'],
+  auditor: ['Dashboard', 'Analytics', 'Transactions', 'Imports', 'Anomaly Detection', 'Relationship Graph', 'Duplicate Detection', 'Risk Analysis', 'Alerts', 'Investigations', 'Model Performance', 'User Management', 'Audit Logs'],
+  management: ['Dashboard', 'Analytics'],
 }
 
 for (const [role, expected] of Object.entries(NAV) as [Role, string[]][]) {
   test(`the ${role} sees exactly the pages their role allows`, async ({ page }) => {
     await login(page, role)
     const nav = page.getByRole('navigation', { name: 'Main' })
-    const links = await nav.getByRole('link', { name: 'Dashboard', exact: true }).allInnerTexts()
+    const links = [
+      ...(await nav.getByRole('link', { name: 'Dashboard', exact: true }).allInnerTexts()),
+      ...(await nav.getByRole('link', { name: 'Analytics', exact: true }).allInnerTexts()),
+    ]
     for (const group of await nav.getByRole('button', { expanded: false }).filter({ hasText: /▾/ }).all()) {
       await group.click()
       links.push(...(await nav.locator('[data-group-panel] a').locator('span.font-medium').allInnerTexts()))

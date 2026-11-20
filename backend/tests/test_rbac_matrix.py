@@ -210,6 +210,17 @@ def _endpoints(
         ("post", f"/api/v1/cases/{case_pk}/escalate/", {"reason": "x"}, "cases.escalate"),
         ("post", f"/api/v1/cases/{case_pk}/resolve/", {"outcome": "inconclusive", "summary": "x"}, "cases.resolve"),
         ("post", f"/api/v1/cases/{case_pk}/close/", {}, "cases.close"),
+        ("get", "/api/v1/analytics/datasets/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/overview/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/volume/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/risk-distribution/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/accounts/high-risk/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/recent-suspicious/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/investigations/summary/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/false-positives/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/detection-performance/", None, "analytics.read"),
+        ("get", "/api/v1/analytics/export/?report=volume&file=csv", None, "analytics.export"),
+        ("post", "/api/v1/analytics/refresh/", None, "analytics.refresh"),
     ]
 
 
