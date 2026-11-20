@@ -1,18 +1,39 @@
-import { BarChart, LineChart, PieChart, RadarChart } from "echarts/charts";
+import {
+  BarChart,
+  FunnelChart,
+  LineChart,
+  PictorialBarChart,
+  PieChart,
+  RadarChart,
+  TreemapChart,
+} from "echarts/charts";
 import {
   GridComponent,
   LegendComponent,
+  MarkPointComponent,
+  PolarComponent,
   RadarComponent,
   TooltipComponent,
   VisualMapComponent,
 } from "echarts/components";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { Bar3DChart, Line3DChart, Scatter3DChart } from "echarts-gl/charts";
+import {
+  Bar3DChart,
+  Line3DChart,
+  Scatter3DChart,
+  SurfaceChart,
+} from "echarts-gl/charts";
 import { Grid3DComponent } from "echarts-gl/components";
 import { useEffect, useRef } from "react";
 
 echarts.use([
+  FunnelChart,
+  PictorialBarChart,
+  TreemapChart,
+  MarkPointComponent,
+  PolarComponent,
+  SurfaceChart,
   BarChart,
   LineChart,
   PieChart,

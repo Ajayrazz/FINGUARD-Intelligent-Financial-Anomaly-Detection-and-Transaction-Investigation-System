@@ -45,7 +45,7 @@ export function AppFooter({ groups }: { groups: FooterGroup[] }) {
       </div>
 
       <div className="relative px-5 md:px-8">
-        <div className="grid gap-8 md:grid-cols-[1fr_2.6fr_1fr]">
+        <div className="grid gap-8 md:grid-cols-[1fr_3fr_1fr]">
           <div>
             <p className="flex items-center gap-2 text-lg font-semibold">
               <Logo size={24} />
@@ -67,7 +67,7 @@ export function AppFooter({ groups }: { groups: FooterGroup[] }) {
 
           <nav
             aria-label="Footer"
-            className="grid grid-cols-2 gap-6 sm:grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))]"
+            className="grid grid-cols-2 gap-6 sm:grid-cols-[repeat(auto-fit,minmax(6rem,1fr))]"
           >
             {groups.map((g) => (
               <div key={g.label}>

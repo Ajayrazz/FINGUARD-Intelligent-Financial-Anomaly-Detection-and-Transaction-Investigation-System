@@ -18,6 +18,7 @@ import type {
 } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
 import { EChart } from "../components/charts/EChart";
+import { pie3dOption } from "../components/charts/pie3d";
 import { PageHero } from "../components/scenes/PageHero";
 import { Icon } from "../components/landing/Icon";
 import { Tilt } from "../components/fx/Tilt";
@@ -72,11 +73,13 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-indigo-400/20 bg-white/[0.03] p-4">
-      <h2 className="text-base font-semibold text-slate-800">{title}</h2>
-      {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
-      <div className="mt-2">{children}</div>
-    </section>
+    <Tilt max={3} className="h-full">
+      <section className="h-full rounded-2xl border border-indigo-400/20 bg-gradient-to-br from-indigo-500/[0.07] via-white/[0.02] to-transparent p-4 shadow-lg shadow-black/30">
+        <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+        {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+        <div className="mt-2">{children}</div>
+      </section>
+    </Tilt>
   );
 }
 
@@ -213,73 +216,106 @@ export default function DashboardPage() {
     };
   }, [alerts.data, cases.data]);
 
-  const alertStatus = useMemo(
-    () => ({
-      tooltip: { trigger: "item" },
-      legend: { bottom: 0, textStyle: { color: "#b8bde0" } },
-      series: [
-        {
-          type: "pie",
-          radius: ["52%", "76%"],
-          center: ["50%", "44%"],
-          itemStyle: {
-            borderRadius: 10,
-            borderColor: "#0d0e1d",
-            borderWidth: 3,
-          },
-          label: { show: false },
-          emphasis: { scaleSize: 8 },
-          data: Object.entries(alerts.data?.by_status ?? {}).map(([k, v]) => ({
-            name: titleCase(k),
-            value: v,
-          })),
-        },
-      ],
-    }),
-    [alerts.data],
-  );
+  const alertStatus = useMemo(() => {
+    const color: Record<string, string> = {
+      new: "#f472b6",
+      acknowledged: "#22d3ee",
+      escalated: "#fbbf24",
+      closed: "#34d399",
+    };
+    return pie3dOption(
+      Object.entries(alerts.data?.by_status ?? {}).map(([k, v]) => ({
+        name: `${titleCase(k)}: ${v}`,
+        value: v ?? 0,
+        color: color[k] ?? "#818cf8",
+      })),
+    );
+  }, [alerts.data]);
 
-  const outcomes = useMemo(
-    () => ({
+  const outcomes = useMemo(() => {
+    const entries = Object.entries(cases.data?.outcomes ?? {});
+    const color: Record<string, string> = {
+      confirmed_suspicious: "#f43f5e",
+      false_positive: "#34d399",
+      inconclusive: "#fbbf24",
+      referred: "#22d3ee",
+    };
+    return {
       tooltip: { trigger: "item" },
-      legend: { bottom: 0, textStyle: { color: "#b8bde0" } },
+      polar: { radius: ["18%", "78%"], center: ["50%", "52%"] },
+      angleAxis: {
+        type: "category",
+        data: entries.map(([k]) => titleCase(k)),
+        axisLabel: { color: "#b8bde0" },
+        axisLine: { lineStyle: { color: "#3b4180" } },
+      },
+      radiusAxis: { show: false },
       series: [
         {
-          type: "pie",
-          roseType: "radius",
-          radius: ["18%", "72%"],
-          center: ["50%", "44%"],
-          itemStyle: { borderRadius: 8 },
-          label: { show: false },
-          data: Object.entries(cases.data?.outcomes ?? {}).map(([k, v]) => ({
-            name: titleCase(k),
-            value: v,
+          type: "bar",
+          coordinateSystem: "polar",
+          roundCap: true,
+          barWidth: 26,
+          data: entries.map(([k, v]) => ({
+            value: v ?? 0,
+            itemStyle: {
+              color: color[k] ?? "#a78bfa",
+              shadowBlur: 18,
+              shadowColor: color[k] ?? "#a78bfa",
+            },
           })),
+          animationDelay: (i: number) => i * 140,
         },
       ],
-    }),
-    [cases.data],
-  );
+      animationEasing: "elasticOut",
+    };
+  }, [cases.data]);
 
   const caseStatus = useMemo(() => {
-    const entries = Object.entries(cases.data?.by_status ?? {});
-    const max = Math.max(1, ...entries.map(([, v]) => v ?? 0));
+    const order = [
+      "new",
+      "under_review",
+      "investigation",
+      "escalated",
+      "resolved",
+      "closed",
+    ];
+    const by = cases.data?.by_status ?? {};
+    const colors = [
+      "#22d3ee",
+      "#38bdf8",
+      "#818cf8",
+      "#a78bfa",
+      "#d946ef",
+      "#f472b6",
+    ];
     return {
-      tooltip: {},
-      radar: {
-        indicator: entries.map(([k]) => ({ name: titleCase(k), max })),
-        splitArea: { areaStyle: { color: ["transparent"] } },
-        axisLine: { lineStyle: { color: "#3b4180" } },
-        splitLine: { lineStyle: { color: "#3b4180" } },
-        axisName: { color: "#b8bde0" },
-      },
+      tooltip: { trigger: "item" },
       series: [
         {
-          type: "radar",
-          symbolSize: 6,
-          lineStyle: { width: 2, color: "#a78bfa" },
-          areaStyle: { color: "rgba(167,139,250,0.3)" },
-          data: [{ value: entries.map(([, v]) => v ?? 0), name: "Cases" }],
+          type: "funnel",
+          sort: "none",
+          left: "10%",
+          width: "80%",
+          top: 10,
+          bottom: 10,
+          gap: 4,
+          minSize: "18%",
+          label: { color: "#fff", fontWeight: 600, formatter: "{b}: {c}" },
+          itemStyle: {
+            borderWidth: 0,
+            shadowBlur: 20,
+            shadowColor: "rgba(124,58,237,0.5)",
+          },
+          emphasis: { itemStyle: { shadowBlur: 40 } },
+          data: order
+            .filter((k) => (by as Record<string, number>)[k] !== undefined)
+            .map((k) => ({
+              name: titleCase(k),
+              value: Math.max(1, (by as Record<string, number>)[k] ?? 0),
+              itemStyle: { color: colors[order.indexOf(k)] },
+            })),
+          animationDelay: (i: number) => i * 120,
         },
       ],
     };
@@ -341,11 +377,13 @@ export default function DashboardPage() {
       },
       series: [
         {
-          type: "bar",
+          type: "pictorialBar",
+          symbol: "roundRect",
+          symbolRepeat: true,
+          symbolSize: [9, 16],
+          symbolMargin: 3,
           data: rows.map((d) => d.row_count),
-          barWidth: 14,
           itemStyle: {
-            borderRadius: [0, 8, 8, 0],
             color: {
               type: "linear",
               x: 0,
@@ -353,40 +391,60 @@ export default function DashboardPage() {
               x2: 1,
               y2: 0,
               colorStops: [
-                { offset: 0, color: "#4f46e5" },
-                { offset: 1, color: "#22d3ee" },
+                { offset: 0, color: "#22d3ee" },
+                { offset: 1, color: "#6366f1" },
               ],
             },
+            shadowBlur: 8,
+            shadowColor: "rgba(34,211,238,0.6)",
           },
+          animationDelay: (i: number) => i * 160,
         },
       ],
     };
   }, [datasets.data]);
 
   const findingTypes2 = useMemo(() => {
-    const m = new Map<string, number>();
-    (findings.data?.results ?? []).forEach((f) =>
-      m.set(f.finding_type, (m.get(f.finding_type) ?? 0) + 1),
-    );
+    const sum = new Map<string, { n: number; total: number }>();
+    (findings.data?.results ?? []).forEach((f) => {
+      const c = sum.get(f.finding_type) ?? { n: 0, total: 0 };
+      sum.set(f.finding_type, { n: c.n + 1, total: c.total + f.score });
+    });
+    const types = [...sum.keys()];
     return {
-      tooltip: { trigger: "item" },
-      legend: { bottom: 0, textStyle: { color: "#b8bde0" } },
+      tooltip: {},
+      radar: {
+        radius: "62%",
+        indicator: types.map((t) => ({ name: titleCase(t), max: 100 })),
+        splitArea: {
+          areaStyle: {
+            color: ["rgba(52,211,153,0.04)", "rgba(52,211,153,0.10)"],
+          },
+        },
+        axisLine: { lineStyle: { color: "#3b4180" } },
+        splitLine: { lineStyle: { color: "#3b4180" } },
+        axisName: { color: "#b8bde0" },
+      },
       series: [
         {
-          type: "pie",
-          radius: ["45%", "72%"],
-          center: ["50%", "44%"],
-          itemStyle: {
-            borderRadius: 8,
-            borderColor: "#0d0e1d",
-            borderWidth: 3,
+          type: "radar",
+          symbolSize: 9,
+          lineStyle: {
+            width: 3,
+            color: "#34d399",
+            shadowBlur: 14,
+            shadowColor: "#34d399",
           },
-          label: { show: false },
-          emphasis: { scaleSize: 8 },
-          data: [...m.entries()].map(([k, v]) => ({
-            name: titleCase(k),
-            value: v,
-          })),
+          areaStyle: { color: "rgba(52,211,153,0.35)" },
+          itemStyle: { color: "#a7f3d0" },
+          data: [
+            {
+              name: "Average score",
+              value: types.map((t) =>
+                Number((sum.get(t)!.total / sum.get(t)!.n).toFixed(1)),
+              ),
+            },
+          ],
         },
       ],
     };
@@ -402,48 +460,82 @@ export default function DashboardPage() {
   const latestRisk = (riskRuns.data?.results ?? []).find(
     (r) => r.status === "succeeded",
   );
-  const riskDist = useMemo(
-    () => ({
-      tooltip: { trigger: "item" },
+  const riskDist = useMemo(() => {
+    const color: Record<string, string> = {
+      low: "#10b981",
+      medium: "#f59e0b",
+      high: "#f97316",
+      critical: "#ef4444",
+      unscored: "#64748b",
+    };
+    return {
+      tooltip: { formatter: "{b}: {c}" },
       series: [
         {
-          type: "pie",
-          roseType: "radius",
-          radius: ["15%", "72%"],
-          itemStyle: { borderRadius: 8 },
-          label: { color: "#b8bde0" },
+          type: "treemap",
+          roam: false,
+          nodeClick: false,
+          breadcrumb: { show: false },
+          width: "100%",
+          height: "100%",
+          label: {
+            show: true,
+            formatter: "{b}\n{c}",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 14,
+          },
+          itemStyle: {
+            borderColor: "#0d0e1d",
+            borderWidth: 3,
+            gapWidth: 3,
+            borderRadius: 10,
+            shadowBlur: 16,
+            shadowColor: "rgba(0,0,0,0.5)",
+          },
           data: Object.entries(latestRisk?.category_counts ?? {})
             .filter(([, v]) => v > 0)
-            .map(([k, v]) => ({ name: titleCase(k), value: v })),
+            .map(([k, v]) => ({
+              name: titleCase(k),
+              value: v,
+              itemStyle: { color: color[k] ?? "#818cf8" },
+            })),
         },
       ],
-    }),
-    [latestRisk],
-  );
+    };
+  }, [latestRisk]);
   const flagRates = useMemo(() => {
     const runs = (detRuns.data?.results ?? [])
       .filter((r) => r.rows_scored > 0)
-      .slice(0, 6)
+      .slice(0, 8)
       .reverse();
     return {
-      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-      grid: { left: 8, right: 16, top: 8, bottom: 8, containLabel: true },
-      xAxis: { type: "value", name: "Flagged %", ...AXIS },
-      yAxis: {
+      tooltip: { trigger: "axis" },
+      grid: { left: 8, right: 20, top: 30, bottom: 8, containLabel: true },
+      xAxis: {
         type: "category",
-        data: runs.map((r) => `#${r.id} ${r.model_name}`),
-        axisLabel: { color: "#b8bde0", width: 140, overflow: "truncate" },
+        data: runs.map((r) => `#${r.id}`),
+        boundaryGap: false,
+        axisLabel: { color: "#b8bde0" },
         axisLine: { lineStyle: { color: "#3b4180" } },
+      },
+      yAxis: {
+        type: "value",
+        name: "Flagged %",
+        nameTextStyle: { color: "#b8bde0" },
+        ...AXIS,
       },
       series: [
         {
-          type: "bar",
-          barWidth: 14,
+          type: "line",
+          smooth: 0.45,
+          symbol: "circle",
+          symbolSize: 12,
           data: runs.map((r) =>
             Number(((r.rows_flagged / r.rows_scored) * 100).toFixed(3)),
           ),
-          itemStyle: {
-            borderRadius: [0, 8, 8, 0],
+          lineStyle: {
+            width: 5,
             color: {
               type: "linear",
               x: 0,
@@ -455,7 +547,33 @@ export default function DashboardPage() {
                 { offset: 1, color: "#f472b6" },
               ],
             },
+            shadowBlur: 16,
+            shadowColor: "rgba(244,114,182,0.7)",
+            shadowOffsetY: 8,
           },
+          itemStyle: { color: "#fff", borderColor: "#f472b6", borderWidth: 3 },
+          areaStyle: {
+            color: {
+              type: "linear",
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: "rgba(167,139,250,0.55)" },
+                { offset: 1, color: "rgba(167,139,250,0)" },
+              ],
+            },
+          },
+          markPoint: {
+            symbol: "pin",
+            symbolSize: 46,
+            itemStyle: { color: "#f472b6" },
+            label: { color: "#fff", fontSize: 10 },
+            data: [{ type: "max", name: "Highest" }],
+          },
+          animationDuration: 1800,
+          animationEasing: "cubicOut",
         },
       ],
     };
@@ -741,11 +859,28 @@ export default function DashboardPage() {
         {can("alerts.read") && (
           <Panel title="Alert pipeline" subtitle="All alerts by status">
             {Object.keys(alerts.data?.by_status ?? {}).length > 0 ? (
-              <EChart
-                option={alertStatus}
-                height={280}
-                label="Donut chart of alerts by status"
-              />
+              <>
+                <EChart
+                  option={alertStatus}
+                  height={280}
+                  label="Rotating 3D pie chart of alerts by status"
+                />
+                <ul
+                  className="mt-1 flex flex-wrap justify-center gap-2 text-xs"
+                  aria-label="Alerts by status"
+                >
+                  {Object.entries(alerts.data?.by_status ?? {}).map(
+                    ([k, v]) => (
+                      <li
+                        key={k}
+                        className="rounded-full border border-indigo-400/25 bg-white/5 px-3 py-1"
+                      >
+                        {titleCase(k)}: <strong>{v}</strong>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </>
             ) : (
               <Empty text="No alerts yet." />
             )}
@@ -757,7 +892,7 @@ export default function DashboardPage() {
               <EChart
                 option={caseStatus}
                 height={280}
-                label="Radar chart of cases by status"
+                label="Funnel chart of cases by workflow status"
               />
             ) : (
               <Empty text="No cases yet." />
@@ -773,7 +908,7 @@ export default function DashboardPage() {
               <EChart
                 option={outcomes}
                 height={280}
-                label="Rose chart of case outcomes"
+                label="Polar bar chart of case outcomes"
               />
             ) : (
               <Empty text="No resolved cases yet." />
@@ -786,7 +921,7 @@ export default function DashboardPage() {
               <EChart
                 option={datasetBars}
                 height={Math.max(200, 48 * (datasets.data?.length ?? 1) + 40)}
-                label="Bar chart of transaction counts per dataset"
+                label="Pictorial bar chart of transaction counts per dataset"
               />
             ) : (
               <Empty text="No datasets imported yet." />
@@ -801,7 +936,7 @@ export default function DashboardPage() {
             <EChart
               option={findingTypes2}
               height={260}
-              label="Donut chart of graph findings by pattern type"
+              label="Radar chart of the average score of graph findings per pattern type"
             />
           </Panel>
         )}
@@ -813,7 +948,7 @@ export default function DashboardPage() {
             <EChart
               option={riskDist}
               height={260}
-              label="Rose chart of scored transactions by risk category in the latest risk run"
+              label="Treemap of scored transactions by risk category in the latest risk run"
             />
           </Panel>
         )}
@@ -825,7 +960,7 @@ export default function DashboardPage() {
             <EChart
               option={flagRates}
               height={260}
-              label="Bar chart of the flag rate of the latest detection runs"
+              label="Area line chart of the flag rate of the latest detection runs"
             />
           </Panel>
         )}
