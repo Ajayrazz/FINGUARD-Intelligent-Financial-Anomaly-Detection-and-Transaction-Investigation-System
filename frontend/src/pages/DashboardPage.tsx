@@ -18,7 +18,9 @@ import type {
   RiskRun,
 } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
+import { CasePipeline } from "../components/charts/CasePipeline";
 import { EChart } from "../components/charts/EChart";
+import { RiskRings } from "../components/charts/RiskRings";
 import { pie3dOption } from "../components/charts/pie3d";
 import { SmartCarousel, type Slide } from "../components/fx/SmartCarousel";
 import { Icon } from "../components/landing/Icon";
@@ -278,56 +280,6 @@ export default function DashboardPage() {
     };
   }, [cases.data]);
 
-  const caseStatus = useMemo(() => {
-    const order = [
-      "new",
-      "under_review",
-      "investigation",
-      "escalated",
-      "resolved",
-      "closed",
-    ];
-    const by = cases.data?.by_status ?? {};
-    const colors = [
-      "#22d3ee",
-      "#38bdf8",
-      "#818cf8",
-      "#a78bfa",
-      "#d946ef",
-      "#f472b6",
-    ];
-    return {
-      tooltip: { trigger: "item" },
-      series: [
-        {
-          type: "funnel",
-          sort: "none",
-          left: "10%",
-          width: "80%",
-          top: 10,
-          bottom: 10,
-          gap: 4,
-          minSize: "18%",
-          label: { color: "#fff", fontWeight: 600, formatter: "{b}: {c}" },
-          itemStyle: {
-            borderWidth: 0,
-            shadowBlur: 20,
-            shadowColor: "rgba(124,58,237,0.5)",
-          },
-          emphasis: { itemStyle: { shadowBlur: 40 } },
-          data: order
-            .filter((k) => (by as Record<string, number>)[k] !== undefined)
-            .map((k) => ({
-              name: titleCase(k),
-              value: Math.max(1, (by as Record<string, number>)[k] ?? 0),
-              itemStyle: { color: colors[order.indexOf(k)] },
-            })),
-          animationDelay: (i: number) => i * 120,
-        },
-      ],
-    };
-  }, [cases.data]);
-
   const findingTypes = useMemo(
     () => [
       ...new Set((findings.data?.results ?? []).map((f) => f.finding_type)),
@@ -467,50 +419,6 @@ export default function DashboardPage() {
   const latestRisk = (riskRuns.data?.results ?? []).find(
     (r) => r.status === "succeeded",
   );
-  const riskDist = useMemo(() => {
-    const color: Record<string, string> = {
-      low: "#10b981",
-      medium: "#f59e0b",
-      high: "#f97316",
-      critical: "#ef4444",
-      unscored: "#64748b",
-    };
-    return {
-      tooltip: { formatter: "{b}: {c}" },
-      series: [
-        {
-          type: "treemap",
-          roam: false,
-          nodeClick: false,
-          breadcrumb: { show: false },
-          width: "100%",
-          height: "100%",
-          label: {
-            show: true,
-            formatter: "{b}\n{c}",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 14,
-          },
-          itemStyle: {
-            borderColor: "#0d0e1d",
-            borderWidth: 3,
-            gapWidth: 3,
-            borderRadius: 10,
-            shadowBlur: 16,
-            shadowColor: "rgba(0,0,0,0.5)",
-          },
-          data: Object.entries(latestRisk?.category_counts ?? {})
-            .filter(([, v]) => v > 0)
-            .map(([k, v]) => ({
-              name: titleCase(k),
-              value: v,
-              itemStyle: { color: color[k] ?? "#818cf8" },
-            })),
-        },
-      ],
-    };
-  }, [latestRisk]);
   const flagRates = useMemo(() => {
     const runs = (detRuns.data?.results ?? [])
       .filter((r) => r.rows_scored > 0)
@@ -1030,11 +938,7 @@ export default function DashboardPage() {
         {can("cases.read") && (
           <Panel title="Case workflow" subtitle="Cases by status">
             {Object.keys(cases.data?.by_status ?? {}).length > 0 ? (
-              <EChart
-                option={caseStatus}
-                height={280}
-                label="Funnel chart of cases by workflow status"
-              />
+              <CasePipeline byStatus={cases.data?.by_status ?? {}} />
             ) : (
               <Empty text="No cases yet." />
             )}
@@ -1086,11 +990,7 @@ export default function DashboardPage() {
             title="Risk categories"
             subtitle={`Latest risk run · ${latestRisk.dataset_name}`}
           >
-            <EChart
-              option={riskDist}
-              height={260}
-              label="Treemap of scored transactions by risk category in the latest risk run"
-            />
+            <RiskRings counts={latestRisk.category_counts} />
           </Panel>
         )}
         {can("detection.read") && (detRuns.data?.results.length ?? 0) > 0 && (

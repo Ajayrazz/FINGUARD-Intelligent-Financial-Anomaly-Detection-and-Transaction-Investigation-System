@@ -13,6 +13,7 @@ import type {
   VolumePoint,
 } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
+import { CasePipeline } from "../components/charts/CasePipeline";
 import { EChart } from "../components/charts/EChart";
 import { pie3dOption } from "../components/charts/pie3d";
 import { Tilt } from "../components/fx/Tilt";
@@ -354,52 +355,6 @@ export default function AnalyticsPage() {
     };
   }, [perf.data]);
 
-  const funnel = useMemo(() => {
-    const order = [
-      "new",
-      "under_review",
-      "investigation",
-      "escalated",
-      "resolved",
-      "closed",
-    ];
-    const by = inv.data?.by_status ?? {};
-    const colors = [
-      "#22d3ee",
-      "#38bdf8",
-      "#818cf8",
-      "#a78bfa",
-      "#d946ef",
-      "#f472b6",
-    ];
-    return {
-      tooltip: { trigger: "item" },
-      series: [
-        {
-          type: "funnel",
-          sort: "none",
-          left: "8%",
-          width: "84%",
-          gap: 4,
-          minSize: "20%",
-          label: { color: "#fff", fontWeight: 600, formatter: "{b}: {c}" },
-          itemStyle: {
-            borderWidth: 0,
-            shadowBlur: 18,
-            shadowColor: "rgba(124,58,237,0.5)",
-          },
-          data: order
-            .filter((k) => by[k] !== undefined)
-            .map((k) => ({
-              name: titleCase(k),
-              value: Math.max(1, by[k] ?? 0),
-              itemStyle: { color: colors[order.indexOf(k)] },
-            })),
-        },
-      ],
-    };
-  }, [inv.data]);
-
   const o = overview.data;
   const lab = fp.data?.labelled;
 
@@ -563,11 +518,7 @@ export default function AnalyticsPage() {
         <Panel title="Investigation pipeline" subtitle="Cases by status">
           {(inv.data?.total ?? 0) > 0 ? (
             <>
-              <EChart
-                option={funnel}
-                height={230}
-                label="Funnel chart of cases by workflow status"
-              />
+              <CasePipeline byStatus={inv.data?.by_status ?? {}} />
               <dl className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
                 {(
                   [
