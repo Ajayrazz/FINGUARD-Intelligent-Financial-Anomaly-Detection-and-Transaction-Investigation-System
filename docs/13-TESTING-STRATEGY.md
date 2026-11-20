@@ -20,3 +20,9 @@ No claim of "tests passed" without actually running them and reading output (Par
 **Per-task loop:** write tests → run → inspect failures → fix → re-run → document. Test names are recorded in the traceability matrix "Tests" column when written.
 **Fixtures:** all mock data lives in `tests/fixtures/` and is labelled; production code paths never read it.
 **Coverage goal:** ≥ 80% on services/domain/ml_engine/graph lib; reported, not gamed.
+
+## How to run everything (verified Phase 15)
+* Backend: `docker compose exec backend python -m pytest tests -q` (add `--cov=apps --cov=graph_engine_lib --cov=duplicates_lib --cov=risk_engine_lib --cov=ml_engine --cov=shared --cov-report=term` for coverage); `ruff check .`; `mypy .`.
+* Frontend: `npm run lint`, `npx tsc -b` (plain `tsc --noEmit` checks nothing here: the root tsconfig has no files), `npm test`, `npx vite build`.
+* Browser E2E: see `e2e/README.md` (isolated `e2e` Compose profile, seeded users, 27 specs).
+* Security checks: `tests/test_security.py` (mapped to OWASP in doc 20); N+1 guard: `tests/test_query_counts.py`; latency: `python manage.py benchmark_api`.

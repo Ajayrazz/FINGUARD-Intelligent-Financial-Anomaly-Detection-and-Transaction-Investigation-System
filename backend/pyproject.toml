@@ -11,7 +11,8 @@ target-version = "py312"
 select = ["E", "F", "I", "B", "UP", "DJ"]
 
 [tool.ruff.lint.per-file-ignores]
-"apps/transactions/management/commands/*.py" = ["E501"]  # embedded SQL
+"apps/*/management/commands/*.py" = ["E501"]  # embedded SQL, argument help and benchmark tables
+"config/settings/e2e.py" = ["E501"]  # long comment lines explaining the relaxed e2e limits
 "apps/*/serializers.py" = ["E501"]  # explicit one-line field lists
 "graph_engine_lib/*.py" = ["E501"]  # dense finding dictionaries
 "duplicates_lib/*.py" = ["E501"]  # dense evidence dictionaries

@@ -10,7 +10,7 @@ from .development import *  # noqa: F401,F403
 from .development import BASE_DIR, REDIS_URL, REST_FRAMEWORK  # noqa: F401
 
 ALLOWED_HOSTS = ["backend-e2e", "localhost", "127.0.0.1"]
-MEDIA_ROOT = str(Path(BASE_DIR) / "media_e2e")
+MEDIA_ROOT = Path(BASE_DIR) / "media_e2e"
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL.rsplit("/", 1)[0] + "/6"}}
 REST_FRAMEWORK = {**REST_FRAMEWORK, "DEFAULT_THROTTLE_RATES": {"anon": "100000/min", "user": "100000/min", "login": "1000/min", "refresh": "100000/min"}}
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"

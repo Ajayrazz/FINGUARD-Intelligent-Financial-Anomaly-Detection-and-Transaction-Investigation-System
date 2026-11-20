@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 from typing import Any
+from xml.sax.saxutils import escape as esc  # imported text must never be parsed as ReportLab markup
 
 from reportlab.graphics.charts.barcharts import HorizontalBarChart
 from reportlab.graphics.shapes import Drawing
@@ -64,7 +65,7 @@ def build_report(tx: Transaction, explanations: list[Explanation]) -> bytes:
     by = {e.method: e for e in explanations}
     story: list[Any] = [
         Paragraph("FinGuard - transaction explanation report", styles["Title"]),
-        Paragraph(f"Transaction <b>{tx.transaction_id}</b> - {tx.tx_type} - amount {tx.amount} - {tx.occurred_at:%Y-%m-%d %H:%M} UTC", styles["Normal"]),
+        Paragraph(f"Transaction <b>{esc(tx.transaction_id)}</b> - {esc(tx.tx_type)} - amount {tx.amount} - {tx.occurred_at:%Y-%m-%d %H:%M} UTC", styles["Normal"]),
         Spacer(1, 3 * mm), Paragraph(narrative.DISCLAIMER, styles["Italic"]), Spacer(1, 4 * mm),
     ]  # fmt: skip
     rows = [["Explanation", "Model version", "Generator", "Generated", "Status"]]
@@ -94,14 +95,14 @@ def build_report(tx: Transaction, explanations: list[Explanation]) -> bytes:
     if "summary" in by:
         story += [Spacer(1, 4 * mm), Paragraph("Investigation summary", styles["Heading2"])]
         for s in by["summary"].payload["sections"]:
-            story += [Paragraph(f"<b>{s['title']}.</b> {s['text']}", styles["Normal"]), Spacer(1, 1.5 * mm)]
+            story += [Paragraph(f"<b>{esc(s['title'])}.</b> {esc(s['text'])}", styles["Normal"]), Spacer(1, 1.5 * mm)]
     for method, title in (("shap", "Model explanation (SHAP)"), ("lime", "Model explanation (LIME)")):
         if method in by:
             p = by[method].payload
             story += [
                 Spacer(1, 4 * mm),
                 Paragraph(title, styles["Heading2"]),
-                Paragraph(by[method].narrative, styles["Normal"]),
+                Paragraph(esc(by[method].narrative), styles["Normal"]),
                 _bars(p["features"], title),
             ]
             story.append(
@@ -114,13 +115,13 @@ def build_report(tx: Transaction, explanations: list[Explanation]) -> bytes:
                 )
             )
             if method == "lime":
-                story.append(Paragraph(p["note"], styles["Italic"]))
+                story.append(Paragraph(esc(p["note"]), styles["Italic"]))
     if "risk_breakdown" in by:
         p = by["risk_breakdown"].payload
         story += [
             Spacer(1, 4 * mm),
             Paragraph("Risk breakdown", styles["Heading2"]),
-            Paragraph(by["risk_breakdown"].narrative, styles["Normal"]),
+            Paragraph(esc(by["risk_breakdown"].narrative), styles["Normal"]),
         ]
         story.append(_table([["Signal", "Value", "Weight", "Contribution", "Note"], *[[c["name"], "n/a" if c["value"] is None else f"{c['value']:.0f}", f"{(c['weight'] or 0) * 100:.0f}%",
                                                                                       "excluded" if c["contribution"] is None else f"{c['contribution']:.1f}", c["reason"][:40]] for c in p["components"].values()]],
@@ -130,7 +131,7 @@ def build_report(tx: Transaction, explanations: list[Explanation]) -> bytes:
             story += [
                 Spacer(1, 4 * mm),
                 Paragraph(title, styles["Heading2"]),
-                Paragraph(by[method].narrative, styles["Normal"]),
+                Paragraph(esc(by[method].narrative), styles["Normal"]),
             ]
     if "summary" in by and by["summary"].payload.get("timeline"):
         story += [Spacer(1, 4 * mm), Paragraph("Timeline", styles["Heading2"]),

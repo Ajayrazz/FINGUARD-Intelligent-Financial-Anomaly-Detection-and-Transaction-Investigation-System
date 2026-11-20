@@ -98,6 +98,8 @@ class CaseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
             if q.get(key):
                 qs = qs.filter(**{field: q[key].replace(" ", "+")})
         # prioritisation: open before closed, then priority, then newest
+        if self.action == "list":
+            qs = qs.annotate(_alert_count=Count("case_alerts", distinct=True), _transaction_count=Count("case_transactions", distinct=True))
         return qs.annotate(
             _prio=PRIORITY_ORDER,
             _open=DbCase(When(status="closed", then=Value(0)), default=Value(1), output_field=IntegerField()),

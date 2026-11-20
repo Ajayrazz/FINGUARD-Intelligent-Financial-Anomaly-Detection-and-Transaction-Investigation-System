@@ -29,10 +29,12 @@ class CaseSerializer(serializers.ModelSerializer):
         return obj.created_by.email if obj.created_by else None
 
     def get_alert_count(self, obj: Case) -> int:
-        return obj.case_alerts.count()
+        n = getattr(obj, "_alert_count", None)  # annotated by the list view (avoids one COUNT per row)
+        return obj.case_alerts.count() if n is None else n
 
     def get_transaction_count(self, obj: Case) -> int:
-        return obj.case_transactions.count()
+        n = getattr(obj, "_transaction_count", None)
+        return obj.case_transactions.count() if n is None else n
 
 
 class CaseDetailSerializer(CaseSerializer):

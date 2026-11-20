@@ -106,6 +106,8 @@ class RiskAssessment(models.Model):
             models.Index(fields=["account", "computed_at"], name="risk_acct_time_idx"),
             models.Index(fields=["category", "computed_at"], name="risk_cat_time_idx"),
             models.Index(fields=["run", "-overall_score"], name="risk_run_score_idx"),
+            # the list endpoint without a run filter sorts by score over every run (12.6 s on 686k rows without this)
+            models.Index(models.F("overall_score").desc(nulls_last=True), "id", name="risk_score_global_idx"),
         ]
 
     def __str__(self) -> str:

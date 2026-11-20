@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Date:** 2026-11-20 · **Phases 5–14 complete** (docs 15/16/18) — Phase 14 (analytics & reporting) awaiting approval · **Phase 13** has its browser E2E, accessibility, responsive and cross-page journey specs; the UI was redesigned (dark glass theme, 3D charts, public landing page) at the user's request · **Next:** Phase 15 (integration, testing, optimisation) after approval; still open: D-014, F/H definitions (D-067), oxlint vs ESLint (D-021), RQ1/RQ3/RQ2 experiments
+**Date:** 2026-11-20 · **Phases 5–15 complete** (docs 15/16/20) — Phase 15 (integration, testing, optimisation) awaiting approval · UI redesigned at the user's request (dark glass theme, 3D charts, landing page, top-bar nav) · **Next:** Phase 16 (deployment & final documentation) after approval; still open: D-014, F/H definitions (D-067), oxlint vs ESLint (D-021), RQ1/RQ3/RQ2 experiments
 
 ## Completed
 - **Phases 1–2** (approved): Docker stack, Django/DRF/Celery/Channels skeleton, JWT auth, default-deny RBAC, audit log, users/roles/audit UI.

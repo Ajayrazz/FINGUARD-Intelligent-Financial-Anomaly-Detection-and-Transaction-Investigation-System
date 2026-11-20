@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 from typing import Any
+from xml.sax.saxutils import escape as esc  # user text must never be parsed as ReportLab markup
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -44,7 +45,7 @@ def build_report(case: Case) -> bytes:
     P = lambda text, style="Normal": Paragraph(text, styles[style])  # noqa: E731
     story: list[Any] = [
         P(f"FinGuard - case report {case.case_ref}", "Title"),
-        P(f"<b>{case.title}</b>"),
+        P(f"<b>{esc(case.title)}</b>"),
         Spacer(1, 3 * mm),
     ]
     state = (
@@ -56,15 +57,15 @@ def build_report(case: Case) -> bytes:
                          [state, case.priority, f"{case.opened_at:%Y-%m-%d}", case.assignee.email if case.assignee else "-", case.outcome.replace("_", " ") or "none yet"]],
                         [50 * mm, 22 * mm, 25 * mm, 50 * mm, 33 * mm]))  # fmt: skip
     if case.description:
-        story += [Spacer(1, 3 * mm), P(case.description)]
+        story += [Spacer(1, 3 * mm), P(esc(case.description))]
     if case.resolution_summary:
         who = case.resolved_by.email if case.resolved_by else "-"
         story += [
             Spacer(1, 4 * mm),
             P("Resolution", "Heading2"),
-            P(f"{case.resolution_summary}"),
+            P(esc(case.resolution_summary)),
             P(
-                f"Resolved by {who} on {case.resolved_at:%Y-%m-%d %H:%M} UTC. The outcome is the investigator's determination.",
+                f"Resolved by {esc(who)} on {case.resolved_at:%Y-%m-%d %H:%M} UTC. The outcome is the investigator's determination.",
                 "Italic",
             ),
         ]
@@ -107,7 +108,7 @@ def build_report(case: Case) -> bytes:
         last = n.revisions.order_by("-revision").first()
         story.append(
             P(
-                f"<b>{n.kind}</b> by {n.author.email}, {n.created_at:%Y-%m-%d %H:%M}{' (edited)' if n.revisions.count() > 1 else ''}: {last.body if last else ''}"
+                f"<b>{esc(n.kind)}</b> by {esc(n.author.email)}, {n.created_at:%Y-%m-%d %H:%M}{' (edited)' if n.revisions.count() > 1 else ''}: {esc(last.body) if last else ''}"
             )
         )
     story += [Spacer(1, 4 * mm), P("Evidence (recorded hashes)", "Heading2")]
