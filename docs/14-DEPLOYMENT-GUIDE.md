@@ -35,7 +35,8 @@ CURL_OPTS= scripts/smoke.sh https://finguard.example.com
 * Sign in as the Super Admin, create the other users in **User Management**.
 * **Neo4j is optional** (the graph pages read PostgreSQL). To enable it add `--profile graph` to every compose command, set `NEO4J_URI=bolt://neo4j:7687`, then project a dataset: `exec backend python manage.py rebuild_neo4j <dataset-id>`. For Aura set `NEO4J_TARGET=aura` and the `NEO4J_AURA_*` variables.
 * **Model artifacts** are not in git. Copy `datasets/artifacts/` (trained models, hash-verified on load) to the host's `./datasets/artifacts` before using Anomaly Detection; `./datasets` is mounted at `/datasets`. Without artifacts the platform runs but lists no scorable models.
-* **Email**: set `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` and the `EMAIL_*` variables for alert notifications (the default prints to the container log).
+* **Account emails:** self-registration and password reset send email (verification link, reset link, approval notice). Set `FRONTEND_BASE_URL=https://your-domain` (links point there) and the SMTP variables (`EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL`) in `.env.prod`, or nobody can finish signing up. The worker sends the mail, so check `docker compose ... logs worker` if emails do not arrive. Test it once with a real address after deploying.
+* **Alert email**: set `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` and the `EMAIL_*` variables for alert notifications (the default prints to the container log).
 
 ## 4. Updating (deploy a new version)
 ```bash

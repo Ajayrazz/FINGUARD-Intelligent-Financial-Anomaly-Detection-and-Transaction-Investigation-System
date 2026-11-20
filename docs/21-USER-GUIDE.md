@@ -5,6 +5,14 @@ FinGuard helps a team find suspicious financial activity, understand why it was 
 ## Signing in
 Open the site and choose **Sign in**. Accounts are created by a Super Admin. After 5 wrong passwords an account is locked for a while. Sessions end when you click **Sign out** (a refresh happens quietly in the background).
 
+## Creating an account
+1. On the landing page choose **Create account** (or open `/register`). Enter your name, work email and a password of at least 12 characters, and accept the terms.
+2. Open the confirmation link we email you (valid for 24 hours). No email? Check spam, then try to sign in and use **Resend the confirmation email**.
+3. An administrator now approves the account and gives you a role. You get an email when that happens; until then signing in explains that approval is pending.
+4. **Forgot your password?** on the sign-in page emails a one-time link (valid for one hour). Changing the password signs out all other sessions.
+
+**Administrators:** new registrations appear at the top of **Govern → User Management** under *Waiting for approval*. Choose a role and **Approve**, or **Reject**. People who have not confirmed their email cannot be approved yet. A new colleague who should skip the queue can be added directly with **Add user** (that account is active at once).
+
 ## Roles
 | Role | Can do |
 |---|---|

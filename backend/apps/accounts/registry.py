@@ -9,6 +9,7 @@ FINANCIAL_ANALYST = "financial_analyst"
 FRAUD_INVESTIGATOR = "fraud_investigator"
 AUDITOR = "auditor"
 MANAGEMENT = "management"
+PENDING_USER = "pending_user"  # self-registered accounts until a Super Admin approves them; holds no permissions
 
 ROLES: dict[str, tuple[str, str]] = {
     SUPER_ADMIN: ("Super Admin", "Manage users, roles, system settings, risk parameters and models."),
@@ -16,6 +17,7 @@ ROLES: dict[str, tuple[str, str]] = {
     FRAUD_INVESTIGATOR: ("Fraud Investigator", "Investigate cases, maintain evidence, produce reports."),
     AUDITOR: ("Auditor", "Read-only access to investigation history and audit records."),
     MANAGEMENT: ("Management", "High-level analytics, risk trends and organisational reports."),
+    PENDING_USER: ("Pending approval", "Registered, waiting for administrator approval. Has no access to any data."),
 }
 
 PERMISSIONS: dict[str, str] = {

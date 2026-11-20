@@ -20,6 +20,7 @@ select = ["E", "F", "I", "B", "UP", "DJ"]
 "apps/risk_engine/**/*.py" = ["E501"]  # dense component/assembly code and migrations
 "apps/explain/**/*.py" = ["E501"]  # narrative templates and payload assembly
 "apps/alerts/**/*.py" = ["E501"]  # rule candidates and queries
+"apps/accounts/**/*.py" = ["E501"]  # email bodies and explicit serializer field lists
 "apps/cases/**/*.py" = ["E501"]  # serializers, report tables and migrations
 "tests/*.py" = ["E501"]  # long literal CSV/header fixtures
 

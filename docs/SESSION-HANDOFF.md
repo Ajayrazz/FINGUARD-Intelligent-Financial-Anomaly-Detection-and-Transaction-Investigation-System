@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Date:** 2026-11-20 · **Phases 0–16 implemented** (Phase 16 rehearsed locally, not deployed to a cloud) — Phases 13–16 await approval · UI redesigned at the user's request · **Open:** D-014, F/H definitions (D-067), oxlint vs ESLint (D-021), D-015 hosting target, and the unexecuted research questions RQ1, RQ2, RQ6 (+ RQ3 overlap analysis, RQ4 reviewer rubric); see docs 16 and 23
+**Date:** 2026-11-20 · **Phases 0–16 implemented plus self-service accounts** (signup, email verification, reset, approval queue) — Phases 13–17 await approval · Phase 16 rehearsed locally, not deployed to a cloud · **Open:** D-014, F/H definitions (D-067), oxlint vs ESLint (D-021), D-015 hosting target, multi-tenant workspaces (not built), unexecuted RQ1, RQ2, RQ6; see docs 16 and 23
 
 ## Completed
 - **Phases 1–2** (approved): Docker stack, Django/DRF/Celery/Channels skeleton, JWT auth, default-deny RBAC, audit log, users/roles/audit UI.

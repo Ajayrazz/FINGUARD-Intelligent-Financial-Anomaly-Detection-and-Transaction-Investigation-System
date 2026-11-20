@@ -15,8 +15,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.audit import services as audit
 
-from .models import User
-from .serializers import LoginSerializer, MeSerializer
+from . import emails, services
+from .models import Approval, User
+from .serializers import (
+    EmailSerializer,
+    LoginSerializer,
+    MeSerializer,
+    PasswordResetConfirmSerializer,
+    RegisterSerializer,
+    TokenSerializer,
+)
 
 REFRESH_COOKIE = "fg_refresh"
 REFRESH_COOKIE_PATH = "/api/v1/auth/"
@@ -36,6 +44,18 @@ class AccountLocked(exceptions.APIException):
     status_code = status.HTTP_429_TOO_MANY_REQUESTS
     default_code = "account_locked"
     default_detail = "Too many failed attempts. Try again later."
+
+
+class AccountNotReady(exceptions.APIException):
+    """Correct password, but the account cannot sign in yet. Only shown after the password was verified."""
+
+    status_code = status.HTTP_403_FORBIDDEN
+
+    def __init__(self, code: str, detail: str) -> None:
+        super().__init__(detail=detail, code=code)
+
+
+GENERIC_ACCEPTED = "If that is possible, an email is on its way. Check your inbox (and spam folder)."
 
 
 def _set_refresh_cookie(response: Response, token: str) -> None:
@@ -99,6 +119,18 @@ class LoginView(PublicAuthView):
             if locked:
                 raise AccountLocked()
             raise exceptions.AuthenticationFailed("Invalid email or password.", code="invalid_credentials")
+
+        if user.approval_status == Approval.REJECTED:
+            audit.log("auth.login_failed", request=request, actor=user, resource_type="user", resource_id=user.pk)
+            raise exceptions.AuthenticationFailed("Invalid email or password.", code="invalid_credentials")
+        if not user.is_email_verified:
+            raise AccountNotReady(
+                "email_not_verified", "Confirm your email address first: use the link we emailed you."
+            )
+        if user.approval_status == Approval.PENDING:
+            raise AccountNotReady(
+                "pending_approval", "Your email is confirmed. An administrator still has to approve your account."
+            )
 
         user.register_successful_login()
         refresh = RefreshToken.for_user(user)
@@ -171,3 +203,110 @@ class WsTicketView(APIView):
         ticket = secrets.token_urlsafe(24)
         cache.set(f"{WS_TICKET_PREFIX}{ticket}", request.user.pk, WS_TICKET_TTL)
         return Response({"ticket": ticket, "expires_in": WS_TICKET_TTL})
+
+
+class RegisterView(PublicAuthView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "register"
+
+    def post(self, request):  # noqa: ANN001, ANN201
+        ser = RegisterSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        v = ser.validated_data
+        if User.objects.filter(email__iexact=v["email"]).exists():
+            # Same answer as a new address: the response must not reveal which emails are registered.
+            audit.log("user.register_duplicate", request=request, actor=None, actor_email=v["email"][:254])
+        else:
+            services.register_user(request=request, email=v["email"], full_name=v["full_name"], password=v["password"])
+        return Response({"detail": GENERIC_ACCEPTED}, status=status.HTTP_202_ACCEPTED)
+
+
+class VerifyEmailView(PublicAuthView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "verify"
+
+    def post(self, request):  # noqa: ANN001, ANN201
+        ser = TokenSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        user = emails.read_verification_token(ser.validated_data["token"])
+        if user is None:
+            return Response(
+                {
+                    "error": {
+                        "code": "invalid_token",
+                        "message": "This link is invalid or has expired. Request a new one.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user = services.verify_email(request=request, user=user)
+        return Response({"status": "pending_approval" if user.approval_status == Approval.PENDING else "verified"})
+
+
+class ResendVerificationView(PublicAuthView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "register"
+
+    def post(self, request):  # noqa: ANN001, ANN201
+        ser = EmailSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        user = User.objects.filter(email__iexact=ser.validated_data["email"]).first()
+        if user is not None and not user.is_email_verified and user.approval_status == Approval.PENDING:
+            emails.queue_account_email("verify", user)
+            audit.log(
+                "user.verification_resent",
+                request=request,
+                actor=None,
+                actor_email=user.email,
+                resource_type="user",
+                resource_id=user.pk,
+            )
+        return Response({"detail": GENERIC_ACCEPTED}, status=status.HTTP_202_ACCEPTED)
+
+
+class PasswordResetRequestView(PublicAuthView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
+
+    def post(self, request):  # noqa: ANN001, ANN201
+        ser = EmailSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        user = User.objects.filter(email__iexact=ser.validated_data["email"]).first()
+        if user is not None and user.is_active and user.is_email_verified and user.approval_status == Approval.APPROVED:
+            emails.queue_account_email("reset", user)
+            audit.log(
+                "auth.password_reset_requested", request=request, actor=user, resource_type="user", resource_id=user.pk
+            )
+        return Response({"detail": GENERIC_ACCEPTED}, status=status.HTTP_202_ACCEPTED)
+
+
+class PasswordResetConfirmView(PublicAuthView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
+
+    def post(self, request):  # noqa: ANN001, ANN201
+        ser = PasswordResetConfirmSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        v = ser.validated_data
+        user = emails.read_reset(v["uid"], v["token"])
+        if user is None or not user.is_active:
+            return Response(
+                {
+                    "error": {
+                        "code": "invalid_token",
+                        "message": "This reset link is invalid or has expired. Request a new one.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        try:
+            validate_password(v["new_password"], user=user)
+        except DjangoValidationError as exc:
+            raise exceptions.ValidationError({"new_password": list(exc.messages)}) from exc
+        services.complete_password_reset(request=request, user=user, new_password=v["new_password"])
+        return Response(status=status.HTTP_204_NO_CONTENT)

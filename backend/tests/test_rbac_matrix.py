@@ -17,7 +17,10 @@ from apps.datasets.models import ImportJob
 pytestmark = pytest.mark.django_db
 INGEST_URL = "/api/v1/transactions/ingest/"
 
-PUBLIC_ROUTE_NAMES = {"health", "health-ready", "auth-login", "auth-refresh", "auth-logout"}
+PUBLIC_ROUTE_NAMES = {
+    "health", "health-ready", "auth-login", "auth-refresh", "auth-logout", "auth-register", "auth-verify-email",
+    "auth-resend-verification", "auth-password-reset", "auth-password-reset-confirm",
+}
 AUTHENTICATED_ONLY_NAMES = {"auth-me", "ws-ticket"}  # any authenticated user, no role permission
 
 
@@ -98,6 +101,8 @@ def _endpoints(
             "users.create",
         ),
         ("patch", f"/api/v1/users/{target_pk}/", {"full_name": "Renamed"}, "users.update"),
+        ("post", f"/api/v1/users/{target_pk}/approve/", {"role": "auditor"}, "users.update"),
+        ("post", f"/api/v1/users/{target_pk}/reject/", {}, "users.update"),
         (
             "post",
             f"/api/v1/users/{target_pk}/reset-password/",

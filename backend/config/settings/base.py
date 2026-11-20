@@ -138,6 +138,7 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env("EMAIL_USE_TLS", "0") == "1"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "FinGuard <noreply@finguard.local>")
 FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", "http://localhost:5173")
+PASSWORD_RESET_TIMEOUT = 3600  # seconds a reset link stays valid
 CASE_EVIDENCE_MAX_BYTES = int(env("CASE_EVIDENCE_MAX_BYTES", str(20 * 1024**2)))
 # Four-eyes closure: when on, the person who closes a case must differ from the person who resolved it (docs/10, D-014).
 CASE_CLOSE_REQUIRES_DIFFERENT_USER = env("CASE_CLOSE_REQUIRES_DIFFERENT_USER", "0") == "1"
@@ -176,7 +177,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "120/min", "user": "600/min", "login": "10/min", "refresh": "30/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "120/min", "user": "600/min", "login": "10/min", "refresh": "30/min",
+        "register": "5/hour", "password_reset": "5/hour", "verify": "30/hour",
+    },
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "FinGuard API",

@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { ApiError } from "../api/client";
+import { api, ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { Logo } from "../components/fx/Logo";
 import { NetworkBackground } from "../components/fx/NetworkBackground";
@@ -24,6 +24,10 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState<string | null>(
+    null,
+  );
+  const [resent, setResent] = useState(false);
   const {
     register,
     handleSubmit,
@@ -36,17 +40,34 @@ export default function LoginPage() {
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
+    setNeedsVerification(null);
+    setResent(false);
     try {
       await login(values.email, values.password);
       navigate(from, { replace: true });
     } catch (e) {
-      setServerError(
-        e instanceof ApiError && e.status === 429
-          ? "Too many attempts. Please wait before trying again."
-          : e instanceof ApiError && e.status === 401
-            ? "Invalid email or password."
-            : "Unable to sign in. Please try again.",
-      );
+      if (
+        e instanceof ApiError &&
+        e.status === 403 &&
+        e.code === "email_not_verified"
+      ) {
+        setNeedsVerification(values.email);
+        setServerError(e.message);
+      } else if (
+        e instanceof ApiError &&
+        e.status === 403 &&
+        e.code === "pending_approval"
+      ) {
+        setServerError(e.message);
+      } else {
+        setServerError(
+          e instanceof ApiError && e.status === 429
+            ? "Too many attempts. Please wait before trying again."
+            : e instanceof ApiError && e.status === 401
+              ? "Invalid email or password."
+              : "Unable to sign in. Please try again.",
+        );
+      }
     }
   };
 
@@ -129,10 +150,42 @@ export default function LoginPage() {
                 {serverError}
               </p>
             )}
+            {needsVerification && (
+              <p className="text-sm">
+                {resent ? (
+                  <span role="status">
+                    If that address is waiting for confirmation, a new link is
+                    on its way.
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-blue-700 underline"
+                    onClick={() => {
+                      void api
+                        .post(
+                          "/auth/resend-verification/",
+                          { email: needsVerification },
+                          { skipAuthRetry: true },
+                        )
+                        .finally(() => setResent(true));
+                    }}
+                  >
+                    Resend the confirmation email
+                  </button>
+                )}
+              </p>
+            )}
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Signing in…" : "Sign in"}
             </Button>
+            <p className="text-center text-sm">
+              <Link to="/forgot-password">Forgot your password?</Link>
+            </p>
           </form>
+          <p className="mt-4 border-t border-white/10 pt-4 text-center text-sm text-slate-600">
+            New to FinGuard? <Link to="/register">Create an account</Link>
+          </p>
         </section>
       </main>
     </div>

@@ -25,6 +25,8 @@ const me = (permissions: string[]): Me => ({
   role: "fraud_investigator",
   role_label: "Investigator",
   is_active: true,
+  approval_status: "approved",
+  email_verified: true,
   last_login: null,
   created_at: "2026-01-01T00:00:00Z",
   permissions,

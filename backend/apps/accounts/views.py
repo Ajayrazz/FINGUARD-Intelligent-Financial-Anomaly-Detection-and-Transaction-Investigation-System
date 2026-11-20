@@ -9,6 +9,7 @@ from apps.audit import services as audit
 from . import services
 from .models import Permission, Role, User
 from .serializers import (
+    ApproveSerializer,
     PasswordResetSerializer,
     PermissionSerializer,
     RoleSerializer,
@@ -29,7 +30,7 @@ class UserViewSet(
 
     queryset = User.objects.select_related("role").all()
     http_method_names = ["get", "post", "patch", "head", "options"]
-    filterset_fields = ["role__name", "is_active"]
+    filterset_fields = ["role__name", "is_active", "approval_status"]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["email", "full_name"]
     ordering_fields = ["email", "full_name", "created_at", "last_login"]
@@ -39,6 +40,8 @@ class UserViewSet(
         "create": "users.create",
         "partial_update": "users.update",
         "reset_password": "users.update",
+        "approve": "users.update",
+        "reject": "users.update",
     }
 
     def get_serializer_class(self):  # noqa: ANN201
@@ -48,6 +51,8 @@ class UserViewSet(
             return UserUpdateSerializer
         if self.action == "reset_password":
             return PasswordResetSerializer
+        if self.action == "approve":
+            return ApproveSerializer
         return UserSerializer
 
     def create(self, request, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN201
@@ -72,6 +77,20 @@ class UserViewSet(
             actor=request.user, request=request, user=user, new_password=ser.validated_data["new_password"]
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):  # noqa: ANN001, ANN201
+        ser = self.get_serializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        user = services.approve_user(
+            actor=request.user, request=request, user=self.get_object(), role=ser.validated_data["role"]
+        )
+        return Response(UserSerializer(user).data)
+
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):  # noqa: ANN001, ANN201
+        user = services.reject_user(actor=request.user, request=request, user=self.get_object())
+        return Response(UserSerializer(user).data)
 
 
 class RoleViewSet(

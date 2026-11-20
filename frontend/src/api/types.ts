@@ -12,6 +12,8 @@ export interface User {
   role: string;
   role_label: string;
   is_active: boolean;
+  approval_status: "approved" | "pending" | "rejected";
+  email_verified: boolean;
   last_login: string | null;
   created_at: string;
 }

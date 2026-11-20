@@ -36,9 +36,11 @@ test('every page, as the Super Admin, has no WCAG 2.1 A/AA violations that axe c
   expect(found, 'axe violations').toEqual([])
 })
 
-test('the sign-in page has no WCAG 2.1 A/AA violations', async ({ page }) => {
-  await page.goto('/login')
-  expect(await scan(page, 'login')).toEqual([])
+test('the sign-in and account pages have no WCAG 2.1 A/AA violations', async ({ page }) => {
+  for (const [label, path] of [['login', '/login'], ['register', '/register'], ['forgot password', '/forgot-password'], ['verify email', '/verify-email?token=x'], ['reset password', '/reset-password?uid=MQ&token=x']] as const) {
+    await page.goto(path)
+    expect(await scan(page, label), label).toEqual([])
+  }
 })
 
 test('the public landing page has no WCAG 2.1 A/AA violations', async ({ page }) => {

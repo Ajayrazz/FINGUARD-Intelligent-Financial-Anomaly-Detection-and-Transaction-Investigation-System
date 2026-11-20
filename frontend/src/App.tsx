@@ -23,6 +23,10 @@ const ImportDetailPage = lazy(() => import("./pages/ImportDetailPage"));
 const ImportsPage = lazy(() => import("./pages/ImportsPage"));
 const ImportWizardPage = lazy(() => import("./pages/ImportWizardPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmailPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const ModelPerformancePage = lazy(() => import("./pages/ModelPerformancePage"));
 const RelationshipGraphPage = lazy(
   () => import("./pages/RelationshipGraphPage"),
@@ -54,6 +58,13 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route
+                  path="/forgot-password"
+                  element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route element={<ProtectedRoute />}>
                   <Route element={<AppLayout />}>
                     <Route path="dashboard" element={<DashboardPage />} />

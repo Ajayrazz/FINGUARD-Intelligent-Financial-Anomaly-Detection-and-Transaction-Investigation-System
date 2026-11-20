@@ -47,6 +47,9 @@ class UserManager(BaseUserManager["User"]):
             raise ValueError("Email is required")
         if role is None:
             raise ValueError("A role is required")
+        extra.setdefault(
+            "email_verified_at", timezone.now()
+        )  # administrator-created users are trusted; signup passes None
         user = self.model(email=self.normalize_email(email).lower(), role=role, **extra)
         user.set_password(password)
         user.save(using=self._db)
@@ -57,11 +60,21 @@ class UserManager(BaseUserManager["User"]):
         return self.create_user(email, password, role=role, **extra)
 
 
+class Approval(models.TextChoices):
+    APPROVED = "approved"
+    PENDING = "pending"
+    REJECTED = "rejected"
+
+
 class User(AbstractBaseUser):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=150)
     role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name="users")
     is_active = models.BooleanField(default=True)
+    # Self-registration: the address must be confirmed by link and a Super Admin must approve the account.
+    # Accounts created by an administrator are approved and verified at creation.
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    approval_status = models.CharField(max_length=10, choices=Approval.choices, default=Approval.APPROVED)
     failed_login_count = models.PositiveSmallIntegerField(default=0)
     locked_until = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -76,6 +89,10 @@ class User(AbstractBaseUser):
 
     def __str__(self) -> str:
         return self.email
+
+    @property
+    def is_email_verified(self) -> bool:
+        return self.email_verified_at is not None
 
     # --- authorisation -------------------------------------------------
     @cached_property

@@ -210,12 +210,22 @@ export default function LandingPage() {
               </a>
             </li>
           </ul>
-          <Link
-            to={cta}
-            className="btn-glow rounded-full px-4 py-1.5 text-sm font-medium text-white"
-          >
-            {signedIn ? "Open dashboard" : "Sign in"}
-          </Link>
+          <div className="flex items-center gap-2">
+            {!signedIn && (
+              <Link
+                to="/register"
+                className="hidden rounded-full px-3 py-1.5 text-sm text-slate-800 hover:bg-white/10 sm:inline"
+              >
+                Create account
+              </Link>
+            )}
+            <Link
+              to={cta}
+              className="btn-glow rounded-full px-4 py-1.5 text-sm font-medium text-white"
+            >
+              {signedIn ? "Open dashboard" : "Sign in"}
+            </Link>
+          </div>
         </nav>
       </header>
 
@@ -243,6 +253,14 @@ export default function LandingPage() {
               >
                 {signedIn ? "Open dashboard" : "Open the platform"} →
               </Link>
+              {!signedIn && (
+                <Link
+                  to="/register"
+                  className="rounded-full border border-indigo-300/50 px-6 py-3 font-medium text-slate-800 hover:bg-white/10"
+                >
+                  Create account
+                </Link>
+              )}
               <a
                 href="#flow"
                 className="rounded-full border border-slate-300 px-6 py-3 font-medium text-slate-800 hover:bg-white/10"

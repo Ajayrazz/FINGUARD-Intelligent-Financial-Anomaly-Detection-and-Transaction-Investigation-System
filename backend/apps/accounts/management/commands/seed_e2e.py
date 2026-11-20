@@ -8,6 +8,7 @@ import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from apps.accounts.models import Role, User
 from apps.accounts.registry import ROLES
@@ -26,14 +27,37 @@ class Command(BaseCommand):
         if len(password) < 12:
             raise CommandError("Set E2E_PASSWORD (at least 12 characters).")
         for name in ROLES:
+            if name == "pending_user":
+                continue  # the no-access role is only for self-registered users, seeded below
             email = f"{PREFIX}{name.replace('_', '-')}@example.com"
-            user, _ = User.objects.get_or_create(email=email, defaults={"full_name": f"E2E {name.replace('_', ' ').title()}", "role": Role.objects.get(name=name)})
+            user, _ = User.objects.get_or_create(
+                email=email,
+                defaults={"full_name": f"E2E {name.replace('_', ' ').title()}", "role": Role.objects.get(name=name)},
+            )
             user.role = Role.objects.get(name=name)
-            user.is_active, user.failed_login_attempts, user.locked_until = True, 0, None
+            user.is_active, user.failed_login_count, user.locked_until = True, 0, None
+            user.email_verified_at, user.approval_status = timezone.now(), "approved"
             user.set_password(password)
             user.save()
             self.stdout.write(f"user {email} ({name})")
+        self._signup_users(password)
         self._demo_data()
+
+    def _signup_users(self, password: str) -> None:
+        """Self-registration states for the browser tests. Re-seeding puts both back to their starting state."""
+        no_access = Role.objects.get(name="pending_user")
+        for email, verified in ((f"{PREFIX}pending@example.com", True), (f"{PREFIX}unverified@example.com", False)):
+            user, _ = User.objects.get_or_create(
+                email=email, defaults={"full_name": "E2E Self Registered", "role": no_access}
+            )
+            user.role, user.is_active, user.approval_status = no_access, True, "pending"
+            user.email_verified_at = timezone.now() if verified else None
+            user.failed_login_count, user.locked_until = 0, None
+            user.set_password(password)
+            user.save()
+            self.stdout.write(
+                f"user {email} (self-registered, {'email confirmed' if verified else 'email NOT confirmed'}, pending)"
+            )
 
     def _demo_data(self):
         from apps.alerts import services as alert_services

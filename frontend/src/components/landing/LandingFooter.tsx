@@ -99,8 +99,18 @@ export function LandingFooter({ signedIn }: { signedIn: boolean }) {
                   {signedIn ? "Dashboard" : "Sign in"}
                 </Link>
               </li>
+              {!signedIn && (
+                <li>
+                  <Link
+                    className="inline-block text-slate-700 transition hover:translate-x-1 hover:text-white"
+                    to="/register"
+                  >
+                    Create account
+                  </Link>
+                </li>
+              )}
               <li className="text-slate-500">
-                Accounts are created by an administrator
+                New accounts are approved by an administrator
               </li>
             </ul>
           </nav>

@@ -71,6 +71,123 @@ const createSchema = z.object({
 });
 type CreateValues = z.infer<typeof createSchema>;
 
+function PendingApprovals() {
+  const { can } = useAuth();
+  const toast = useToast();
+  const qc = useQueryClient();
+  const [roleFor, setRoleFor] = useState<Record<number, string>>({});
+  const pending = useQuery({
+    queryKey: ["users", "pending"],
+    enabled: can("users.update"),
+    queryFn: ({ signal }) =>
+      api.get<Paginated<User>>(
+        "/users/?approval_status=pending&page_size=50",
+        signal,
+      ),
+  });
+  const roles = useQuery({
+    queryKey: ["roles"],
+    queryFn: ({ signal }) => api.get<Role[]>("/roles/", signal),
+  });
+  const done = () => {
+    void qc.invalidateQueries({ queryKey: ["users"] });
+  };
+  const approve = useMutation({
+    mutationFn: ({ id, role }: { id: number; role: string }) =>
+      api.post<User>(`/users/${id}/approve/`, { role }),
+    onSuccess: () => {
+      toast("success", "Account approved; the user was notified by email");
+      done();
+    },
+    onError: (e) => toast("error", errorText(e)),
+  });
+  const reject = useMutation({
+    mutationFn: (id: number) => api.post<User>(`/users/${id}/reject/`),
+    onSuccess: () => {
+      toast("success", "Account rejected");
+      done();
+    },
+    onError: (e) => toast("error", errorText(e)),
+  });
+  const list = pending.data?.results ?? [];
+  if (!can("users.update") || list.length === 0) return null;
+  const assignable = (roles.data ?? []).filter(
+    (r) => r.name !== "pending_user",
+  );
+  return (
+    <section
+      aria-labelledby="pending-title"
+      className="mb-6 rounded-2xl border border-amber-400/40 bg-amber-400/5 p-4"
+    >
+      <h2 id="pending-title" className="text-base font-semibold">
+        Waiting for approval ({pending.data?.count ?? list.length})
+      </h2>
+      <p className="text-xs text-slate-500">
+        These people registered themselves. Approve with a role, or reject.
+        Accounts that have not confirmed their email cannot be approved yet.
+      </p>
+      <div className="stagger mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+        {list.map((u) => {
+          const role = roleFor[u.id] ?? "";
+          return (
+            <div
+              key={u.id}
+              className="flex min-w-0 flex-col gap-2 rounded-xl border border-indigo-400/20 bg-white/[0.04] p-3"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <Initials text={u.email} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{u.full_name}</p>
+                  <p className="truncate text-xs text-slate-500">{u.email}</p>
+                </div>
+                <span className="ml-auto">
+                  <Chip tone={u.email_verified ? "green" : "amber"}>
+                    {u.email_verified
+                      ? "email confirmed"
+                      : "email not confirmed"}
+                  </Chip>
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <select
+                  aria-label={`Role for ${u.email}`}
+                  value={role}
+                  onChange={(e) =>
+                    setRoleFor({ ...roleFor, [u.id]: e.target.value })
+                  }
+                  className="rounded-md border border-slate-300 px-2 py-1"
+                >
+                  <option value="">Choose a role…</option>
+                  {assignable.map((r) => (
+                    <option key={r.id} value={r.name}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  aria-label={`Approve ${u.email}`}
+                  disabled={!role || !u.email_verified || approve.isPending}
+                  onClick={() => approve.mutate({ id: u.id, role })}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="danger"
+                  aria-label={`Reject ${u.email}`}
+                  disabled={reject.isPending}
+                  onClick={() => reject.mutate(u.id)}
+                >
+                  Reject
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function UsersTab() {
   const { can, user: me } = useAuth();
   const toast = useToast();
@@ -111,6 +228,7 @@ function UsersTab() {
 
   return (
     <div>
+      <PendingApprovals />
       <div className="flex items-end justify-between gap-3">
         <label className="text-sm">
           Search
