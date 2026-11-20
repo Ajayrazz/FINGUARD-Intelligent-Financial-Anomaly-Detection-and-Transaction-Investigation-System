@@ -20,7 +20,7 @@ import type {
 import { useAuth } from "../auth/AuthContext";
 import { EChart } from "../components/charts/EChart";
 import { pie3dOption } from "../components/charts/pie3d";
-import { PageHero } from "../components/scenes/PageHero";
+import { SmartCarousel, type Slide } from "../components/fx/SmartCarousel";
 import { Icon } from "../components/landing/Icon";
 import { Tilt } from "../components/fx/Tilt";
 import { Card3D, Chip, Ring } from "../components/ui/cards";
@@ -585,6 +585,88 @@ export default function DashboardPage() {
       ],
     };
   }, [detRuns.data]);
+  const slides = useMemo<Slide[]>(() => {
+    const out: Slide[] = [];
+    if (can("alerts.read"))
+      out.push({
+        id: "alerts",
+        tag: "RESPOND",
+        title: "Open alerts",
+        text: "A prioritised queue waiting for review, most severe first.",
+        metric: openAlerts,
+        metricLabel: "open",
+        to: "/alerts",
+        kind: "bars",
+      });
+    if (can("cases.read"))
+      out.push({
+        id: "cases",
+        tag: "INVESTIGATE",
+        title: "Investigations",
+        text: "Cases moving from new to closed, with notes and evidence.",
+        metric: openCases,
+        metricLabel: "open cases",
+        to: "/cases",
+        kind: "kanban",
+      });
+    if (can("detection.read"))
+      out.push({
+        id: "detect",
+        tag: "DETECT",
+        title: "Anomaly detection",
+        text: "Trained models score every transaction and flag the unusual.",
+        metric: detRuns.data?.count ?? 0,
+        metricLabel: "runs",
+        to: "/detection",
+        kind: "pulse",
+      });
+    if (can("graph.read"))
+      out.push({
+        id: "graph",
+        tag: "NETWORK",
+        title: "Relationship graph",
+        text: "Cycles, rapid chains, fan-in and shared beneficiaries.",
+        metric: findings.data?.count ?? 0,
+        metricLabel: "findings",
+        to: "/graph",
+        kind: "network",
+      });
+    if (can("risk.read"))
+      out.push({
+        id: "risk",
+        tag: "SCORE",
+        title: "Risk scoring",
+        text: "Six signals combined into one transparent 0–100 score.",
+        metric: latestRisk
+          ? Object.entries(latestRisk.category_counts)
+              .filter(([k]) => k === "high" || k === "critical")
+              .reduce((n, [, v]) => n + v, 0)
+          : 0,
+        metricLabel: "high or critical",
+        to: "/risk",
+        kind: "gauge",
+      });
+    if (can("analytics.read"))
+      out.push({
+        id: "analytics",
+        tag: "INSIGHT",
+        title: "Analytics",
+        text: "Volume, false positives and model quality over time.",
+        metric: analytics.data?.transactions ?? 0,
+        metricLabel: "transactions",
+        to: "/analytics",
+        kind: "line",
+      });
+    return out;
+  }, [
+    can,
+    openAlerts,
+    openCases,
+    detRuns.data,
+    findings.data,
+    latestRisk,
+    analytics.data,
+  ]);
   const steps = [
     {
       label: "Import",
@@ -686,7 +768,21 @@ export default function DashboardPage() {
 
   return (
     <section className="space-y-6">
-      <PageHero eyebrow="Overview" title="Dashboard" tone="indigo" scene="gyro">
+      <header className="relative overflow-hidden rounded-2xl border border-indigo-400/20 bg-gradient-to-br from-indigo-500/25 via-transparent to-transparent p-6 md:p-8">
+        <p className="font-mono text-xs uppercase tracking-[0.25em] text-indigo-300">
+          Overview
+        </p>
+        <h1
+          className="mt-2 text-3xl font-semibold md:text-4xl"
+          style={{
+            backgroundImage: "linear-gradient(90deg,#c7d2fe,#818cf8)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          Dashboard
+        </h1>
         <p className="mt-2 text-sm text-slate-600">
           Welcome back. Live overview of what needs attention.
         </p>
@@ -716,7 +812,8 @@ export default function DashboardPage() {
             ))}
           </ul>
         </div>
-      </PageHero>
+        <SmartCarousel slides={slides} />
+      </header>
 
       <ol
         aria-label="Investigation pipeline"
@@ -763,10 +860,28 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatTile label="Transactions" value={analytics.data?.transactions ?? 0} tone="indigo" />
-            <StatTile label="Flagged" value={analytics.data?.flagged ?? 0} tone="pink" hint="latest detection run" />
-            <StatTile label="High risk" value={analytics.data?.high_risk_transactions ?? 0} tone="amber" hint="high + critical" />
-            <StatTile label="Open cases" value={analytics.data?.open_cases ?? 0} tone="violet" />
+            <StatTile
+              label="Transactions"
+              value={analytics.data?.transactions ?? 0}
+              tone="indigo"
+            />
+            <StatTile
+              label="Flagged"
+              value={analytics.data?.flagged ?? 0}
+              tone="pink"
+              hint="latest detection run"
+            />
+            <StatTile
+              label="High risk"
+              value={analytics.data?.high_risk_transactions ?? 0}
+              tone="amber"
+              hint="high + critical"
+            />
+            <StatTile
+              label="Open cases"
+              value={analytics.data?.open_cases ?? 0}
+              tone="violet"
+            />
           </div>
         </section>
       )}
