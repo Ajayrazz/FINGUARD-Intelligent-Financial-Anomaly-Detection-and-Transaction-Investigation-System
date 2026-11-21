@@ -42,3 +42,4 @@ backups/
 report/_cache/
 report/_*.pdf
 report/_report.html
+report/__pycache__/
