@@ -38,3 +38,7 @@ backend/media_e2e/
 # production secrets and backups
 .env.prod
 backups/
+
+report/_cache/
+report/_*.pdf
+report/_report.html
