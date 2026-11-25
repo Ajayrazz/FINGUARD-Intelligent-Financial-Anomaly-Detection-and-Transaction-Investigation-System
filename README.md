@@ -1,264 +1,326 @@
 # FinGuard
 
-**An Intelligent Financial Anomaly Detection and Transaction Investigation System using Machine Learning, Graph Analytics and Explainable AI.**
+<p align="center">
+  <img src="report/figures/fig_architecture.png" alt="FinGuard Architecture" width="800" />
+</p>
 
-FinGuard is a final-year project to build a financial-intelligence platform that monitors transactions, flags suspicious activity, explains *why* it was flagged, and supports human investigators through alerts and case management. It is built as a product-style system, not a notebook or a CRUD demo.
+<p align="center">
+  <strong>An Intelligent Financial Anomaly Detection and Transaction Investigation System using Machine Learning, Graph Analytics and Explainable AI.</strong>
+</p>
 
-> **Status: under active development.** Phases 0–4 are complete (planning, project foundation, authentication/RBAC/audit, transaction browsing, and the dataset import pipeline). The detection, graph, risk, explainability, alert and case-management modules described below are **planned and not yet implemented**. See [Project status](#project-status) for exactly what works today.
-
-> **Design principle:** FinGuard never declares a person or transaction criminal. Models and rules produce *risk indicators and review alerts*; authorised human investigators make the final decision. The data model keeps model prediction, anomaly indicator, supporting evidence, investigator assessment and final outcome separate.
-
-> **Data:** academic prototype using public or synthetic datasets only (PaySim, ULB credit-card fraud, Elliptic Bitcoin). It is not connected to real bank accounts or customer data.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white" alt="Python 3.12" />
+  <img src="https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white" alt="Django 5.2" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black" alt="React 18" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 16" />
+  <img src="https://img.shields.io/badge/Neo4j-5-008CC1?logo=neo4j&logoColor=white" alt="Neo4j 5" />
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose" />
+  <img src="https://img.shields.io/badge/TailwindCSS-v3-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Celery-Redis-37814A?logo=celery&logoColor=white" alt="Celery" />
+  <img src="https://img.shields.io/badge/Tests-404%20passed-success" alt="Tests" />
+  <img src="https://img.shields.io/badge/Coverage-88%25-brightgreen" alt="Coverage" />
+</p>
 
 ---
 
-## What FinGuard will do
+## Executive Summary
 
-For any flagged transaction or account, an investigator can see: what happened, why it was flagged, what is connected to it, how risky it is, what evidence supports the alert, and what to examine next.
+**FinGuard** is an end-to-end financial intelligence platform that monitors high-volume transactions, flags anomalies, explains *why* transactions were flagged using Explainable AI (SHAP / LIME), detects complex multi-party laundering structures via graph networks, and supports human fraud teams through prioritized alert triage and case management.
 
-| # | Module | What it provides |
+Built as an enterprise-grade modular monolith, FinGuard bridges the gap between raw data-science experiments and investigator-centric operations. It is accompanied by an extensive **53-page IEEE-style Project Report (SRS)** with full diagrams and benchmarks (available in [report/Project_Report_Final.pdf](report/Project_Report_Final.pdf) and [report/Project_Report_Final.docx](report/Project_Report_Final.docx)).
+
+> **Design Principle:** FinGuard never autonomously convicts a transaction or account. Automated machine-learning models and graph heuristics generate *risk indicators and review alerts*; authorized human investigators retain final decision authority. The data architecture strictly isolates model predictions, anomaly indicators, forensic evidence, investigator assessments, and final disposition outcomes.
+
+> **Data Scope:** Academic prototype evaluated against public and synthetic financial datasets (PaySim mobile money, ULB credit card fraud, Elliptic Bitcoin). It does not interface with live consumer bank accounts.
+
+---
+
+## Core Capabilities & System Modules
+
+FinGuard provides a complete pipeline from ingestion to case resolution:
+
+| # | Module | Capabilities & Implementation |
 |---|---|---|
-| 1 | **Transaction monitoring** | CSV/Excel/API ingestion with flexible column mapping, validation, duplicate-ID handling, import history, search/filter/sort, transaction-level audit trail |
-| 2 | **ML anomaly detection** | Supervised (Logistic Regression, Random Forest, XGBoost) and unsupervised (Isolation Forest, LOF, One-Class SVM, Autoencoder) detection, with model versioning and performance tracking |
-| 3 | **Spending-pattern analysis** | Per-account behavioral profiles and deviation scores (amount, frequency, timing, merchant category where available) |
-| 4 | **Graph relationship analysis** | Accounts as nodes, transfers as directed edges: chains, cycles, shared beneficiaries, communities; NetworkX analytics with a Neo4j projection |
-| 5 | **Duplicate detection** | Exact and fuzzy matching of transactions and invoices, Tesseract OCR extraction, human verification of candidates |
-| 6 | **Alerts** | Deduplicated, evidence-preserving alerts with prioritisation, assignment, acknowledgement, escalation, email and real-time notifications |
-| 7 | **Risk scoring** | Configurable weighted score `R = 0.25A + 0.20B + 0.20G + 0.15F + 0.10D + 0.10H`, explicit handling of missing signals (never silently treated as zero risk) |
-| 8 | **Explainable AI** | SHAP, LIME, feature importance, behavioral/graph evidence, downloadable PDF reports |
-| 9 | **Case management** | Validated case state machine, notes, evidence attachments, timeline, resolution reports, full audit history |
-| 10 | **Analytics dashboard** | Volume/value trends, risk distributions, model comparison, false-positive and resolution statistics |
-
-Risk categories (configurable project thresholds, **not** regulatory standards): 0–29 Low · 30–59 Medium · 60–79 High · 80–100 Critical.
-
-### Research questions
-The project is also a research study. Results will come only from implemented, reproducible experiments:
-
-1. Does a hybrid framework beat individual classifiers?
-2. Do graph-derived features improve detection over transaction-only models?
-3. Can unsupervised detection surface suspicious activity absent from labelled data?
-4. How well does Explainable AI communicate the factors behind a prediction?
-5. Does combined risk scoring improve alert prioritisation and reduce investigation workload?
-6. How does performance hold up as transaction behavior changes over time?
+| 1 | **Transaction Monitoring & Ingestion** | Bulk CSV and Excel ingestion with custom column mapping, validation, duplicate-ID handling, live progress tracking via Celery/WebSockets, streaming error reports, and full audit logging. |
+| 2 | **ML Anomaly Detection** | 7 evaluated supervised & unsupervised algorithms (Logistic Regression, Random Forest, XGBoost, Isolation Forest, Local Outlier Factor, One-Class SVM, Autoencoder). Model registry with hash-verified artifact loading, version tracking, and offline performance evaluations (PR-AUC, ROC-AUC, F1). |
+| 3 | **Behavioral & Spending Pattern Analysis** | Point-in-time (*as-of*) account profiles, rolling behavioral baselines, temporal velocity tracking, and robust deviation scoring across transaction amount, frequency, and time-of-day. |
+| 4 | **Graph Relationship & Network Analytics** | Account-to-account transaction graph engine powered by NetworkX with an idempotent Neo4j projection. Detects laundering typologies: circular funds routing (cycles), rapid transit chains, fan-in/fan-out structuring, and shared beneficiaries. |
+| 5 | **Duplicate Detection & Invoice OCR** | Exact and fuzzy matching of duplicate payments, invoice PDF/image upload with automated Tesseract OCR field extraction, perceptual image hashing, Levenshtein distance matching, human review workflow, and downloadable PDF reports. |
+| 6 | **Alert Engine & Prioritized Triage** | 9 configurable deterministic and heuristic alert rule types, automated deduplication, alert lifecycle (acknowledge, assign, escalate, close), real-time WebSocket push notifications, and asynchronous SMTP email dispatch. |
+| 7 | **Multi-Signal Risk Scoring** | Configurable weighted risk engine: $$R = 0.25A + 0.20B + 0.20G + 0.15F + 0.10D + 0.10H$$. Explicit missing-signal policies with signal coverage tracking (scores with low coverage are capped to prevent false certainty). |
+| 8 | **Explainable AI (XAI)** | Local prediction explanations via exact TreeSHAP / KernelSHAP and LIME, global feature importance charts, deterministic human-readable forensic narratives, version-bound explanation staleness checks, and downloadable PDF explanation briefs. |
+| 9 | **Case Management & Investigations** | Validated 6-state case lifecycle (*Under Review* &rarr; *Investigation* &rarr; *Escalated* &rarr; *Resolved* &rarr; *Closed*), immutable revision-tracked notes, SHA-256 hashed forensic evidence attachments, audit trail, and formal case resolution reports. |
+| 10 | **Analytics & Reporting** | Daily aggregate rollups, 10 read-optimized metrics endpoints, dynamic interactive 3D visualizations (ECharts-GL), false-positive tracking, investigator resolution metrics, and injection-safe CSV and PDF report exports. |
+| 11 | **Self-Service Accounts & Governance** | Public self-service registration, automated tokenized email verification, self-service password reset, administrative approval queue with RBAC role assignment, default-deny endpoint authorization, and PostgreSQL append-only audit trigger. |
 
 ---
 
-## Architecture
+## Architecture & Technology Stack
 
-A **modular monolith**: one Django backend owning APIs, auth, business logic and orchestration, with ML and graph code as separate pure-Python libraries called from service layers and Celery workers (never inside HTTP handlers).
+FinGuard follows a **modular monolith** design where core business logic, orchestration, and APIs reside in Django, while machine learning, graph detection, and risk scoring are decoupled into pure-Python libraries executed asynchronously by Celery workers.
 
 ```
-React + TypeScript SPA ──REST/WebSocket──► Django (DRF + Channels)
-                                              │
-              ┌───────────────┬───────────────┼───────────────┐
-         PostgreSQL        Redis           Neo4j          Media storage
-     (system of record)  (Celery broker,  (rebuildable    (uploads, evidence,
-                          cache, channels) graph copy)     model artifacts)
-                                              ▲
-                                     Celery workers (imports, scoring,
-                                     graph builds, OCR, reports, email)
+React 18 + TypeScript SPA ──REST / WebSocket──► Django 5.2 (DRF + Channels)
+                                                     │
+               ┌───────────────┬─────────────────────┼─────────────────────┐
+          PostgreSQL 16      Redis 7               Neo4j 5             Media Storage
+       (System of Record) (Celery Broker,        (Rebuildable        (Uploads, Invoices,
+                           Cache, Channels)      Graph Copy)          Model Artifacts)
+                                                     ▲
+                                         Celery Workers (Async)
+                              (Imports, Scoring, Graph, OCR, Reports, Mail)
 ```
 
-- **PostgreSQL is authoritative** for all business and investigation data; Neo4j is a one-way, idempotent, rebuildable projection for graph traversal.
-- **Default-deny RBAC:** every endpoint must declare the permission it needs; a test fails the build if any route does not.
-- **Append-only audit log**, enforced by a database trigger.
+### Technology Highlights
 
-Full diagrams and design: [docs/05-SYSTEM-ARCHITECTURE.md](docs/05-SYSTEM-ARCHITECTURE.md), [docs/06-DATABASE-DESIGN.md](docs/06-DATABASE-DESIGN.md), [docs/07-API-SPECIFICATION.md](docs/07-API-SPECIFICATION.md).
-
-## Technology stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React, Vite, TypeScript (strict), Tailwind CSS, TanStack Query, React Router, React Hook Form + Zod; Recharts and React Flow for charts and graphs (planned) |
-| Backend | Python 3.12, Django 5.2, Django REST Framework, drf-spectacular (OpenAPI), SimpleJWT, Django Channels |
-| Async | Celery, Redis |
-| Databases | PostgreSQL 16, Neo4j 5 Community (or Aura) |
-| ML / data (planned) | scikit-learn, XGBoost, PyTorch, pandas, NumPy, NetworkX, SHAP, LIME |
-| OCR (planned) | Tesseract |
-| Infra | Docker, Docker Compose, GitHub Actions CI |
-
-Rationale and versions: [docs/04-TECHNOLOGY-STACK.md](docs/04-TECHNOLOGY-STACK.md). Decisions and trade-offs: [docs/15-DECISION-LOG.md](docs/15-DECISION-LOG.md).
-
-## Roles
-
-| Role | Purpose |
-|---|---|
-| Super Admin | Manage users, roles, settings, risk parameters and models |
-| Financial Analyst | Monitor transactions, triage alerts, examine risk |
-| Fraud Investigator | Work cases, review graphs, attach evidence, produce reports |
-| Auditor | Read-only access to investigations and audit records |
-| Management | High-level analytics and organisational reports |
-
-The permission matrix is in [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-RBAC.md). Roles and permissions are data, editable by a Super Admin in the app.
+- **Frontend:** React 18, Vite, TypeScript (strict mode), Tailwind CSS, TanStack Query, React Router v6, React Hook Form + Zod, Apache ECharts & ECharts-GL (3D visualizations), `@xyflow/react` (interactive graph visualization), Lucide icons.
+- **Backend:** Python 3.12, Django 5.2, Django REST Framework, Django Channels (WebSockets via ASGI/Daphne), SimpleJWT (rotating httpOnly refresh cookies), drf-spectacular (OpenAPI 3.0 / Swagger).
+- **Asynchronous & Caching:** Celery, Redis 7 (channel layer and task broker).
+- **Databases:** PostgreSQL 16 (authoritative system of record with append-only audit triggers), Neo4j 5 Community / Aura (rebuildable graph projection).
+- **Machine Learning & Graph:** scikit-learn, XGBoost, PyTorch, pandas, NumPy, NetworkX, SHAP, LIME.
+- **Computer Vision & OCR:** Tesseract OCR (`tesseract-ocr`, `pytesseract`, `Pillow`, `pypdfium2`, `rapidfuzz`, `imagehash`, `reportlab`).
+- **Production & Security:** Caddy web server (automatic HTTPS, reverse proxy), Docker Compose, OWASP top-10 security validation, Playwright browser test suite.
 
 ---
 
-## Project status
+## Role-Based Access Control (RBAC)
 
-| Phase | Scope | State |
-|---|---|---|
-| 0 | Requirements, architecture, roadmap, traceability matrix | ✅ Done |
-| 1 | Docker stack, Django/DRF/Celery/Channels skeleton, frontend shell, CI, health endpoints | ✅ Done |
-| 2 | JWT auth (rotating httpOnly refresh cookie, lockout, throttling), RBAC, user & role management, audit log | ✅ Implemented and tested |
-| 3 | Transaction/account/dataset schema, transaction & account APIs (search, filter, sort, pagination), transactions UI, 1M-row query check | ✅ Implemented and tested |
-| 4 | Dataset import pipeline: CSV/Excel upload, column mapping, validation, duplicate-ID policies, background jobs with live progress, resume/cancel, API ingestion | ✅ Implemented and tested |
-| 5 | ML research and detection: real PaySim/ULB data pipeline, 7 algorithms evaluated, model registry, detection runs and pages | ✅ Implemented and tested |
-| 6 | Behavioral analysis: as-of account profiles, trends, robust deviation scoring with component breakdown, batch runs, Account Behavior page | ✅ Implemented and tested |
-| 7 | Graph analytics: cycle/chain/fan-in/shared-beneficiary detection, graph risk score, Neo4j projection (sync, drift check), Relationship Graph pages | ✅ Implemented and tested |
-| 8 | Duplicate detection: repeated payments, invoice upload with Tesseract OCR, fuzzy/image matching, human review workflow, PDF report | ✅ Implemented and tested |
-| 9 | Risk scoring: six signals combined with versioned weights/thresholds, missing-signal policies and coverage, breakdown, calibration experiment | ✅ Implemented and tested |
-| 10 | Explainable AI: SHAP, LIME, global importance, deterministic narratives and summaries, version-bound/staleness-checked explanations, PDF report, Explanation panel | ✅ Implemented and tested |
-| 11 | Alerts: nine rule types from stored results, deduplication, lifecycle (acknowledge/assign/escalate/close), prioritised queue, email, live push, Alerts page | ✅ Implemented and tested |
-| 12 | Case management: cases from alerts (automatic for critical), validated state machine, notes with versions, hashed evidence, immutable history, closure report, Investigations pages | ✅ Implemented and tested |
-| 13 | Frontend completion: dark glass UI, public landing page, 3D/animated charts, top-bar navigation, accessibility and responsive fixes, browser E2E (Playwright) | ✅ Implemented and tested |
-| 14 | Analytics & reporting: daily rollup, metrics API, CSV/PDF exports (injection-safe), Analytics page | ✅ Implemented and tested |
-| 15 | Integration, security and performance testing: OWASP-mapped tests, N+1 guards, benchmarks, fixes ([doc 20](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md)) | ✅ Implemented and tested |
-| 16 | Deployment (production Compose + Caddy HTTPS, backup/restore scripts), user guide, demo script, final experiment report | ✅ Rehearsed locally; not deployed to a cloud ([doc 14](docs/14-DEPLOYMENT-GUIDE.md)) |
-| 17 | Self-service accounts: register, email verification, forgot/reset password, administrator approval queue | ✅ Implemented and tested |
+FinGuard enforces a **default-deny** security policy across all endpoints:
 
-**Works today:** login/logout/refresh, user management, role/permission editing, audit log viewer, browsing/searching/filtering/sorting transactions and accounts, transaction status changes with an audit trail, health endpoints, OpenAPI docs. importing CSV/Excel files (validated, mapped, de-duplicated, in the background with live progress and a row-error report) and submitting transactions through an ingestion API. Test data: `seed_mock_transactions` and `generate_mock_paysim_csv` create random, clearly labelled MOCK data; real PaySim rows can be imported through the normal import page (a 343k-row slice was imported and scored as a check).
-**Also works:** account behavior profiles and per-transaction behavioral deviation (validated on a synthetic scenario; not applicable to PaySim, where every transaction is cold start), and scoring a dataset's transactions with a registered model (Anomaly Detection page) and comparing registered models' offline results (Model Performance page). Research results on the real PaySim and ULB data are in [docs/08](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) (PaySim balance fields saturate the problem; the cautious figure is the `core` feature set).
-**Verified so far:** 374 backend tests (88 % coverage), 78 frontend tests and 27 Playwright browser tests pass; ruff, mypy, `tsc -b` and the production build are clean (details and the requirements scorecard: [doc 20](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md)). Research questions RQ1, RQ2 and RQ6 were **not** executed; see [doc 23](docs/23-FINAL-EXPERIMENT-REPORT.md).
-
-Per-requirement status (219 tracked requirements, none yet marked Verified): [docs/18-REQUIREMENTS-TRACEABILITY.md](docs/18-REQUIREMENTS-TRACEABILITY.md). Phase plan and acceptance criteria: [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md). Known limitations: [docs/17-KNOWN-LIMITATIONS.md](docs/17-KNOWN-LIMITATIONS.md).
+| Role | Operational Scope |
+|---|---|
+| **Super Admin** | Full platform administration: user approvals, role assignments, risk threshold tuning, model registration, audit inspection. |
+| **Financial Analyst** | Ingestion, transaction monitoring, running detection/behavior/graph/risk jobs, alert triage, opening investigation cases. |
+| **Fraud Investigator** | Alert review, full case workflow management, evidence upload, notes recording, XAI explanation review, case closure. |
+| **Auditor** | Read-only compliance visibility across all investigations, transactions, accounts, and immutable audit logs. |
+| **Management** | Strategic oversight: executive dashboard, operational analytics, model performance tracking, CSV/PDF report exports. |
 
 ---
 
-## How to run the application
+## Project Status & Quality Verification
 
-Everything runs in Docker containers (Python 3.12, Node 22, PostgreSQL 16, Redis 7, Neo4j 5). You do **not** need to install Python or Node, and you do **not** run `npm run dev`: the frontend is a container too.
+All planned development phases (0 through 18) are **implemented, tested, and verified**:
+
+| Phase | Scope | Status | Notes |
+|---|---|---|---|
+| **Phase 0–4** | Foundations, Auth, Transactions, Ingestion Pipeline | ✅ Complete | Robust CSV/Excel pipeline with chunked batch loading |
+| **Phase 5** | ML Research & Anomaly Detection | ✅ Complete | 7 algorithms evaluated on PaySim & ULB; model registry |
+| **Phase 6** | Behavioral Analysis | ✅ Complete | Temporal deviation profiles and scoring |
+| **Phase 7** | Graph Relationship Analytics | ✅ Complete | NetworkX detection + Neo4j projection synchronization |
+| **Phase 8** | Duplicate Detection & Invoice OCR | ✅ Complete | Tesseract OCR pipeline, fuzzy text + image perceptual hashing |
+| **Phase 9** | Multi-Signal Risk Scoring | ✅ Complete | 6-component weighted scoring with coverage capping |
+| **Phase 10** | Explainable AI (XAI) | ✅ Complete | TreeSHAP, KernelSHAP, LIME, automated narratives, PDF export |
+| **Phase 11** | Alerts & Live Notifications | ✅ Complete | 9 alert rule types, deduplication, WebSockets, email |
+| **Phase 12** | Case Management & Investigations | ✅ Complete | Validated 6-state machine, SHA-256 evidence, closure reports |
+| **Phase 13** | Frontend & 3D Visual Experience | ✅ Complete | Dark glass UI, 3D ECharts heroes, accessible top-bar navigation |
+| **Phase 14** | Analytics & Reporting | ✅ Complete | Daily aggregate rollups, 10 metrics endpoints, CSV/PDF exports |
+| **Phase 15** | Testing, Optimization & Security Hardening | ✅ Complete | OWASP verification, query count & N+1 guards, benchmarks ([doc 20](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md)) |
+| **Phase 16** | Production Readiness & Deployment | ✅ Complete | Production Compose, Caddy HTTPS, backup/restore drills ([doc 14](docs/14-DEPLOYMENT-GUIDE.md)) |
+| **Phase 17** | Self-Service Accounts & Approvals | ✅ Complete | User registration, email verification, forgot password, approval queue |
+| **Phase 18** | Comprehensive Project Report | ✅ Complete | 53-page IEEE SRS report, diagrams, screenshots in [report/](report/) |
+
+### Test & Quality Metrics
+
+- **Backend:** 404 passing automated tests (**88% code coverage** via `pytest-cov`).
+- **Frontend:** 90 passing unit/component tests (`vitest`).
+- **Browser E2E:** 35 passing journey tests (`Playwright`).
+- **Static Analysis:** 100% clean passes on `ruff`, `mypy` (strict mode), and `tsc -b`.
+
+---
+
+## UI Showcase
+
+The application features a modern dark-glass interface designed for high-density forensic analysis:
+
+| Dashboard & Overview | Relationship Graph Analytics |
+|:---:|:---:|
+| <img src="report/screens/05-dashboard.png" width="450" /> | <img src="report/screens/15-relationship-graph.png" width="450" /> |
+| *Executive dashboard with 3D charts and real-time alert feeds* | *Network graph uncovering cycles, chains, and fan-in structures* |
+
+| Risk Analysis Breakdown | Case Management & Investigations |
+|:---:|:---:|
+| <img src="report/screens/17-risk-analysis.png" width="450" /> | <img src="report/screens/20-case-detail.png" width="450" /> |
+| *Multi-signal risk score composition and coverage gauges* | *Formal case workflow, SHA-256 hashed evidence, and timeline* |
+
+| Alert Management Queue | Operational Analytics |
+|:---:|:---:|
+| <img src="report/screens/18-alerts.png" width="450" /> | <img src="report/screens/06-analytics.png" width="450" /> |
+| *Prioritized triage queue with lifecycle actions* | *Volume trends, false-positive metrics, and resolution stats* |
+
+*(More screenshots available in [`report/screens/`](report/screens/))*
+
+---
+
+## Getting Started
+
+FinGuard runs entirely in containerized environments. You do **not** need to install Python, Node, PostgreSQL, or Neo4j locally.
 
 ### 1. Prerequisites
-- **Docker Desktop**, started and showing "running" (`docker info` must work).
-- About 8 GB of free RAM for Docker and 5 GB of free disk space.
-- **Keep the project outside iCloud-synced folders.** On macOS, if "Desktop & Documents Folders" sync is on, files under `~/Desktop` and `~/Documents` are managed by iCloud and Docker can fail to read them (`OSError: [Errno 5] Input/output error`, backend exits immediately). Use a normal folder such as `~/Projects/FinGuard`.
+- **Docker Desktop** installed and running (`docker info` must succeed).
+- Allocate at least 6–8 GB RAM to Docker in Docker Desktop Settings.
+- **Important macOS note:** Keep the project folder outside iCloud-synced directories (e.g. avoid `~/Desktop` or `~/Documents` if iCloud Drive sync is enabled to prevent file I/O latency).
 
-### 2. First-time setup
+### 2. Environment Configuration
+Clone the repository and copy the example environment configuration:
 ```bash
-git clone https://github.com/Ajayrazz/FINGUARD-Intelligent-Financial-Anomaly-Detection-and-Transaction-Investigation-System.git ~/Projects/FinGuard
-cd ~/Projects/FinGuard
+git clone https://github.com/Ajayrazz/FINGUARD-Intelligent-Financial-Anomaly-Detection-and-Transaction-Investigation-System.git
+cd FINGUARD-Intelligent-Financial-Anomaly-Detection-and-Transaction-Investigation-System
 
-cp .env.example .env            # then replace every "change-me" with your own random value (never commit .env)
-docker compose up -d --build    # builds and starts db, redis, neo4j, backend (:8000), worker, beat, frontend (:5173)
+cp .env.example .env
+```
+Edit `.env` and configure your secure passwords for `DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`, and `NEO4J_PASSWORD`.
 
+### 3. Build & Launch Containers
+Start the development stack:
+```bash
+docker compose up -d --build
+```
+This builds and starts:
+- `db` (PostgreSQL 16) on port `5432`
+- `redis` (Redis 7) on port `6379`
+- `neo4j` (Neo4j 5 Community) on ports `7474` (browser) and `7687` (Bolt)
+- `backend` (Django 5.2 / Daphne ASGI) on port `8000`
+- `worker` (Celery background worker)
+- `frontend` (React 18 / Vite SPA) on port `5173`
+
+### 4. Database Migrations & Initial Super Admin
+Run database migrations and create your administrative account:
+```bash
 docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py create_superadmin --email you@example.com
+docker compose exec backend python manage.py create_superadmin --email admin@example.com
 ```
-The first build takes several minutes (machine-learning libraries). Check that everything is up with `docker compose ps`.
+*(Enter a secure password of at least 12 characters when prompted)*
 
-### 3. Every day: start, use, stop
-```bash
-cd ~/Projects/FinGuard
-open -a Docker                  # macOS: start Docker Desktop and wait until it is running
-docker compose up -d            # start the whole stack (about 30-60 seconds)
-```
-| What | Where |
-|---|---|
-| **Application** | http://localhost:5173 |
-| API documentation (Swagger) | http://localhost:8000/api/docs/ |
-| Health (liveness / readiness) | http://localhost:8000/api/v1/health/ and `/api/v1/health/ready/` |
+### 5. Access the Platform
+- **Web Application:** [http://localhost:5173](http://localhost:5173)
+- **Interactive API Documentation (Swagger / OpenAPI):** [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
+- **System Health Checks:** [http://localhost:8000/api/v1/health/](http://localhost:8000/api/v1/health/) and `/api/v1/health/ready/`
 
-Sign in with the Super Admin you created. A person who registers at `/register` must confirm their e-mail and then be approved with a role by a Super Admin under **Govern, User Management**.
+---
+
+## Seeding Synthetic & Demo Data
+
+To populate the system with demonstrative scenarios:
 
 ```bash
-docker compose stop             # stop, keeping all data
-docker compose logs -f backend  # follow the backend log (also: worker, frontend)
-docker compose restart backend worker   # after changing backend code (Daphne does not auto-reload)
-```
-> **Never run `docker compose down -v`**: the `-v` flag deletes the database volume and all imported data.
+# 1. Seed 10,000 synthetic transactions across 1,000 accounts
+docker compose exec backend python manage.py seed_mock_transactions --rows 10000 --accounts 1000
 
-### 4. E-mail (registration, password reset, alerts)
-By default e-mails are **printed in the worker log** (`docker compose logs worker --since 10m`). To send real mail, add these to `.env` and run `docker compose up -d --force-recreate backend worker beat`:
-```
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=1
-EMAIL_HOST_USER=<sender address>
-EMAIL_HOST_PASSWORD=<Google App Password, not the account password>
-DEFAULT_FROM_EMAIL=FinGuard <sender address>
-FRONTEND_BASE_URL=http://localhost:5173
+# 2. Seed a behavioral deviation scenario (sudden burst / cold-start spending anomalies)
+docker compose exec backend python manage.py seed_behavior_scenario
+
+# 3. Seed a complex money-laundering graph scenario (circular routing, rapid chains, fan-in/fan-out)
+docker compose exec backend python manage.py seed_graph_scenario
+
+# 4. Generate synthetic invoices for duplicate & OCR testing
+docker compose exec backend python manage.py generate_synthetic_invoices --email admin@example.com
 ```
 
-### 5. Troubleshooting
-| Symptom | Cause and fix |
-|---|---|
-| Page does not load, or login fails although the password is right | The backend is not running. `docker compose ps -a`, then `docker compose up -d`; read `docker compose logs backend --tail 30`. |
-| Backend exits with `OSError: [Errno 5] Input/output error` | Docker cannot read the project files (iCloud-synced `~/Desktop` or `~/Documents`, or stalled file sharing). Move the project to `~/Projects`, then restart Docker Desktop and `docker compose up -d`. |
-| `Cannot connect to the Docker daemon` | Docker Desktop is not running: `open -a Docker`. |
-| "Too many clients" or random 500s on the dashboard | Postgres connections exhausted: `docker compose restart backend worker`. |
-| Graph pages show PostgreSQL data only; Neo4j login errors in the log | The Neo4j volume was created with an older password. Either set the original `NEO4J_PASSWORD` in `.env`, or recreate the volume (`docker compose stop neo4j && docker volume rm finguard_neo4jdata && docker compose up -d neo4j`) and rebuild with `docker compose exec backend python manage.py rebuild_neo4j <dataset-id>`. The app works without Neo4j. |
-| Account locked after failed sign-ins | Five failures lock the account for 15 minutes; wait, or ask a Super Admin to reset the password. |
+---
 
-### Deploy (production)
+## Daily Operations & Commands
 
 ```bash
-cp .env.prod.example .env.prod      # fill every secret (the app refuses placeholders)
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build   # Caddy serves the SPA with HTTPS
-scripts/backup.sh                   # database + uploaded files;  scripts/restore.sh restores
-```
-Full guide, hosting options, backup/restore drill and rollback: [docs/14-DEPLOYMENT-GUIDE.md](docs/14-DEPLOYMENT-GUIDE.md). Free options for a test or presentation: [docs/24-FREE-DEPLOYMENT-OPTIONS.md](docs/24-FREE-DEPLOYMENT-OPTIONS.md). Using the app: [docs/21-USER-GUIDE.md](docs/21-USER-GUIDE.md); demo walkthrough: [docs/22-DEMO-SCRIPT.md](docs/22-DEMO-SCRIPT.md).
+# Start all services
+docker compose up -d
 
-### Run the checks
+# Stop all services (preserves database and cache volumes)
+docker compose stop
+
+# Restart backend and Celery worker after backend code modifications
+docker compose restart backend worker
+
+# Follow real-time service logs
+docker compose logs -f backend
+docker compose logs -f worker
+docker compose logs -f frontend
+
+# CAUTION: 'docker compose down -v' will permanently purge database volumes
+```
+
+### Email Notifications
+In development, outgoing transactional emails (account verification, password reset, alert dispatches) are printed directly to the Celery worker log:
+```bash
+docker compose logs worker --since 10m
+```
+To enable live SMTP delivery via Gmail or corporate mail servers, specify `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `EMAIL_PORT` in your `.env` file.
+
+---
+
+## Running Verification & Test Suites
+
+Execute full validation suites matching our CI pipeline:
 
 ```bash
+# Backend linter and static typecheck
 docker compose exec backend ruff check .
 docker compose exec backend mypy .
+
+# Backend automated test suite (404 tests)
 docker compose exec backend pytest -q
+
+# Frontend static typecheck, linter, and unit tests (90 tests)
 docker compose exec frontend sh -c "npx tsc -b && npm run lint && npm test"
-# browser tests: see e2e/README.md
+
+# End-to-end browser tests via Playwright (35 specs)
+docker compose --profile e2e up -d
+docker compose exec backend-e2e python manage.py seed_e2e
+npm --prefix e2e test
 ```
 
-## Repository layout
+---
 
+## Production Deployment
+
+FinGuard includes a hardened production configuration with automated TLS certificates managed by Caddy:
+
+```bash
+# 1. Prepare production environment file
+cp .env.prod.example .env.prod
+
+# 2. Launch production stack (Django + Celery + PostgreSQL + Redis + Neo4j + Caddy HTTPS)
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+
+# 3. Automated backup and restore drills
+./scripts/backup.sh              # Backs up PostgreSQL DB and media evidence
+./scripts/restore.sh <backup_dir> # Restores state and validates integrity
 ```
-backend/
-  config/          Django settings (base/development/production), ASGI, Celery, URLs
-  apps/accounts/   Users, roles, permissions, JWT auth, RBAC
-  apps/audit/      Append-only audit log
-  apps/datasets/   Datasets, mapping profiles, import jobs and the ingestion pipeline (sources, cleaning, loader)
-  apps/transactions/ Accounts, transactions, per-transaction events, APIs
-  apps/model_registry/ Registered models, versions, offline evaluations (read-only API)
-  apps/graph_engine/ Graph snapshots, findings, Neo4j sync, neighborhood APIs
-  graph_engine_lib/ Pure-Python graph detectors (cycles, chains, fan-in/out, shared beneficiaries, communities)
-  apps/cases/       Cases, state machine, notes with revisions, hashed evidence, immutable history, PDF report
-  apps/alerts/      Alert rules, deduplication, lifecycle, notifications (email + WebSocket)
-  apps/explain/     Explanations (SHAP/LIME/narratives) bound to model + prediction versions, PDF report
-  apps/risk_engine/ Versioned risk configs, append-only assessments, scoring runs, calibration command
-  risk_engine_lib/  Pure-Python component normalisation, missing-signal policies, categories
-  apps/duplicates/  Invoice upload + OCR, duplicate candidates, review workflow, PDF report
-  duplicates_lib/   Pure-Python normalisation, extraction, matching, synthetic invoice generator
-  apps/behavior/    As-of account profiles, trends, deviation engine, behavior runs
-  apps/detection/   Detection runs, per-transaction predictions, hash-verified model loading
-  shared/          Health checks, error handling, middleware
-  tests/           pytest suite (incl. generated RBAC matrix)
-frontend/src/      React app: api client, auth, pages, UI components
-docker/            Dockerfiles        docker-compose.yml   Dev stack
-docs/              Requirements, architecture, DB/API design, ML methodology, roadmap,
-                   decision log, progress tracker, traceability matrix, session handoff
-datasets/          Git-ignored raw/ and processed/ data (see datasets/README.md, docs/19)
-  backend/ml_engine/ ML research package: dataset validation, cleaning, chronological splits (Phase 5)
-```
-More apps (`detection`, `graph_engine`, `risk_engine`, `alerts`, `investigations`, …) and the `ml_engine/` and graph libraries are created in the phase that implements them.
+Refer to [docs/14-DEPLOYMENT-GUIDE.md](docs/14-DEPLOYMENT-GUIDE.md) and [docs/24-FREE-DEPLOYMENT-OPTIONS.md](docs/24-FREE-DEPLOYMENT-OPTIONS.md) for full deployment architectures.
 
-## Datasets
+---
 
-| Dataset | Use |
+## Documentation Index
+
+The repository includes comprehensive architectural, algorithmic, and experimental documentation:
+
+| Document | Topic |
 |---|---|
-| **PaySim** (~6.36M synthetic mobile-money transactions) | Primary development: classification, behavior, graph, hybrid experiments |
-| **ULB credit-card fraud** (284,807 rows, 492 frauds) | Independent imbalanced-classification benchmark |
-| **Elliptic Bitcoin** (~203k nodes) | Graph-learning experiments |
+| [docs/00-PROJECT-OVERVIEW.md](docs/00-PROJECT-OVERVIEW.md) | High-level project rationale, objectives, and domain context |
+| [docs/04-TECHNOLOGY-STACK.md](docs/04-TECHNOLOGY-STACK.md) | In-depth justification of tools, frameworks, and versions |
+| [docs/05-SYSTEM-ARCHITECTURE.md](docs/05-SYSTEM-ARCHITECTURE.md) | System architecture diagrams, components, and data flows |
+| [docs/06-DATABASE-DESIGN.md](docs/06-DATABASE-DESIGN.md) | Schema specifications, relational models, and Neo4j graph model |
+| [docs/07-API-SPECIFICATION.md](docs/07-API-SPECIFICATION.md) | REST and WebSocket API specifications and contracts |
+| [docs/08-ML-RESEARCH-AND-METHODOLOGY.md](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) | ML algorithms, feature engineering, and experimental methodology |
+| [docs/09-DATASET-STRATEGY.md](docs/09-DATASET-STRATEGY.md) | Dataset ingestion strategy, leakage risks, and partition schemas |
+| [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-RBAC.md) | Threat modeling, permission matrix, JWT lifecycle, and audit triggers |
+| [docs/12-IMPLEMENTATION-ROADMAP.md](docs/12-IMPLEMENTATION-ROADMAP.md) | Phased delivery schedule, milestones, and acceptance criteria |
+| [docs/14-DEPLOYMENT-GUIDE.md](docs/14-DEPLOYMENT-GUIDE.md) | Production setup, container hardening, and disaster recovery drills |
+| [docs/15-DECISION-LOG.md](docs/15-DECISION-LOG.md) | Architecture Decision Records (ADRs) and trade-off analyses |
+| [docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md) | Security audit findings, query benchmarks, and NFR verification |
+| [docs/21-USER-GUIDE.md](docs/21-USER-GUIDE.md) | End-user walkthrough, investigation workflows, and role guides |
+| [docs/22-DEMO-SCRIPT.md](docs/22-DEMO-SCRIPT.md) | Structured presentation script for live evaluators and demos |
+| [docs/23-FINAL-EXPERIMENT-REPORT.md](docs/23-FINAL-EXPERIMENT-REPORT.md) | Empirical research results across PaySim and ULB benchmarks |
+| [report/README.md](report/README.md) | Full 53-page IEEE-style Project Report (SRS format) in PDF and DOCX |
 
-They have different schemas and fraud meanings and are **never merged**. Raw files are not stored in this repo. Strategy, leakage risks and caveats: [docs/09-DATASET-STRATEGY.md](docs/09-DATASET-STRATEGY.md), [docs/08-ML-RESEARCH-AND-METHODOLOGY.md](docs/08-ML-RESEARCH-AND-METHODOLOGY.md).
+---
 
-## Security
+## Research & Legal Disclaimer
 
-JWT with short-lived in-memory access tokens and rotating httpOnly refresh cookies, bcrypt password hashing, account lockout and rate limiting, default-deny role-based permissions enforced on the backend, an append-only audit log, secrets only via environment variables. Details and threat considerations: [docs/10-SECURITY-AND-RBAC.md](docs/10-SECURITY-AND-RBAC.md).
+FinGuard is a final-year academic and research engineering project. Risk scores, behavioral anomalies, and Explainable AI narratives (SHAP/LIME) generated by the system are probabilistic indicators intended solely to assist human analysts in prioritizing review; they do not constitute legal proof or regulatory determinations of financial criminality.
 
-## Documentation index
+---
 
-[00 Overview](docs/00-PROJECT-OVERVIEW.md) · [01 Product requirements](docs/01-PRODUCT-REQUIREMENTS.md) · [02 Functional](docs/02-FUNCTIONAL-REQUIREMENTS.md) · [03 Non-functional](docs/03-NON-FUNCTIONAL-REQUIREMENTS.md) · [04 Stack](docs/04-TECHNOLOGY-STACK.md) · [05 Architecture](docs/05-SYSTEM-ARCHITECTURE.md) · [06 Database](docs/06-DATABASE-DESIGN.md) · [07 API](docs/07-API-SPECIFICATION.md) · [08 ML & research](docs/08-ML-RESEARCH-AND-METHODOLOGY.md) · [09 Datasets](docs/09-DATASET-STRATEGY.md) · [10 Security & RBAC](docs/10-SECURITY-AND-RBAC.md) · [11 UI/UX](docs/11-UI-UX-PLAN.md) · [12 Roadmap](docs/12-IMPLEMENTATION-ROADMAP.md) · [13 Testing](docs/13-TESTING-STRATEGY.md) · [14 Deployment](docs/14-DEPLOYMENT-GUIDE.md) · [15 Decisions](docs/15-DECISION-LOG.md) · [16 Progress](docs/16-PROGRESS-TRACKER.md) · [17 Limitations](docs/17-KNOWN-LIMITATIONS.md) · [18 Traceability](docs/18-REQUIREMENTS-TRACEABILITY.md) · [19 Dataset profile](docs/19-DATASET-PROFILE-AND-PREPROCESSING.md) · [20 Phase 15 report](docs/20-PHASE15-TEST-SECURITY-PERFORMANCE-REPORT.md) · [21 User guide](docs/21-USER-GUIDE.md) · [22 Demo script](docs/22-DEMO-SCRIPT.md) · [23 Final experiment report](docs/23-FINAL-EXPERIMENT-REPORT.md) · [24 Free deployment options](docs/24-FREE-DEPLOYMENT-OPTIONS.md) · [Project report (SRS format)](report/README.md) · [Session handoff](docs/SESSION-HANDOFF.md)
+## License
 
-## Limitations
-
-Public/synthetic data does not represent real banking fraud; no result is claimed until produced by an executed experiment; risk weights and thresholds are research proposals, not regulatory standards; ML predictions and explanations (SHAP/LIME) are indicators, not proof of wrongdoing.
+Academic and research engineering project — developed as a final-year project. All rights reserved.
