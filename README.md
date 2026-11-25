@@ -124,27 +124,71 @@ Per-requirement status (219 tracked requirements, none yet marked Verified): [do
 
 ---
 
-## Getting started
+## How to run the application
 
-Requires **Docker** (all development runs in containers: Python 3.12, Node 22).
+Everything runs in Docker containers (Python 3.12, Node 22, PostgreSQL 16, Redis 7, Neo4j 5). You do **not** need to install Python or Node, and you do **not** run `npm run dev`: the frontend is a container too.
 
+### 1. Prerequisites
+- **Docker Desktop**, started and showing "running" (`docker info` must work).
+- About 8 GB of free RAM for Docker and 5 GB of free disk space.
+- **Keep the project outside iCloud-synced folders.** On macOS, if "Desktop & Documents Folders" sync is on, files under `~/Desktop` and `~/Documents` are managed by iCloud and Docker can fail to read them (`OSError: [Errno 5] Input/output error`, backend exits immediately). Use a normal folder such as `~/Projects/FinGuard`.
+
+### 2. First-time setup
 ```bash
-git clone https://github.com/Ajayrazz/FINGUARD-Intelligent-Financial-Anomaly-Detection-and-Transaction-Investigation-System.git
-cd FINGUARD-Intelligent-Financial-Anomaly-Detection-and-Transaction-Investigation-System
+git clone https://github.com/Ajayrazz/FINGUARD-Intelligent-Financial-Anomaly-Detection-and-Transaction-Investigation-System.git ~/Projects/FinGuard
+cd ~/Projects/FinGuard
 
-cp .env.example .env          # then replace every "change-me" with your own random value
-docker compose up -d --build  # db, redis, backend (:8000), worker, frontend (:5173)
+cp .env.example .env            # then replace every "change-me" with your own random value (never commit .env)
+docker compose up -d --build    # builds and starts db, redis, neo4j, backend (:8000), worker, beat, frontend (:5173)
 
 docker compose exec backend python manage.py migrate
 docker compose exec backend python manage.py create_superadmin --email you@example.com
 ```
+The first build takes several minutes (machine-learning libraries). Check that everything is up with `docker compose ps`.
 
-Then open:
-- App: http://localhost:5173 (sign in with the admin you just created)
-- API docs (Swagger): http://localhost:8000/api/docs/
-- Health: `/api/v1/health/` and `/api/v1/health/ready/`
+### 3. Every day: start, use, stop
+```bash
+cd ~/Projects/FinGuard
+open -a Docker                  # macOS: start Docker Desktop and wait until it is running
+docker compose up -d            # start the whole stack (about 30-60 seconds)
+```
+| What | Where |
+|---|---|
+| **Application** | http://localhost:5173 |
+| API documentation (Swagger) | http://localhost:8000/api/docs/ |
+| Health (liveness / readiness) | http://localhost:8000/api/v1/health/ and `/api/v1/health/ready/` |
 
-> The backend (Daphne) does not auto-reload: run `docker compose restart backend worker` after changing backend code.
+Sign in with the Super Admin you created. A person who registers at `/register` must confirm their e-mail and then be approved with a role by a Super Admin under **Govern, User Management**.
+
+```bash
+docker compose stop             # stop, keeping all data
+docker compose logs -f backend  # follow the backend log (also: worker, frontend)
+docker compose restart backend worker   # after changing backend code (Daphne does not auto-reload)
+```
+> **Never run `docker compose down -v`**: the `-v` flag deletes the database volume and all imported data.
+
+### 4. E-mail (registration, password reset, alerts)
+By default e-mails are **printed in the worker log** (`docker compose logs worker --since 10m`). To send real mail, add these to `.env` and run `docker compose up -d --force-recreate backend worker beat`:
+```
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=1
+EMAIL_HOST_USER=<sender address>
+EMAIL_HOST_PASSWORD=<Google App Password, not the account password>
+DEFAULT_FROM_EMAIL=FinGuard <sender address>
+FRONTEND_BASE_URL=http://localhost:5173
+```
+
+### 5. Troubleshooting
+| Symptom | Cause and fix |
+|---|---|
+| Page does not load, or login fails although the password is right | The backend is not running. `docker compose ps -a`, then `docker compose up -d`; read `docker compose logs backend --tail 30`. |
+| Backend exits with `OSError: [Errno 5] Input/output error` | Docker cannot read the project files (iCloud-synced `~/Desktop` or `~/Documents`, or stalled file sharing). Move the project to `~/Projects`, then restart Docker Desktop and `docker compose up -d`. |
+| `Cannot connect to the Docker daemon` | Docker Desktop is not running: `open -a Docker`. |
+| "Too many clients" or random 500s on the dashboard | Postgres connections exhausted: `docker compose restart backend worker`. |
+| Graph pages show PostgreSQL data only; Neo4j login errors in the log | The Neo4j volume was created with an older password. Either set the original `NEO4J_PASSWORD` in `.env`, or recreate the volume (`docker compose stop neo4j && docker volume rm finguard_neo4jdata && docker compose up -d neo4j`) and rebuild with `docker compose exec backend python manage.py rebuild_neo4j <dataset-id>`. The app works without Neo4j. |
+| Account locked after failed sign-ins | Five failures lock the account for 15 minutes; wait, or ask a Super Admin to reset the password. |
 
 ### Deploy (production)
 
